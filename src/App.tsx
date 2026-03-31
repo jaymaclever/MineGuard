@@ -78,6 +78,14 @@ interface User {
   permissions?: Record<string, boolean>;
 }
 
+interface ReportPhoto {
+  id: number;
+  report_id: number;
+  photo_path: string;
+  caption: string;
+  timestamp: string;
+}
+
 interface Report {
   id: number;
   agente_id: number;
@@ -88,6 +96,7 @@ interface Report {
   gravidade: Gravidade;
   descricao: string;
   fotos_path: string;
+  photos?: ReportPhoto[];
   coords_lat: number;
   coords_lng: number;
   status: 'Aberto' | 'Concluído';
@@ -302,7 +311,7 @@ export default function App() {
   const [isBellShaking, setIsBellShaking] = useState(false);
   const [mapCenter, setMapCenter] = useState<[number, number]>([-8.8383, 13.2344]); // Angola/Luanda default
   const [isEditingReport, setIsEditingReport] = useState(false);
-  const [editingReportData, setEditingReportData] = useState<{ descricao: string; foto: File | null }>({ descricao: '', foto: null });
+  const [editingReportData, setEditingReportData] = useState<{ descricao: string; fotos: Array<{ file: File; caption: string }> }>({ descricao: '', fotos: [] });
   
   // Form States
   const [newReport, setNewReport] = useState({
@@ -312,7 +321,7 @@ export default function App() {
     descricao: '',
     coords_lat: '',
     coords_lng: '',
-    foto: null as File | null,
+    fotos: [] as Array<{ file: File; caption: string }>,
     metadata: {} as any
   });
 
@@ -530,7 +539,7 @@ export default function App() {
     if (selectedReport) {
       setEditingReportData({
         descricao: selectedReport.descricao,
-        foto: null
+        fotos: []
       });
       setIsEditingReport(false);
     }
@@ -573,7 +582,12 @@ export default function App() {
       formData.append('coords_lat', lat);
       formData.append('coords_lng', lng);
       formData.append('metadata', JSON.stringify(newReport.metadata));
-      if (newReport.foto) formData.append('foto', newReport.foto);
+      
+      // Add multiple photos with captions
+      newReport.fotos.forEach((foto, index) => {
+        formData.append(`fotos`, foto.file);
+        formData.append(`captions`, foto.caption);
+      });
 
       const res = await fetch('/api/reports', {
         method: 'POST',
@@ -591,7 +605,7 @@ export default function App() {
           descricao: '', 
           coords_lat: '', 
           coords_lng: '', 
-          foto: null,
+          fotos: [],
           metadata: {}
         });
         fetchData();
@@ -656,9 +670,12 @@ export default function App() {
       if (editingReportData.descricao !== selectedReport.descricao) {
         formData.append('descricao', editingReportData.descricao);
       }
-      if (editingReportData.foto) {
-        formData.append('foto', editingReportData.foto);
-      }
+      
+      // Add multiple photos with captions
+      editingReportData.fotos.forEach((foto) => {
+        formData.append(`fotos`, foto.file);
+        formData.append(`captions`, foto.caption);
+      });
 
       const res = await fetch(`/api/reports/${selectedReport.id}`, {
         method: 'PATCH',
@@ -1854,84 +1871,6 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* Dynamic Fields */}
-                  {newReport.categoria === 'Safety' && (
-                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="grid grid-cols-2 gap-4 p-4 bg-primary/5 border border-primary/10 rounded-xl">
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black text-primary uppercase tracking-widest">Tipo de Risco</label>
-                        <select 
-                          className="w-full bg-zinc-950 border border-zinc-800 rounded-lg py-2 px-3 text-xs focus:outline-none focus:border-primary"
-                          onChange={(e) => setNewReport({...newReport, metadata: {...newReport.metadata, tipo_risco: e.target.value}})}
-                        >
-                          <option value="">Selecionar...</option>
-                          <option value="Incidente">Incidente</option>
-                          <option value="Acidente">Acidente</option>
-                          <option value="Condição Insegura">Condição Insegura</option>
-                          <option value="Derrame">Derrame</option>
-                        </select>
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black text-primary uppercase tracking-widest">EPI em falta?</label>
-                        <select 
-                          className="w-full bg-zinc-950 border border-zinc-800 rounded-lg py-2 px-3 text-xs focus:outline-none focus:border-primary"
-                          onChange={(e) => setNewReport({...newReport, metadata: {...newReport.metadata, epi_falta: e.target.value}})}
-                        >
-                          <option value="Não">Não</option>
-                          <option value="Sim">Sim</option>
-                        </select>
-                      </div>
-                    </motion.div>
-                  )}
-
-                  {newReport.categoria === 'Manutenção' && (
-                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="grid grid-cols-2 gap-4 p-4 bg-blue-500/5 border border-blue-500/10 rounded-xl">
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black text-blue-500 uppercase tracking-widest">Equipamento Afetado</label>
-                        <input 
-                          type="text"
-                          placeholder="Ex: Torre de Iluminação"
-                          className="w-full bg-zinc-950 border border-zinc-800 rounded-lg py-2 px-3 text-xs focus:outline-none focus:border-blue-500"
-                          onChange={(e) => setNewReport({...newReport, metadata: {...newReport.metadata, equipamento: e.target.value}})}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black text-blue-500 uppercase tracking-widest">Impacto</label>
-                        <select 
-                          className="w-full bg-zinc-950 border border-zinc-800 rounded-lg py-2 px-3 text-xs focus:outline-none focus:border-blue-500"
-                          onChange={(e) => setNewReport({...newReport, metadata: {...newReport.metadata, impacto: e.target.value}})}
-                        >
-                          <option value="Sem Impacto">Sem Impacto</option>
-                          <option value="Parada Parcial">Parada Parcial</option>
-                          <option value="Parada Total">Parada Total</option>
-                        </select>
-                      </div>
-                    </motion.div>
-                  )}
-
-                  {newReport.categoria === 'Valores' && (
-                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="grid grid-cols-2 gap-4 p-4 bg-green-500/5 border border-green-500/10 rounded-xl">
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black text-green-500 uppercase tracking-widest">Tipo de Carga</label>
-                        <select 
-                          className="w-full bg-zinc-950 border border-zinc-800 rounded-lg py-2 px-3 text-xs focus:outline-none focus:border-green-500"
-                          onChange={(e) => setNewReport({...newReport, metadata: {...newReport.metadata, tipo_carga: e.target.value}})}
-                        >
-                          <option value="Diamantes">Diamantes</option>
-                          <option value="Concentrado">Concentrado</option>
-                          <option value="Outros">Outros</option>
-                        </select>
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black text-green-500 uppercase tracking-widest">Código Selagem</label>
-                        <input 
-                          type="text"
-                          placeholder="Ex: SL-9922"
-                          className="w-full bg-zinc-950 border border-zinc-800 rounded-lg py-2 px-3 text-xs focus:outline-none focus:border-green-500"
-                          onChange={(e) => setNewReport({...newReport, metadata: {...newReport.metadata, codigo_selagem: e.target.value}})}
-                        />
-                      </div>
-                    </motion.div>
-                  )}
 
                   <div className="space-y-2">
                     <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Descrição da Ocorrência</label>
@@ -1945,9 +1884,9 @@ export default function App() {
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Anexar Foto</label>
+                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Galeria de Evidências</label>
                     <div 
-                      className="relative group"
+                      className="relative group mb-3"
                       onDragOver={(e) => {
                         e.preventDefault();
                         e.currentTarget.classList.add('border-primary/70', 'bg-primary/5');
@@ -1959,41 +1898,62 @@ export default function App() {
                         e.preventDefault();
                         e.currentTarget.classList.remove('border-primary/70', 'bg-primary/5');
                         const files = e.dataTransfer.files;
-                        if (files.length > 0) {
-                          const file = files[0];
+                        Array.from(files).forEach(file => {
                           if (file.type.startsWith('image/')) {
-                            setNewReport({...newReport, foto: file});
+                            setNewReport({...newReport, fotos: [...newReport.fotos, { file, caption: '' }]});
                           }
-                        }
+                        });
                       }}
                     >
                       <input 
                         type="file"
                         accept="image/*"
+                        multiple
                         className="hidden"
-                        id="report-photo"
-                        onChange={(e) => setNewReport({...newReport, foto: e.target.files?.[0] || null})}
+                        id="report-photos"
+                        onChange={(e) => {
+                          const newFiles = Array.from(e.target.files || []).map(f => ({ file: f as File, caption: '' }));
+                          setNewReport({...newReport, fotos: [...newReport.fotos, ...newFiles]});
+                        }}
                       />
                       <label 
-                        htmlFor="report-photo"
+                        htmlFor="report-photos"
                         className="flex items-center justify-center gap-3 w-full bg-zinc-900 border-2 border-dashed border-zinc-800 rounded-xl py-6 cursor-pointer hover:border-primary/50 hover:bg-zinc-900/50 transition-all"
                       >
                         <Camera className="text-zinc-500 group-hover:text-primary transition-colors" size={24} />
                         <span className="text-xs font-bold text-zinc-500 group-hover:text-zinc-300">
-                          {newReport.foto ? `📷 ${newReport.foto.name}` : "Clique ou arraste uma foto aqui"}
+                          Clique ou arraste múltiplas fotos aqui
                         </span>
                       </label>
                     </div>
-                    {newReport.foto && (
-                      <div className="flex items-center justify-between bg-zinc-900/50 border border-green-500/30 rounded-lg p-3 gap-2">
-                        <span className="text-xs font-bold text-green-500">✓ Foto selecionada</span>
-                        <button 
-                          type="button" 
-                          onClick={() => setNewReport({...newReport, foto: null})}
-                          className="text-[10px] font-bold text-zinc-500 hover:text-red-500 transition-colors"
-                        >
-                          REMOVER
-                        </button>
+                    
+                    {newReport.fotos.length > 0 && (
+                      <div className="space-y-2">
+                        {newReport.fotos.map((foto, idx) => (
+                          <div key={idx} className="bg-zinc-900/50 border border-zinc-800 rounded-lg p-3 space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-bold text-zinc-300">📷 {foto.file.name}</span>
+                              <button 
+                                type="button" 
+                                onClick={() => setNewReport({...newReport, fotos: newReport.fotos.filter((_, i) => i !== idx)})}
+                                className="text-[10px] font-bold text-red-500 hover:text-red-400 transition-colors"
+                              >
+                                ✕ REMOVER
+                              </button>
+                            </div>
+                            <input 
+                              type="text"
+                              placeholder="Legenda/descrição desta foto..."
+                              value={foto.caption}
+                              onChange={(e) => {
+                                const newFotos = [...newReport.fotos];
+                                newFotos[idx].caption = e.target.value;
+                                setNewReport({...newReport, fotos: newFotos});
+                              }}
+                              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg py-2 px-3 text-xs text-zinc-200 focus:outline-none focus:border-primary"
+                            />
+                          </div>
+                        ))}
                       </div>
                     )}
                   </div>
@@ -2079,64 +2039,96 @@ export default function App() {
                   </div>
 
                   <div>
-                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-2">Evidência Fotográfica</label>
+                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-2">Galeria de Evidências</label>
                     {isEditingReport && selectedReport.status === 'Aberto' ? (
-                      <div 
-                        className="aspect-video rounded-xl border-2 border-dashed border-zinc-800 hover:border-primary/50 transition-all flex flex-col items-center justify-center text-zinc-600 cursor-pointer bg-zinc-900/20"
-                        onDragOver={(e) => {
-                          e.preventDefault();
-                          e.currentTarget.classList.add('border-primary/70', 'bg-primary/5');
-                        }}
-                        onDragLeave={(e) => {
-                          e.currentTarget.classList.remove('border-primary/70', 'bg-primary/5');
-                        }}
-                        onDrop={(e) => {
-                          e.preventDefault();
-                          e.currentTarget.classList.remove('border-primary/70', 'bg-primary/5');
-                          const files = e.dataTransfer.files;
-                          if (files.length > 0 && files[0].type.startsWith('image/')) {
-                            setEditingReportData({...editingReportData, foto: files[0]});
-                          }
-                        }}
-                      >
-                        <input 
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          id="edit-report-photo"
-                          onChange={(e) => setEditingReportData({...editingReportData, foto: e.target.files?.[0] || null})}
-                        />
-                        <label htmlFor="edit-report-photo" className="flex flex-col items-center justify-center w-full h-full cursor-pointer">
-                          <Camera size={32} strokeWidth={1} />
-                          <p className="text-[10px] font-bold mt-2 uppercase tracking-widest">Clique ou arraste foto</p>
-                        </label>
+                      <div className="space-y-3">
+                        <div 
+                          className="border-2 border-dashed border-zinc-800 hover:border-primary/50 transition-all flex flex-col items-center justify-center text-zinc-600 cursor-pointer bg-zinc-900/20 rounded-xl py-6"
+                          onDragOver={(e) => {
+                            e.preventDefault();
+                            e.currentTarget.classList.add('border-primary/70', 'bg-primary/5');
+                          }}
+                          onDragLeave={(e) => {
+                            e.currentTarget.classList.remove('border-primary/70', 'bg-primary/5');
+                          }}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            e.currentTarget.classList.remove('border-primary/70', 'bg-primary/5');
+                            const files = e.dataTransfer.files;
+                            Array.from(files).forEach(file => {
+                              if (file.type.startsWith('image/')) {
+                                setEditingReportData({...editingReportData, fotos: [...editingReportData.fotos, { file, caption: '' }]});
+                              }
+                            });
+                          }}
+                        >
+                          <input 
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            className="hidden"
+                            id="edit-report-photos"
+                            onChange={(e) => {
+                              const newFiles = Array.from(e.target.files || []).map(f => ({ file: f as File, caption: '' }));
+                              setEditingReportData({...editingReportData, fotos: [...editingReportData.fotos, ...newFiles]});
+                            }}
+                          />
+                          <label htmlFor="edit-report-photos" className="flex flex-col items-center justify-center w-full cursor-pointer">
+                            <Camera size={32} strokeWidth={1} />
+                            <p className="text-[10px] font-bold mt-2 uppercase tracking-widest">Clique ou arraste múltiplas fotos</p>
+                          </label>
+                        </div>
+                        
+                        {editingReportData.fotos.map((foto, idx) => (
+                          <div key={idx} className="bg-zinc-900/50 border border-zinc-800 rounded-lg p-3 space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-bold text-zinc-300">📷 {foto.file.name}</span>
+                              <button 
+                                type="button" 
+                                onClick={() => setEditingReportData({...editingReportData, fotos: editingReportData.fotos.filter((_, i) => i !== idx)})}
+                                className="text-[10px] font-bold text-red-500 hover:text-red-400 transition-colors"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                            <input 
+                              type="text"
+                              placeholder="Legenda/descrição..."
+                              value={foto.caption}
+                              onChange={(e) => {
+                                const newFotos = [...editingReportData.fotos];
+                                newFotos[idx].caption = e.target.value;
+                                setEditingReportData({...editingReportData, fotos: newFotos});
+                              }}
+                              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg py-2 px-3 text-xs text-zinc-200 focus:outline-none focus:border-primary"
+                            />
+                          </div>
+                        ))}
                       </div>
-                    ) : selectedReport.fotos_path || (isEditingReport && editingReportData.foto) ? (
-                      <div className="aspect-video rounded-xl overflow-hidden border border-zinc-800 bg-zinc-900 group relative">
-                        <img 
-                          src={editingReportData.foto ? URL.createObjectURL(editingReportData.foto) : selectedReport.fotos_path} 
-                          alt="Evidência" 
-                          className="w-full h-full object-cover" 
-                        />
-                        {isEditingReport && selectedReport.status === 'Aberto' && (
-                          <button
-                            type="button"
-                            onClick={() => setEditingReportData({...editingReportData, foto: null})}
-                            className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white p-2 rounded-lg text-[10px] font-bold"
-                          >
-                            REMOVER
-                          </button>
-                        )}
-                        {!isEditingReport && (
-                          <a 
-                            href={selectedReport.fotos_path} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all backdrop-blur-sm"
-                          >
-                            <span className="text-[10px] font-black text-white uppercase tracking-widest border border-white/20 px-4 py-2 rounded-lg">Ver em tamanho real</span>
-                          </a>
-                        )}
+                    ) : selectedReport.photos && selectedReport.photos.length > 0 ? (
+                      <div className="grid grid-cols-2 gap-3">
+                        {selectedReport.photos.map((photo) => (
+                          <div key={photo.id} className="space-y-2">
+                            <div className="aspect-square rounded-lg overflow-hidden border border-zinc-800 bg-zinc-900 group relative">
+                              <img 
+                                src={photo.photo_path} 
+                                alt={photo.caption || "Evidência"} 
+                                className="w-full h-full object-cover" 
+                              />
+                              <a 
+                                href={photo.photo_path} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all backdrop-blur-sm"
+                              >
+                                <span className="text-[10px] font-black text-white uppercase tracking-widest">Ver</span>
+                              </a>
+                            </div>
+                            {photo.caption && (
+                              <p className="text-[10px] text-zinc-400 leading-relaxed">{photo.caption}</p>
+                            )}
+                          </div>
+                        ))}
                       </div>
                     ) : (
                       <div className="aspect-video rounded-xl border-2 border-dashed border-zinc-800 flex flex-col items-center justify-center text-zinc-600">
@@ -2164,19 +2156,6 @@ export default function App() {
                     )}
                   </div>
 
-                  {selectedReport.metadata && Object.keys(selectedReport.metadata).length > 0 && (
-                    <div>
-                      <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-2">Dados Adicionais (Metadata)</label>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                        {Object.entries(selectedReport.metadata).map(([key, value]) => (
-                          <div key={key} className="bg-zinc-900 border border-zinc-800 p-3 rounded-lg">
-                            <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1">{key.replace('_', ' ')}</p>
-                            <p className="text-xs font-bold text-primary">{value as string}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
 
                   <div className="pt-4 flex items-center gap-6 border-t border-zinc-800/50">
                     <div className="flex items-center gap-2">

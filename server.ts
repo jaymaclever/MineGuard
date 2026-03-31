@@ -62,6 +62,15 @@ db.exec(`
     FOREIGN KEY(agente_id) REFERENCES users(id)
   );
 
+  CREATE TABLE IF NOT EXISTS report_photos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    report_id INTEGER NOT NULL,
+    photo_path TEXT NOT NULL,
+    caption TEXT,
+    timestamp TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(report_id) REFERENCES reports(id) ON DELETE CASCADE
+  );
+
   -- Seed default system settings if empty
   INSERT OR IGNORE INTO system_settings (key, value, description) VALUES ('app_name', 'MINEGUARD', 'Nome da aplicação');
   INSERT OR IGNORE INTO system_settings (key, value, description) VALUES ('app_slogan', 'Security Operating System', 'Slogan da aplicação');
@@ -702,9 +711,9 @@ async function startServer() {
   });
 
   // Edit report (update description and/or photo) - only for open reports
-  app.patch("/api/reports/:id", authenticate, upload.single("foto"), (req: any, res) => {
+  app.patch("/api/reports/:id", authenticate, upload.array("fotos", 20), (req: any, res) => {
     const { id } = req.params;
-    const { descricao } = req.body;
+    const { descricao, captions } = req.body;
 
     try {
       // Check if report exists and is open
@@ -730,37 +739,47 @@ async function startServer() {
         values.push(descricao);
       }
 
-      if (req.file) {
-        const photoPath = `/uploads/${Date.now()}_${req.file.filename}`;
-        updateQuery += "fotos_path = ?, ";
-        values.push(photoPath);
+      // Remove trailing comma and space if there are updates
+      if (values.length > 0) {
+        updateQuery = updateQuery.slice(0, -2);
+      } else {
+        updateQuery = updateQuery.slice(0, -6); // Remove " SET "
       }
-
-      // Remove trailing comma and space
-      updateQuery = updateQuery.slice(0, -2);
-      updateQuery += " WHERE id = ?";
+      
+      if (values.length > 0) {
+        updateQuery += " WHERE id = ?";
+      } else {
+        updateQuery = "UPDATE reports SET id = id WHERE id = ?"; // No-op if nothing to update
+      }
       values.push(id);
 
-      if (values.length === 1) {
-        // No changes to make
-        return res.json({ status: 'success', message: 'Nenhuma alteração foi feita', report });
+      const result = values.length > 1 ? db.prepare(updateQuery).run(...values) : { changes: 0 };
+      
+      // Add new photos
+      if (req.files && req.files.length > 0) {
+        const photoCaptions = Array.isArray(captions) ? captions : (captions ? [captions] : []);
+        const insertPhoto = db.prepare("INSERT INTO report_photos (report_id, photo_path, caption) VALUES (?, ?, ?)");
+        
+        req.files.forEach((file: any, index: number) => {
+          const photoPath = `/uploads/${file.filename}`;
+          const caption = photoCaptions[index] || '';
+          insertPhoto.run(id, photoPath, caption);
+        });
       }
 
-      const result = db.prepare(updateQuery).run(...values);
-      if (result.changes > 0) {
-        // Fetch updated report
-        const updatedReport = db.prepare(`
-          SELECT r.*, u.nome as agente_nome, u.nivel_hierarquico as agente_nivel 
-          FROM reports r 
-          LEFT JOIN users u ON r.agente_id = u.id 
-          WHERE r.id = ?
-        `).get(id);
+      // Fetch updated report with photos
+      const updatedReport = db.prepare(`
+        SELECT r.*, u.nome as agente_nome, u.nivel_hierarquico as agente_nivel 
+        FROM reports r 
+        LEFT JOIN users u ON r.agente_id = u.id 
+        WHERE r.id = ?
+      `).get(id) as any;
+      
+      const photos = db.prepare("SELECT * FROM report_photos WHERE report_id = ?").all(id);
+      updatedReport.photos = photos;
 
-        io.emit('report_updated', updatedReport);
-        res.json({ status: 'success', message: 'Relatório atualizado com sucesso', report: updatedReport });
-      } else {
-        res.status(500).json({ status: 'error', message: 'Falha ao atualizar relatório' });
-      }
+      io.emit('report_updated', updatedReport);
+      res.json({ status: 'success', message: 'Relatório atualizado com sucesso', report: updatedReport });
     } catch (err: any) {
       console.error("Erro ao atualizar relatório:", err);
       res.status(500).json({ status: 'error', message: err.message });
@@ -811,7 +830,11 @@ async function startServer() {
 
     query += ` ORDER BY r.timestamp DESC`;
 
-    const reports = db.prepare(query).all(...params);
+    const reports = db.prepare(query).all(...params) as any[];
+    // Add photos to each report
+    reports.forEach((report) => {
+      report.photos = db.prepare("SELECT * FROM report_photos WHERE report_id = ?").all(report.id);
+    });
     res.json(reports);
   });
 
@@ -840,18 +863,22 @@ async function startServer() {
       }
 
       query += ` ORDER BY r.timestamp DESC`;
-      const reports = db.prepare(query).all(...params);
+      const reports = db.prepare(query).all(...params) as any[];
+      // Add photos to each report
+      reports.forEach((report) => {
+        report.photos = db.prepare("SELECT * FROM report_photos WHERE report_id = ?").all(report.id);
+      });
       res.json(reports);
     } catch (err: any) {
       res.status(500).json({ status: "error", message: err.message });
     }
   });
 
-  app.post("/api/reports", authenticate, checkPermission('create_reports'), upload.single("foto"), async (req: any, res) => {
+  app.post("/api/reports", authenticate, checkPermission('create_reports'), upload.array("fotos", 20), async (req: any, res) => {
     try {
-      const { titulo, categoria, gravidade, descricao, coords_lat, coords_lng, metadata } = req.body;
+      const { titulo, categoria, gravidade, descricao, coords_lat, coords_lng, metadata, captions } = req.body;
       const agente_id = req.user.id;
-      const fotos_path = req.file ? `/uploads/${req.file.filename}` : null;
+      const fotos_path = req.files && req.files.length > 0 ? `/uploads/${req.files[0].filename}` : null;
       
       if (!categoria || !gravidade || !descricao) {
         return res.status(400).json({ status: "error", message: "Missing required fields" });
@@ -863,6 +890,18 @@ async function startServer() {
       `);
       
       const result = stmt.run(agente_id, titulo || null, categoria, gravidade, descricao, metadata || null, fotos_path, coords_lat || null, coords_lng || null);
+      
+      // Add photos to report_photos table
+      if (req.files && req.files.length > 0) {
+        const photoCaptions = Array.isArray(captions) ? captions : (captions ? [captions] : []);
+        const insertPhoto = db.prepare("INSERT INTO report_photos (report_id, photo_path, caption) VALUES (?, ?, ?)");
+        
+        req.files.forEach((file: any, index: number) => {
+          const photoPath = `/uploads/${file.filename}`;
+          const caption = photoCaptions[index] || '';
+          insertPhoto.run(result.lastInsertRowid, photoPath, caption);
+        });
+      }
       
       const newReport = {
         id: result.lastInsertRowid,
