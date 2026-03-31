@@ -278,7 +278,7 @@ const Login = ({ onLogin, publicSettings }: { onLogin: (user: any) => void, publ
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'reports' | 'users' | 'permissions' | 'daily_reports' | 'settings'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'reports' | 'users' | 'permissions' | 'daily_reports' | 'personal_reports' | 'settings'>('dashboard');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
   const [filterSeverity, setFilterSeverity] = useState('');
@@ -289,6 +289,9 @@ export default function App() {
   const [roles, setRoles] = useState<{ nivel_hierarquico: string, peso: number }[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [dailyReports, setDailyReports] = useState<any[]>([]);
+  const [personalReports, setPersonalReports] = useState<Report[]>([]);
+  const [personalReportsStartDate, setPersonalReportsStartDate] = useState('');
+  const [personalReportsEndDate, setPersonalReportsEndDate] = useState('');
   const [systemSettings, setSystemSettings] = useState<any[]>([]);
   const [publicSettings, setPublicSettings] = useState<any>({
     app_name: 'MINEGUARD',
@@ -517,6 +520,31 @@ export default function App() {
   useEffect(() => {
     fetchData();
   }, [activeTab, searchQuery, filterCategory, filterSeverity, currentUser]);
+
+  // Fetch Personal Reports
+  const fetchPersonalReports = async () => {
+    if (!currentUser) return;
+    try {
+      const params = new URLSearchParams();
+      if (personalReportsStartDate) params.append('startDate', personalReportsStartDate);
+      if (personalReportsEndDate) params.append('endDate', personalReportsEndDate);
+      
+      const res = await fetch(`/api/reports/personal?${params.toString()}`, { credentials: 'include' });
+      if (res.ok) {
+        const data = await res.json();
+        setPersonalReports(data);
+      }
+    } catch (err) {
+      console.error("Erro ao buscar relatórios pessoais:", err);
+      toast.error("Erro ao carregar relatórios pessoais");
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'personal_reports') {
+      fetchPersonalReports();
+    }
+  }, [activeTab, personalReportsStartDate, personalReportsEndDate, currentUser]);
 
   // Get user's geolocation for map
   useEffect(() => {
@@ -767,6 +795,7 @@ export default function App() {
           {currentUser.permissions?.view_dashboard === true && <SidebarItem icon={Activity} label={publicSettings.app_layout === 'compact' ? "" : "Dashboard"} active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} />}
           {currentUser.permissions?.view_reports === true && <SidebarItem icon={FileText} label={publicSettings.app_layout === 'compact' ? "" : "Ocorrências"} active={activeTab === 'reports'} onClick={() => setActiveTab('reports')} />}
           {currentUser.permissions?.view_daily_reports === true && <SidebarItem icon={Calendar} label={publicSettings.app_layout === 'compact' ? "" : "Relatórios Diários"} active={activeTab === 'daily_reports'} onClick={() => setActiveTab('daily_reports')} />}
+          <SidebarItem icon={FileText} label={publicSettings.app_layout === 'compact' ? "" : "Meus Relatórios"} active={activeTab === 'personal_reports'} onClick={() => setActiveTab('personal_reports')} />
           {currentUser.permissions?.manage_users === true && <SidebarItem icon={Users} label={publicSettings.app_layout === 'compact' ? "" : "Gestão de Pessoal"} active={activeTab === 'users'} onClick={() => setActiveTab('users')} />}
           {currentUser.permissions?.manage_permissions === true && <SidebarItem icon={Lock} label={publicSettings.app_layout === 'compact' ? "" : "Permissões & Roles"} active={activeTab === 'permissions'} onClick={() => setActiveTab('permissions')} />}
           {currentUser.permissions?.manage_settings === true && <SidebarItem icon={SettingsIcon} label={publicSettings.app_layout === 'compact' ? "" : "Configurações"} active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} />}
@@ -1354,6 +1383,124 @@ export default function App() {
                     <div className="py-20 text-center">
                       <Search className="mx-auto text-zinc-800 mb-4" size={48} />
                       <p className="text-zinc-500 font-bold uppercase tracking-widest text-xs">Nenhum registro encontrado</p>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            )}
+
+            {activeTab === 'personal_reports' && (
+              <motion.div 
+                key="personal_reports"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="space-y-6"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-2xl font-black tracking-tighter">MEUS RELATÓRIOS</h2>
+                    <p className="text-sm text-zinc-500">Histórico pessoal de ocorrências registradas.</p>
+                  </div>
+                </div>
+
+                <div className="bg-zinc-900/30 border border-zinc-800/50 rounded-xl p-4 space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Data Inicial</label>
+                      <input 
+                        type="date" 
+                        value={personalReportsStartDate}
+                        onChange={(e) => setPersonalReportsStartDate(e.target.value)}
+                        className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-primary"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Data Final</label>
+                      <input 
+                        type="date" 
+                        value={personalReportsEndDate}
+                        onChange={(e) => setPersonalReportsEndDate(e.target.value)}
+                        className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-primary"
+                      />
+                    </div>
+                    <div className="space-y-2 flex flex-col justify-end">
+                      <button 
+                        onClick={() => {
+                          setPersonalReportsStartDate('');
+                          setPersonalReportsEndDate('');
+                        }}
+                        className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-black text-[10px] px-4 py-2 rounded-lg transition-all uppercase tracking-widest"
+                      >
+                        Limpar Filtros
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-zinc-900/30 border border-zinc-800/50 rounded-xl overflow-hidden">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-zinc-800 bg-zinc-900/50">
+                        <th className="hidden md:table-cell px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">ID</th>
+                        <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">Título / Descrição</th>
+                        <th className="hidden lg:table-cell px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">Categoria</th>
+                        <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">Gravidade</th>
+                        <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">Status</th>
+                        <th className="hidden md:table-cell px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">Data/Hora</th>
+                        <th className="px-6 py-4"></th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-zinc-800/50">
+                      {personalReports.map((report) => (
+                        <tr 
+                          key={report.id} 
+                          onClick={() => setSelectedReport(report)}
+                          className="hover:bg-zinc-800/20 transition-colors group cursor-pointer"
+                        >
+                          <td className="hidden md:table-cell px-6 py-4 font-mono text-xs text-zinc-500">#{report.id}</td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-3">
+                              {report.fotos_path && (
+                                <div className="w-10 h-10 rounded-lg overflow-hidden border border-zinc-800 shrink-0">
+                                  <img src={report.fotos_path} alt="Evidência" className="w-full h-full object-cover" />
+                                </div>
+                              )}
+                              <div>
+                                <p className="font-bold text-zinc-100 text-sm">{report.titulo || 'Sem título'}</p>
+                                <p className="text-xs text-zinc-500 line-clamp-1">{report.descricao}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="hidden lg:table-cell px-6 py-4 text-sm text-zinc-400">{report.categoria}</td>
+                          <td className="px-6 py-4">
+                            <Badge gravidade={report.gravidade} />
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className={cn("text-xs font-bold px-2 py-1 rounded uppercase", 
+                              report.status === 'Concluído' 
+                                ? 'bg-green-500/10 text-green-400' 
+                                : 'bg-amber-500/10 text-amber-400'
+                            )}>
+                              {report.status || 'Aberto'}
+                            </span>
+                          </td>
+                          <td className="hidden md:table-cell px-6 py-4 text-xs text-zinc-500">
+                            {new Date(report.timestamp).toLocaleDateString('pt-BR')} {new Date(report.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <button className="text-zinc-600 hover:text-primary transition-colors group-hover:opacity-100 opacity-0">
+                              <ChevronRight size={18} />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  {personalReports.length === 0 && (
+                    <div className="py-20 text-center">
+                      <Search className="mx-auto text-zinc-800 mb-4" size={48} />
+                      <p className="text-zinc-500 font-bold uppercase tracking-widest text-xs">Nenhum relatório encontrado nesse período</p>
                     </div>
                   )}
                 </div>

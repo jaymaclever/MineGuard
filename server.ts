@@ -874,6 +874,41 @@ async function startServer() {
     }
   });
 
+  // Personal Reports API - User's own reports with date range
+  app.get("/api/reports/personal", authenticate, (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const { startDate, endDate } = req.query;
+      
+      let query = `
+        SELECT r.*, u.nome as agente_nome, u.nivel_hierarquico as agente_nivel 
+        FROM reports r 
+        JOIN users u ON r.agente_id = u.id 
+        WHERE r.agente_id = ?
+      `;
+      const params: any[] = [userId];
+
+      if (startDate) {
+        query += ` AND DATE(r.timestamp) >= ?`;
+        params.push(startDate);
+      }
+      if (endDate) {
+        query += ` AND DATE(r.timestamp) <= ?`;
+        params.push(endDate);
+      }
+
+      query += ` ORDER BY r.timestamp DESC`;
+
+      const reports = db.prepare(query).all(...params) as any[];
+      reports.forEach((report) => {
+        report.photos = db.prepare("SELECT * FROM report_photos WHERE report_id = ?").all(report.id);
+      });
+      res.json(reports);
+    } catch (err: any) {
+      res.status(500).json({ status: "error", message: err.message });
+    }
+  });
+
   app.post("/api/reports", authenticate, checkPermission('create_reports'), upload.array("fotos", 20), async (req: any, res) => {
     try {
       const { titulo, categoria, gravidade, descricao, coords_lat, coords_lng, metadata, captions } = req.body;
