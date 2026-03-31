@@ -300,6 +300,7 @@ export default function App() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isBellShaking, setIsBellShaking] = useState(false);
+  const [mapCenter, setMapCenter] = useState<[number, number]>([-8.8383, 13.2344]); // Angola/Luanda default
   
   // Form States
   const [newReport, setNewReport] = useState({
@@ -505,6 +506,22 @@ export default function App() {
   useEffect(() => {
     fetchData();
   }, [activeTab, searchQuery, filterCategory, filterSeverity, currentUser]);
+
+  // Get user's geolocation for map
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setMapCenter([position.coords.latitude, position.coords.longitude]);
+        },
+        (error) => {
+          console.log("Geolocation denied or unavailable, using Angola default:", error);
+          // Keep Angola default
+        },
+        { timeout: 10000 }
+      );
+    }
+  }, []);
 
   // Actions
   const handleCreateReport = async (e: React.FormEvent) => {
@@ -1007,7 +1024,7 @@ export default function App() {
                 <Card title="Mapa de Operações" subtitle="Localização em tempo real das ocorrências registradas">
                   <div className="h-[400px] bg-zinc-950 rounded-xl relative overflow-hidden border border-zinc-800/50 z-0">
                     <MapContainer 
-                      center={[-23.5505, -46.6333]} 
+                      center={mapCenter} 
                       zoom={13} 
                       scrollWheelZoom={false} 
                       style={{ height: '100%', width: '100%', background: '#0a0a0a' }}
@@ -1043,7 +1060,7 @@ export default function App() {
                         <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
                         <span>SISTEMA ATIVO</span>
                       </div>
-                      <p>COORDENADAS: 23.5505° S, 46.6333° W</p>
+                      <p>COORDENADAS: {Math.abs(mapCenter[0]).toFixed(4)}° {mapCenter[0] < 0 ? 'S' : 'N'}, {Math.abs(mapCenter[1]).toFixed(4)}° {mapCenter[1] > 0 ? 'E' : 'W'}</p>
                     </div>
                   </div>
                 </Card>
