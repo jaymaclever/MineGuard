@@ -938,6 +938,41 @@ async function startServer() {
     }
   });
 
+  // Daily Report Team - Team's consolidated daily report (for supervisors/managers)
+  app.get("/api/reports/daily-team", authenticate, (req: any, res) => {
+    try {
+      const userWeight = req.user.peso || 0;
+      const today = new Date().toISOString().split('T')[0];
+
+      // Get reports from team members (lower weight = lower hierarchy)
+      const reports = db.prepare(`
+        SELECT r.*, u.nome as agente_nome, u.nivel_hierarquico as agente_nivel
+        FROM reports r
+        JOIN users u ON r.agente_id = u.id
+        JOIN role_weights rw ON u.nivel_hierarquico = rw.nivel_hierarquico
+        WHERE rw.peso < ? AND DATE(r.timestamp) = ?
+      `).all(userWeight, today) as any[];
+
+      const summary = {
+        totalReports: reports.length,
+        byGravity: { G1: 0, G2: 0, G3: 0, G4: 0 },
+        byCategory: {} as any,
+        byAgent: {} as any,
+        reports: reports
+      };
+
+      reports.forEach((r: any) => {
+        summary.byGravity[r.gravidade as keyof typeof summary.byGravity]++;
+        summary.byCategory[r.categoria] = (summary.byCategory[r.categoria] || 0) + 1;
+        summary.byAgent[r.agente_nome] = (summary.byAgent[r.agente_nome] || 0) + 1;
+      });
+
+      res.json(summary);
+    } catch (err: any) {
+      res.status(500).json({ status: "error", message: err.message });
+    }
+  });
+
   app.post("/api/reports", authenticate, checkPermission('create_reports'), upload.array("fotos", 20), async (req: any, res) => {
     try {
       const { titulo, categoria, gravidade, descricao, coords_lat, coords_lng, metadata, captions } = req.body;

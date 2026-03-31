@@ -278,7 +278,7 @@ const Login = ({ onLogin, publicSettings }: { onLogin: (user: any) => void, publ
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'reports' | 'users' | 'permissions' | 'daily_reports' | 'personal_reports' | 'daily_report_personal' | 'settings'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'reports' | 'users' | 'permissions' | 'daily_reports' | 'personal_reports' | 'daily_report_personal' | 'daily_report_team' | 'settings'>('dashboard');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
   const [filterSeverity, setFilterSeverity] = useState('');
@@ -293,6 +293,7 @@ export default function App() {
   const [personalReportsStartDate, setPersonalReportsStartDate] = useState('');
   const [personalReportsEndDate, setPersonalReportsEndDate] = useState('');
   const [dailyReportPersonal, setDailyReportPersonal] = useState<any>(null);
+  const [dailyReportTeam, setDailyReportTeam] = useState<any>(null);
   const [showReportPreview, setShowReportPreview] = useState(false);
   const [systemSettings, setSystemSettings] = useState<any[]>([]);
   const [publicSettings, setPublicSettings] = useState<any>({
@@ -567,6 +568,25 @@ export default function App() {
     }
   }, [activeTab, currentUser]);
 
+  const fetchDailyReportTeam = async () => {
+    if (!currentUser || (currentUser.peso || 0) < 50) return;
+    try {
+      const res = await fetch('/api/reports/daily-team', { credentials: 'include' });
+      if (res.ok) {
+        const data = await res.json();
+        setDailyReportTeam(data);
+      }
+    } catch (err) {
+      console.error("Erro ao buscar relatório da equipe:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'daily_report_team') {
+      fetchDailyReportTeam();
+    }
+  }, [activeTab, currentUser]);
+
   // Get user's geolocation for map
   useEffect(() => {
     if (navigator.geolocation) {
@@ -818,6 +838,7 @@ export default function App() {
           {currentUser.permissions?.view_daily_reports === true && <SidebarItem icon={Calendar} label={publicSettings.app_layout === 'compact' ? "" : "Relatórios Diários"} active={activeTab === 'daily_reports'} onClick={() => setActiveTab('daily_reports')} />}
           <SidebarItem icon={FileText} label={publicSettings.app_layout === 'compact' ? "" : "Meus Relatórios"} active={activeTab === 'personal_reports'} onClick={() => setActiveTab('personal_reports')} />
           <SidebarItem icon={Calendar} label={publicSettings.app_layout === 'compact' ? "" : "Meu Dia"} active={activeTab === 'daily_report_personal'} onClick={() => setActiveTab('daily_report_personal')} />
+          {(currentUser.peso || 0) >= 50 && <SidebarItem icon={Users} label={publicSettings.app_layout === 'compact' ? "" : "Dia da Equipe"} active={activeTab === 'daily_report_team'} onClick={() => setActiveTab('daily_report_team')} />}
           {currentUser.permissions?.manage_users === true && <SidebarItem icon={Users} label={publicSettings.app_layout === 'compact' ? "" : "Gestão de Pessoal"} active={activeTab === 'users'} onClick={() => setActiveTab('users')} />}
           {currentUser.permissions?.manage_permissions === true && <SidebarItem icon={Lock} label={publicSettings.app_layout === 'compact' ? "" : "Permissões & Roles"} active={activeTab === 'permissions'} onClick={() => setActiveTab('permissions')} />}
           {currentUser.permissions?.manage_settings === true && <SidebarItem icon={SettingsIcon} label={publicSettings.app_layout === 'compact' ? "" : "Configurações"} active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} />}
@@ -1644,6 +1665,129 @@ export default function App() {
                   <div className="py-20 text-center">
                     <Calendar className="mx-auto text-zinc-800 mb-4" size={48} />
                     <p className="text-zinc-500 font-bold uppercase tracking-widest text-xs">Nenhuma ocorrência registrada hoje</p>
+                  </div>
+                )}
+              </motion.div>
+            )}
+
+            {activeTab === 'daily_report_team' && (
+              <motion.div 
+                key="daily_report_team"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="space-y-6"
+              >
+                <div>
+                  <h2 className="text-2xl font-black tracking-tighter">DIA DA EQUIPE</h2>
+                  <p className="text-sm text-zinc-500">{new Date().toLocaleDateString('pt-BR')}</p>
+                </div>
+
+                {dailyReportTeam && dailyReportTeam.totalReports > 0 ? (
+                  <>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                      <Card className="border-primary/30 bg-primary/5">
+                        <div className="text-center">
+                          <p className="text-3xl font-black text-primary">{dailyReportTeam.totalReports}</p>
+                          <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mt-2">Ocorrências da Equipe</p>
+                        </div>
+                      </Card>
+                      
+                      <Card className="border-red-500/30 bg-red-500/5">
+                        <div className="text-center">
+                          <p className="text-3xl font-black text-red-400">{dailyReportTeam.byGravity.G4}</p>
+                          <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mt-2">Crítica (G4)</p>
+                        </div>
+                      </Card>
+
+                      <Card className="border-orange-500/30 bg-orange-500/5">
+                        <div className="text-center">
+                          <p className="text-3xl font-black text-orange-400">{dailyReportTeam.byGravity.G3}</p>
+                          <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mt-2">Alta (G3)</p>
+                        </div>
+                      </Card>
+
+                      <Card className="border-yellow-500/30 bg-yellow-500/5">
+                        <div className="text-center">
+                          <p className="text-3xl font-black text-yellow-400">{dailyReportTeam.byGravity.G2 + dailyReportTeam.byGravity.G1}</p>
+                          <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mt-2">Baixa/Média</p>
+                        </div>
+                      </Card>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                      <Card title="Ocorrências por Agente">
+                        <div className="space-y-3">
+                          {Object.entries(dailyReportTeam.byAgent).map(([agent, count]: [string, any]) => (
+                            <div key={agent} className="flex items-center justify-between">
+                              <span className="text-sm text-zinc-300">{agent}</span>
+                              <div className="flex items-center gap-2">
+                                <div className="w-24 h-2 bg-zinc-800 rounded-full overflow-hidden">
+                                  <div 
+                                    className="h-full bg-primary rounded-full" 
+                                    style={{width: `${(count / dailyReportTeam.totalReports) * 100}%`}}
+                                  />
+                                </div>
+                                <span className="text-sm font-bold text-primary min-w-[30px]">{count}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </Card>
+
+                      <Card title="Distribuição por Categoria">
+                        <div className="space-y-3">
+                          {Object.entries(dailyReportTeam.byCategory).map(([cat, count]: [string, any]) => (
+                            <div key={cat} className="flex items-center justify-between">
+                              <span className="text-sm text-zinc-300">{cat}</span>
+                              <span className="text-sm font-bold text-primary">{count}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </Card>
+
+                      <Card title="Distribuição por Gravidade">
+                        <div className="space-y-3">
+                          {Object.entries(dailyReportTeam.byGravity).map(([gravity, count]: [string, any]) => {
+                            const colors = { G1: 'bg-blue-500', G2: 'bg-yellow-500', G3: 'bg-orange-500', G4: 'bg-red-500' };
+                            return (
+                              <div key={gravity} className="flex items-center justify-between">
+                                <span className="text-sm text-zinc-300 font-bold">{gravity}</span>
+                                <span className="text-sm font-bold">{count}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </Card>
+                    </div>
+
+                    {dailyReportTeam.reports.length > 0 && (
+                      <Card title={`Todas as Ocorrências (${dailyReportTeam.reports.length})`}>
+                        <div className="space-y-2 max-h-96 overflow-y-auto">
+                          {dailyReportTeam.reports.map((report: any) => (
+                            <div 
+                              key={report.id}
+                              onClick={() => setSelectedReport(report)}
+                              className="flex items-center justify-between p-3 bg-zinc-800/30 border border-zinc-800 rounded-lg hover:border-primary/50 cursor-pointer transition-all"
+                            >
+                              <div className="flex-1">
+                                <p className="text-sm font-bold text-zinc-100">{report.titulo || 'Sem título'}</p>
+                                <p className="text-xs text-zinc-500">{report.agente_nome} • {report.categoria}</p>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Badge gravidade={report.gravidade} />
+                                <ChevronRight size={16} className="text-zinc-600" />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </Card>
+                    )}
+                  </>
+                ) : (
+                  <div className="py-20 text-center">
+                    <Users className="mx-auto text-zinc-800 mb-4" size={48} />
+                    <p className="text-zinc-500 font-bold uppercase tracking-widest text-xs">Nenhuma ocorrência da equipe registrada hoje</p>
                   </div>
                 )}
               </motion.div>
