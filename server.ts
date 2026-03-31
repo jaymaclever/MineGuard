@@ -169,34 +169,36 @@ if (permsCount.count === 0) {
     'Superadmin': [
       'view_dashboard', 'view_reports', 'create_reports', 'conclude_reports',
       'view_daily_reports', 'view_team_daily', 'create_alerts', 'edit_own_alerts',
-      'manage_users', 'manage_permissions', 'manage_settings',
-      'view_personal_reports', 'view_personal_daily'
+      'manage_users', 'manage_permissions', 'manage_settings', 'view_audit_logs',
+      'view_personal_reports', 'view_personal_daily', 'export_reports'
     ],
     'Admin': [
       'view_dashboard', 'view_reports', 'create_reports', 'conclude_reports',
       'view_daily_reports', 'view_team_daily', 'create_alerts', 'edit_own_alerts',
-      'manage_users', 'manage_permissions', 'manage_settings',
-      'view_personal_reports', 'view_personal_daily'
+      'manage_users', 'manage_permissions', 'manage_settings', 'view_audit_logs',
+      'view_personal_reports', 'view_personal_daily', 'export_reports'
     ],
     'Sierra 1': [
       'view_dashboard', 'view_reports', 'create_reports', 'conclude_reports',
       'view_daily_reports', 'view_team_daily', 'create_alerts', 'edit_own_alerts',
-      'manage_users', 'view_personal_reports', 'view_personal_daily'
+      'manage_users', 'view_audit_logs', 'view_personal_reports', 'view_personal_daily',
+      'export_reports'
     ],
     'Sierra 2': [
       'view_dashboard', 'view_reports', 'create_reports', 'conclude_reports',
       'view_daily_reports', 'view_team_daily', 'create_alerts', 'edit_own_alerts',
-      'manage_users', 'view_personal_reports', 'view_personal_daily'
+      'manage_users', 'view_audit_logs', 'view_personal_reports', 'view_personal_daily',
+      'export_reports'
     ],
     'Oficial': [
       'view_dashboard', 'view_reports', 'create_reports', 'conclude_reports',
       'view_daily_reports', 'create_alerts', 'edit_own_alerts',
-      'view_personal_reports', 'view_personal_daily'
+      'view_personal_reports', 'view_personal_daily', 'export_reports'
     ],
     'Supervisor': [
       'view_dashboard', 'view_reports', 'create_reports', 'conclude_reports',
       'view_daily_reports', 'view_team_daily', 'create_alerts', 'edit_own_alerts',
-      'view_personal_reports', 'view_personal_daily'
+      'view_audit_logs', 'view_personal_reports', 'view_personal_daily', 'export_reports'
     ],
     'Agente': [
       'view_dashboard', 'view_reports', 'create_reports', 'edit_own_alerts',
