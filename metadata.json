@@ -1,0 +1,5 @@
+{
+  "name": "MineGuard - Sistema de Segurança de Mina",
+  "description": "Sistema de gestão de segurança para minas, incluindo relatórios de incidentes, controle de usuários e permissões hierárquicas.",
+  "requestFramePermissions": ["geolocation"]
+}
