@@ -104,7 +104,14 @@ const reportColumns = [
   { name: "metadata", type: "TEXT" },
   { name: "coords_lat", type: "REAL" },
   { name: "coords_lng", type: "REAL" },
-  { name: "status", type: "TEXT DEFAULT 'Aberto'" }
+  { name: "status", type: "TEXT DEFAULT 'Aberto'" },
+  { name: "setor", type: "TEXT" },
+  { name: "pessoas_envolvidas", type: "INTEGER" },
+  { name: "equipamento", type: "TEXT" },
+  { name: "acao_imediata", type: "TEXT" },
+  { name: "requer_investigacao", type: "BOOLEAN DEFAULT 0" },
+  { name: "testemunhas", type: "TEXT" },
+  { name: "potencial_risco", type: "TEXT" }
 ];
 
 for (const col of reportColumns) {
