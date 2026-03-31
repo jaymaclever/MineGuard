@@ -1328,35 +1328,45 @@ export default function App() {
                   </Card>
 
                   <Card title="Alertas" subtitle="Notificações críticas e avisos">
-                    <div className="space-y-4 mt-4">
-                      <div className="flex gap-4 p-3 rounded-xl bg-red-500/5 border border-red-500/10">
-                        <div className="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center text-red-500 shrink-0">
-                          <Shield size={16} />
-                        </div>
-                        <div>
-                          <p className="text-xs font-bold text-red-200">Protocolo de Segurança Nível 2</p>
-                          <p className="text-[10px] text-red-500/70 mt-0.5">Reforço necessário no Setor de Carga Norte devido à baixa visibilidade.</p>
-                        </div>
+                    {alerts.length === 0 ? (
+                      <div className="p-8 text-center">
+                        <AlertTriangle className="mx-auto text-zinc-600 mb-2" size={32} />
+                        <p className="text-xs text-zinc-500">Nenhum alerta no momento</p>
                       </div>
-                      <div className="flex gap-4 p-3 rounded-xl bg-primary/5 border border-primary/10">
-                        <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center text-primary shrink-0">
-                          <Activity size={16} />
-                        </div>
-                        <div>
-                          <p className="text-xs font-bold text-primary/80">Manutenção Preventiva</p>
-                          <p className="text-[10px] text-primary/70 mt-0.5">Torre de comunicação TC-04 agendada para revisão em 2 horas.</p>
-                        </div>
+                    ) : (
+                      <div className="space-y-3 mt-4 max-h-64 overflow-y-auto">
+                        {alerts.slice(0, 5).map((alert: any) => {
+                          const bgColors = {
+                            critico: "bg-red-500/5 border-red-500/10",
+                            aviso: "bg-orange-500/5 border-orange-500/10",
+                            informativo: "bg-blue-500/5 border-blue-500/10"
+                          };
+                          const iconBgs = {
+                            critico: "bg-red-500/20 text-red-500",
+                            aviso: "bg-orange-500/20 text-orange-500",
+                            informativo: "bg-blue-500/20 text-blue-500"
+                          };
+                          const icons = {
+                            critico: <Shield size={16} />,
+                            aviso: <Activity size={16} />,
+                            informativo: <Bell size={16} />
+                          };
+
+                          return (
+                            <div key={alert.id} className={cn("flex gap-3 p-3 rounded-xl border", bgColors[alert.tipo as keyof typeof bgColors] || bgColors.aviso)}>
+                              <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center shrink-0", iconBgs[alert.tipo as keyof typeof iconBgs] || iconBgs.aviso)}>
+                                {icons[alert.tipo as keyof typeof icons] || icons.aviso}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs font-bold truncate">{alert.titulo}</p>
+                                <p className="text-[10px] opacity-70 mt-0.5 line-clamp-2">{alert.mensagem}</p>
+                                <p className="text-[9px] text-zinc-600 mt-1">{new Date(alert.timestamp).toLocaleString('pt-BR')}</p>
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
-                      <div className="flex gap-4 p-3 rounded-xl bg-zinc-800/30 border border-zinc-800/50 opacity-50">
-                        <div className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center text-zinc-500 shrink-0">
-                          <Bell size={16} />
-                        </div>
-                        <div>
-                          <p className="text-xs font-bold text-zinc-400">Troca de Turno Concluída</p>
-                          <p className="text-[10px] text-zinc-600 mt-0.5">Equipe B assumiu o controle operacional às 06:00 AM.</p>
-                        </div>
-                      </div>
-                    </div>
+                    )}
                   </Card>
                 </div>
               </motion.div>
