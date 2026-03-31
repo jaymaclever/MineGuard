@@ -537,13 +537,18 @@ export default function App() {
       if (!lat || !lng) {
         try {
           const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-            navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 });
+            navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 30000, enableHighAccuracy: true });
           });
           lat = position.coords.latitude.toString();
           lng = position.coords.longitude.toString();
           toast.loading("Localização capturada. Enviando relatório...", { id: toastId });
-        } catch (geoErr) {
-          console.warn("Geolocation failed, using manual or empty coords", geoErr);
+          console.log("Geolocation captured:", lat, lng);
+        } catch (geoErr: any) {
+          console.warn("Geolocation failed, using map center as fallback", geoErr);
+          // Use map center as fallback
+          lat = mapCenter[0].toString();
+          lng = mapCenter[1].toString();
+          toast.loading("Usando localização do mapa como referência...", { id: toastId });
         }
       }
 
