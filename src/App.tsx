@@ -1899,7 +1899,27 @@ export default function App() {
 
                   <div className="space-y-2">
                     <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Anexar Foto</label>
-                    <div className="relative group">
+                    <div 
+                      className="relative group"
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        e.currentTarget.classList.add('border-primary/70', 'bg-primary/5');
+                      }}
+                      onDragLeave={(e) => {
+                        e.currentTarget.classList.remove('border-primary/70', 'bg-primary/5');
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        e.currentTarget.classList.remove('border-primary/70', 'bg-primary/5');
+                        const files = e.dataTransfer.files;
+                        if (files.length > 0) {
+                          const file = files[0];
+                          if (file.type.startsWith('image/')) {
+                            setNewReport({...newReport, foto: file});
+                          }
+                        }
+                      }}
+                    >
                       <input 
                         type="file"
                         accept="image/*"
@@ -1913,10 +1933,22 @@ export default function App() {
                       >
                         <Camera className="text-zinc-500 group-hover:text-primary transition-colors" size={24} />
                         <span className="text-xs font-bold text-zinc-500 group-hover:text-zinc-300">
-                          {newReport.foto ? newReport.foto.name : "Clique para selecionar ou arraste uma foto"}
+                          {newReport.foto ? `📷 ${newReport.foto.name}` : "Clique ou arraste uma foto aqui"}
                         </span>
                       </label>
                     </div>
+                    {newReport.foto && (
+                      <div className="flex items-center justify-between bg-zinc-900/50 border border-green-500/30 rounded-lg p-3 gap-2">
+                        <span className="text-xs font-bold text-green-500">✓ Foto selecionada</span>
+                        <button 
+                          type="button" 
+                          onClick={() => setNewReport({...newReport, foto: null})}
+                          className="text-[10px] font-bold text-zinc-500 hover:text-red-500 transition-colors"
+                        >
+                          REMOVER
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="p-6 bg-zinc-900/20 border-t border-zinc-800 flex justify-end gap-3">
