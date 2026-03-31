@@ -1116,7 +1116,6 @@ ${coords_lat ? `<b>Local:</b> <a href="https://www.google.com/maps?q=${coords_la
   app.post("/api/alerts", authenticate, (req: any, res) => {
     try {
       const userId = req.user.id;
-      const user = db.prepare("SELECT peso FROM users WHERE id = ?").get(userId) as any;
       const roleWeights = db.prepare("SELECT peso FROM role_weights WHERE nivel_hierarquico = ?").get(req.user.nivel_hierarquico) as any;
       const peso = roleWeights?.peso || 0;
 
