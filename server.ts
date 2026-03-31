@@ -58,6 +58,13 @@ db.exec(`
     coords_lat REAL,
     coords_lng REAL,
     status TEXT DEFAULT 'Aberto',
+    setor TEXT,
+    pessoas_envolvidas INTEGER,
+    equipamento TEXT,
+    acao_imediata TEXT,
+    requer_investigacao BOOLEAN DEFAULT 0,
+    testemunhas TEXT,
+    potencial_risco TEXT,
     timestamp TEXT DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY(agente_id) REFERENCES users(id)
   );
@@ -975,7 +982,7 @@ async function startServer() {
 
   app.post("/api/reports", authenticate, checkPermission('create_reports'), upload.array("fotos", 20), async (req: any, res) => {
     try {
-      const { titulo, categoria, gravidade, descricao, coords_lat, coords_lng, metadata, captions } = req.body;
+      const { titulo, categoria, gravidade, descricao, coords_lat, coords_lng, metadata, captions, setor, pessoas_envolvidas, equipamento, acao_imediata, requer_investigacao, testemunhas, potencial_risco } = req.body;
       const agente_id = req.user.id;
       const fotos_path = req.files && req.files.length > 0 ? `/uploads/${req.files[0].filename}` : null;
       
@@ -984,11 +991,11 @@ async function startServer() {
       }
 
       const stmt = db.prepare(`
-        INSERT INTO reports (agente_id, titulo, categoria, gravidade, descricao, metadata, fotos_path, coords_lat, coords_lng, timestamp)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+        INSERT INTO reports (agente_id, titulo, categoria, gravidade, descricao, metadata, fotos_path, coords_lat, coords_lng, setor, pessoas_envolvidas, equipamento, acao_imediata, requer_investigacao, testemunhas, potencial_risco, timestamp)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
       `);
       
-      const result = stmt.run(agente_id, titulo || null, categoria, gravidade, descricao, metadata || null, fotos_path, coords_lat || null, coords_lng || null);
+      const result = stmt.run(agente_id, titulo || null, categoria, gravidade, descricao, metadata || null, fotos_path, coords_lat || null, coords_lng || null, setor || null, pessoas_envolvidas || null, equipamento || null, acao_imediata || null, requer_investigacao ? 1 : 0, testemunhas || null, potencial_risco || null);
       
       // Add photos to report_photos table
       if (req.files && req.files.length > 0) {

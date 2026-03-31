@@ -327,6 +327,13 @@ export default function App() {
     descricao: '',
     coords_lat: '',
     coords_lng: '',
+    setor: '',
+    pessoas_envolvidas: '',
+    equipamento: '',
+    acao_imediata: '',
+    requer_investigacao: false,
+    testemunhas: '',
+    potencial_risco: '',
     fotos: [] as Array<{ file: File; caption: string }>,
     metadata: {} as any
   });
@@ -650,6 +657,13 @@ export default function App() {
       formData.append('descricao', newReport.descricao);
       formData.append('coords_lat', lat);
       formData.append('coords_lng', lng);
+      formData.append('setor', newReport.setor);
+      formData.append('pessoas_envolvidas', newReport.pessoas_envolvidas);
+      formData.append('equipamento', newReport.equipamento);
+      formData.append('acao_imediata', newReport.acao_imediata);
+      formData.append('requer_investigacao', newReport.requer_investigacao ? '1' : '0');
+      formData.append('testemunhas', newReport.testemunhas);
+      formData.append('potencial_risco', newReport.potencial_risco);
       formData.append('metadata', JSON.stringify(newReport.metadata));
       
       // Add multiple photos with captions
@@ -674,6 +688,13 @@ export default function App() {
           descricao: '', 
           coords_lat: '', 
           coords_lng: '', 
+          setor: '',
+          pessoas_envolvidas: '',
+          equipamento: '',
+          acao_imediata: '',
+          requer_investigacao: false,
+          testemunhas: '',
+          potencial_risco: '',
           fotos: [],
           metadata: {}
         });
@@ -2316,6 +2337,85 @@ export default function App() {
                     />
                   </div>
 
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Setor/Local</label>
+                      <input 
+                        type="text"
+                        placeholder="Ex: Setor Norte, Poço Principal"
+                        value={newReport.setor}
+                        onChange={(e) => setNewReport({...newReport, setor: e.target.value})}
+                        className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Pessoas Envolvidas</label>
+                      <input 
+                        type="number"
+                        min="0"
+                        placeholder="Quantas?"
+                        value={newReport.pessoas_envolvidas}
+                        onChange={(e) => setNewReport({...newReport, pessoas_envolvidas: e.target.value})}
+                        className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Equipamento Envolvido</label>
+                    <input 
+                      type="text"
+                      placeholder="Ex: Escavadeira XYZ-100, Caminhão basculante"
+                      value={newReport.equipamento}
+                      onChange={(e) => setNewReport({...newReport, equipamento: e.target.value})}
+                      className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Ação Imediata Tomada</label>
+                    <textarea 
+                      className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary min-h-[70px] resize-none"
+                      placeholder="O que foi feito imediatamente após o ocorrido?"
+                      value={newReport.acao_imediata}
+                      onChange={(e) => setNewReport({...newReport, acao_imediata: e.target.value})}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Testemunhas</label>
+                    <input 
+                      type="text"
+                      placeholder="Nomes das pessoas que presenciaram"
+                      value={newReport.testemunhas}
+                      onChange={(e) => setNewReport({...newReport, testemunhas: e.target.value})}
+                      className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Potencial de Risco</label>
+                    <textarea 
+                      className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary min-h-[70px] resize-none"
+                      placeholder="Se tivesse piorado, qual seria o risco/consequência potencial?"
+                      value={newReport.potencial_risco}
+                      onChange={(e) => setNewReport({...newReport, potencial_risco: e.target.value})}
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-3 bg-zinc-900/50 p-4 rounded-lg border border-zinc-800">
+                    <input 
+                      type="checkbox"
+                      id="investigacao"
+                      checked={newReport.requer_investigacao}
+                      onChange={(e) => setNewReport({...newReport, requer_investigacao: e.target.checked})}
+                      className="w-4 h-4 cursor-pointer"
+                    />
+                    <label htmlFor="investigacao" className="text-sm font-bold text-zinc-300 cursor-pointer flex-1">
+                      ⚠️ Esta ocorrência requer investigação formal
+                    </label>
+                  </div>
+
                   <div className="space-y-2">
                     <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Galeria de Evidências</label>
                     <div 
@@ -2436,6 +2536,55 @@ export default function App() {
                   <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Descrição</p>
                   <p className="text-sm text-zinc-300 bg-zinc-900/50 p-3 rounded leading-relaxed">{newReport.descricao || 'Sem descrição'}</p>
                 </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  {newReport.setor && (
+                    <div>
+                      <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Setor/Local</p>
+                      <p className="text-sm text-zinc-300">{newReport.setor}</p>
+                    </div>
+                  )}
+                  {newReport.pessoas_envolvidas && (
+                    <div>
+                      <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Pessoas Envolvidas</p>
+                      <p className="text-sm text-zinc-300">{newReport.pessoas_envolvidas}</p>
+                    </div>
+                  )}
+                </div>
+
+                {newReport.equipamento && (
+                  <div>
+                    <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Equipamento</p>
+                    <p className="text-sm text-zinc-300">{newReport.equipamento}</p>
+                  </div>
+                )}
+
+                {newReport.acao_imediata && (
+                  <div>
+                    <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Ação Imediata</p>
+                    <p className="text-sm text-zinc-300 bg-zinc-900/50 p-2 rounded">{newReport.acao_imediata}</p>
+                  </div>
+                )}
+
+                {newReport.testemunhas && (
+                  <div>
+                    <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Testemunhas</p>
+                    <p className="text-sm text-zinc-300">{newReport.testemunhas}</p>
+                  </div>
+                )}
+
+                {newReport.potencial_risco && (
+                  <div>
+                    <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Potencial de Risco</p>
+                    <p className="text-sm text-zinc-300 bg-zinc-900/50 p-2 rounded">{newReport.potencial_risco}</p>
+                  </div>
+                )}
+
+                {newReport.requer_investigacao && (
+                  <div className="bg-red-900/20 border border-red-800/50 p-3 rounded">
+                    <p className="text-sm font-bold text-red-400">⚠️ Requer Investigação Formal</p>
+                  </div>
+                )}
 
                 {newReport.fotos.length > 0 && (
                   <div>
