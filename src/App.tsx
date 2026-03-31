@@ -301,6 +301,8 @@ export default function App() {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isBellShaking, setIsBellShaking] = useState(false);
   const [mapCenter, setMapCenter] = useState<[number, number]>([-8.8383, 13.2344]); // Angola/Luanda default
+  const [isEditingReport, setIsEditingReport] = useState(false);
+  const [editingReportData, setEditingReportData] = useState<{ descricao: string; foto: File | null }>({ descricao: '', foto: null });
   
   // Form States
   const [newReport, setNewReport] = useState({
@@ -523,6 +525,17 @@ export default function App() {
     }
   }, []);
 
+  // Initialize editing data when report is selected
+  useEffect(() => {
+    if (selectedReport) {
+      setEditingReportData({
+        descricao: selectedReport.descricao,
+        foto: null
+      });
+      setIsEditingReport(false);
+    }
+  }, [selectedReport]);
+
   // Actions
   const handleCreateReport = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -633,6 +646,40 @@ export default function App() {
       }
     } catch (err) {
       toast.error("Erro ao salvar usuário");
+    }
+  };
+
+  const handleSaveReportEdits = async () => {
+    if (!selectedReport) return;
+    try {
+      const formData = new FormData();
+      if (editingReportData.descricao !== selectedReport.descricao) {
+        formData.append('descricao', editingReportData.descricao);
+      }
+      if (editingReportData.foto) {
+        formData.append('foto', editingReportData.foto);
+      }
+
+      const res = await fetch(`/api/reports/${selectedReport.id}`, {
+        method: 'PATCH',
+        body: formData,
+        credentials: 'include'
+      });
+
+      const data = await res.json();
+      if (data.status === 'success') {
+        toast.success("Ocorrência atualizada com sucesso!");
+        setIsEditingReport(false);
+        fetchData();
+        if (data.report) {
+          setSelectedReport(data.report);
+        }
+      } else {
+        toast.error(data.message || "Erro ao salvar alterações");
+      }
+    } catch (err) {
+      toast.error("Erro ao salvar alterações");
+      console.error(err);
     }
   };
 
@@ -2033,17 +2080,63 @@ export default function App() {
 
                   <div>
                     <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-2">Evidência Fotográfica</label>
-                    {selectedReport.fotos_path ? (
+                    {isEditingReport && selectedReport.status === 'Aberto' ? (
+                      <div 
+                        className="aspect-video rounded-xl border-2 border-dashed border-zinc-800 hover:border-primary/50 transition-all flex flex-col items-center justify-center text-zinc-600 cursor-pointer bg-zinc-900/20"
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          e.currentTarget.classList.add('border-primary/70', 'bg-primary/5');
+                        }}
+                        onDragLeave={(e) => {
+                          e.currentTarget.classList.remove('border-primary/70', 'bg-primary/5');
+                        }}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          e.currentTarget.classList.remove('border-primary/70', 'bg-primary/5');
+                          const files = e.dataTransfer.files;
+                          if (files.length > 0 && files[0].type.startsWith('image/')) {
+                            setEditingReportData({...editingReportData, foto: files[0]});
+                          }
+                        }}
+                      >
+                        <input 
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          id="edit-report-photo"
+                          onChange={(e) => setEditingReportData({...editingReportData, foto: e.target.files?.[0] || null})}
+                        />
+                        <label htmlFor="edit-report-photo" className="flex flex-col items-center justify-center w-full h-full cursor-pointer">
+                          <Camera size={32} strokeWidth={1} />
+                          <p className="text-[10px] font-bold mt-2 uppercase tracking-widest">Clique ou arraste foto</p>
+                        </label>
+                      </div>
+                    ) : selectedReport.fotos_path || (isEditingReport && editingReportData.foto) ? (
                       <div className="aspect-video rounded-xl overflow-hidden border border-zinc-800 bg-zinc-900 group relative">
-                        <img src={selectedReport.fotos_path} alt="Evidência" className="w-full h-full object-cover" />
-                        <a 
-                          href={selectedReport.fotos_path} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all backdrop-blur-sm"
-                        >
-                          <span className="text-[10px] font-black text-white uppercase tracking-widest border border-white/20 px-4 py-2 rounded-lg">Ver em tamanho real</span>
-                        </a>
+                        <img 
+                          src={editingReportData.foto ? URL.createObjectURL(editingReportData.foto) : selectedReport.fotos_path} 
+                          alt="Evidência" 
+                          className="w-full h-full object-cover" 
+                        />
+                        {isEditingReport && selectedReport.status === 'Aberto' && (
+                          <button
+                            type="button"
+                            onClick={() => setEditingReportData({...editingReportData, foto: null})}
+                            className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white p-2 rounded-lg text-[10px] font-bold"
+                          >
+                            REMOVER
+                          </button>
+                        )}
+                        {!isEditingReport && (
+                          <a 
+                            href={selectedReport.fotos_path} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all backdrop-blur-sm"
+                          >
+                            <span className="text-[10px] font-black text-white uppercase tracking-widest border border-white/20 px-4 py-2 rounded-lg">Ver em tamanho real</span>
+                          </a>
+                        )}
                       </div>
                     ) : (
                       <div className="aspect-video rounded-xl border-2 border-dashed border-zinc-800 flex flex-col items-center justify-center text-zinc-600">
@@ -2057,9 +2150,18 @@ export default function App() {
                 <div className="space-y-4">
                   <div>
                     <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-2">Descrição Detalhada</label>
-                    <div className="bg-zinc-900/50 border border-zinc-800 p-4 rounded-xl text-sm text-zinc-300 leading-relaxed">
-                      {selectedReport.descricao}
-                    </div>
+                    {isEditingReport && selectedReport.status === 'Aberto' ? (
+                      <textarea
+                        value={editingReportData.descricao}
+                        onChange={(e) => setEditingReportData({...editingReportData, descricao: e.target.value})}
+                        className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-sm text-zinc-300 focus:outline-none focus:border-primary resize-none min-h-[120px]"
+                        placeholder="Edite a descrição da ocorrência..."
+                      />
+                    ) : (
+                      <div className="bg-zinc-900/50 border border-zinc-800 p-4 rounded-xl text-sm text-zinc-300 leading-relaxed">
+                        {selectedReport.descricao}
+                      </div>
+                    )}
                   </div>
 
                   {selectedReport.metadata && Object.keys(selectedReport.metadata).length > 0 && (
@@ -2096,42 +2198,72 @@ export default function App() {
               <div className="p-6 bg-zinc-900/20 border-t border-zinc-800 flex justify-between items-center no-print">
                 <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest">Sistema de Segurança MineGuard • Auditoria Ativa</p>
                 <div className="flex gap-3">
-                  {(selectedReport.status !== 'Concluído' || currentUser?.permissions?.conclude_reports) && (
-                    <button 
-                      onClick={() => handleConcludeReport(selectedReport.id, selectedReport.status || 'Aberto')}
-                      className={cn(
-                        "font-black text-[10px] px-8 py-2.5 rounded-lg transition-all uppercase tracking-widest flex items-center gap-2",
-                        selectedReport.status === 'Concluído'
-                          ? "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
-                          : "bg-green-600 hover:bg-green-500 text-white shadow-lg shadow-green-900/20"
+                  {isEditingReport && selectedReport.status === 'Aberto' ? (
+                    <>
+                      <button 
+                        type="button"
+                        onClick={() => setIsEditingReport(false)}
+                        className="font-black text-[10px] px-8 py-2.5 rounded-lg transition-all uppercase tracking-widest bg-zinc-800 hover:bg-zinc-700 text-zinc-300"
+                      >
+                        Cancelar
+                      </button>
+                      <button 
+                        type="button"
+                        onClick={handleSaveReportEdits}
+                        className="bg-blue-600 hover:bg-blue-500 text-white font-black text-[10px] px-8 py-2.5 rounded-lg transition-all uppercase tracking-widest shadow-lg shadow-blue-900/20"
+                      >
+                        Salvar Alterações
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      {selectedReport.status === 'Aberto' && (
+                        <button 
+                          type="button"
+                          onClick={() => setIsEditingReport(true)}
+                          className="bg-primary hover:bg-primary/90 text-black font-black text-[10px] px-8 py-2.5 rounded-lg transition-all uppercase tracking-widest shadow-lg shadow-primary/20 flex items-center gap-2"
+                        >
+                          Editar
+                        </button>
                       )}
-                    >
-                      {selectedReport.status === 'Concluído' ? (
-                        <>
-                          <Clock size={14} />
-                          Reabrir Relatório
-                        </>
-                      ) : (
-                        <>
-                          <CheckCircle2 size={14} />
-                          Concluir Relatório
-                        </>
+                      {(selectedReport.status !== 'Concluído' || currentUser?.permissions?.conclude_reports) && (
+                        <button 
+                          onClick={() => handleConcludeReport(selectedReport.id, selectedReport.status || 'Aberto')}
+                          className={cn(
+                            "font-black text-[10px] px-8 py-2.5 rounded-lg transition-all uppercase tracking-widest flex items-center gap-2",
+                            selectedReport.status === 'Concluído'
+                              ? "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
+                              : "bg-green-600 hover:bg-green-500 text-white shadow-lg shadow-green-900/20"
+                          )}
+                        >
+                          {selectedReport.status === 'Concluído' ? (
+                            <>
+                              <Clock size={14} />
+                              Reabrir Relatório
+                            </>
+                          ) : (
+                            <>
+                              <CheckCircle2 size={14} />
+                              Concluir Relatório
+                            </>
+                          )}
+                        </button>
                       )}
-                    </button>
+                      <button 
+                        onClick={() => window.print()}
+                        className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-black text-[10px] px-8 py-2.5 rounded-lg transition-all uppercase tracking-widest flex items-center gap-2"
+                      >
+                        <Printer size={14} />
+                        Exportar PDF
+                      </button>
+                      <button 
+                        onClick={() => setSelectedReport(null)}
+                        className="bg-zinc-100 hover:bg-white text-black font-black text-[10px] px-8 py-2.5 rounded-lg transition-all uppercase tracking-widest"
+                      >
+                        Fechar Detalhes
+                      </button>
+                    </>
                   )}
-                  <button 
-                    onClick={() => window.print()}
-                    className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-black text-[10px] px-8 py-2.5 rounded-lg transition-all uppercase tracking-widest flex items-center gap-2"
-                  >
-                    <Printer size={14} />
-                    Exportar PDF
-                  </button>
-                  <button 
-                    onClick={() => setSelectedReport(null)}
-                    className="bg-zinc-100 hover:bg-white text-black font-black text-[10px] px-8 py-2.5 rounded-lg transition-all uppercase tracking-widest"
-                  >
-                    Fechar Detalhes
-                  </button>
                 </div>
               </div>
             </motion.div>

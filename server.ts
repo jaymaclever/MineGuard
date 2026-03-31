@@ -701,6 +701,72 @@ async function startServer() {
     }
   });
 
+  // Edit report (update description and/or photo) - only for open reports
+  app.patch("/api/reports/:id", authenticate, upload.single("foto"), (req: any, res) => {
+    const { id } = req.params;
+    const { descricao } = req.body;
+
+    try {
+      // Check if report exists and is open
+      const report = db.prepare("SELECT * FROM reports WHERE id = ?").get(id) as any;
+      if (!report) {
+        return res.status(404).json({ status: 'error', message: 'Relatório não encontrado' });
+      }
+
+      if (report.status !== 'Aberto') {
+        return res.status(403).json({ status: 'error', message: 'Apenas relatórios abertos podem ser editados' });
+      }
+
+      // Check permission (only original agent or superadmin can edit)
+      if (report.agente_id !== req.user.id && req.user.nivel_hierarquico !== 'Superadmin') {
+        return res.status(403).json({ status: 'error', message: 'Permissão insuficiente para editar este relatório' });
+      }
+
+      let updateQuery = "UPDATE reports SET ";
+      const values: any[] = [];
+
+      if (descricao !== undefined && descricao !== null) {
+        updateQuery += "descricao = ?, ";
+        values.push(descricao);
+      }
+
+      if (req.file) {
+        const photoPath = `/uploads/${Date.now()}_${req.file.filename}`;
+        updateQuery += "fotos_path = ?, ";
+        values.push(photoPath);
+      }
+
+      // Remove trailing comma and space
+      updateQuery = updateQuery.slice(0, -2);
+      updateQuery += " WHERE id = ?";
+      values.push(id);
+
+      if (values.length === 1) {
+        // No changes to make
+        return res.json({ status: 'success', message: 'Nenhuma alteração foi feita', report });
+      }
+
+      const result = db.prepare(updateQuery).run(...values);
+      if (result.changes > 0) {
+        // Fetch updated report
+        const updatedReport = db.prepare(`
+          SELECT r.*, u.nome as agente_nome, u.nivel_hierarquico as agente_nivel 
+          FROM reports r 
+          LEFT JOIN users u ON r.agente_id = u.id 
+          WHERE r.id = ?
+        `).get(id);
+
+        io.emit('report_updated', updatedReport);
+        res.json({ status: 'success', message: 'Relatório atualizado com sucesso', report: updatedReport });
+      } else {
+        res.status(500).json({ status: 'error', message: 'Falha ao atualizar relatório' });
+      }
+    } catch (err: any) {
+      console.error("Erro ao atualizar relatório:", err);
+      res.status(500).json({ status: 'error', message: err.message });
+    }
+  });
+
   app.get("/api/reports", authenticate, checkPermission('view_reports'), (req: any, res) => {
     const userRole = req.user.nivel_hierarquico;
     const userId = req.user.id;
