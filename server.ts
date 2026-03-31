@@ -1170,6 +1170,58 @@ ${coords_lat ? `<b>Local:</b> <a href="https://www.google.com/maps?q=${coords_la
     }
   });
 
+  app.patch("/api/alerts/:id", authenticate, (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user.id;
+      const { titulo, mensagem, tipo } = req.body;
+
+      const alert = db.prepare("SELECT created_by FROM alerts WHERE id = ?").get(id) as any;
+      if (!alert) {
+        return res.status(404).json({ status: "error", message: "Alerta não encontrado" });
+      }
+
+      if (alert.created_by !== userId) {
+        return res.status(403).json({ status: "error", message: "Apenas o criador pode editar este alerta" });
+      }
+
+      db.prepare("UPDATE alerts SET titulo = ?, mensagem = ?, tipo = ? WHERE id = ?").run(titulo, mensagem, tipo, id);
+
+      const updated = db.prepare("SELECT a.*, u.nome as creator_name, COALESCE(ar.read, 0) as read FROM alerts a LEFT JOIN users u ON a.created_by = u.id LEFT JOIN alert_reads ar ON a.id = ar.alert_id AND ar.user_id = ? WHERE a.id = ?").get(userId, id) as any;
+
+      io.emit("alert_updated", updated);
+
+      res.json({ status: "success", alert: updated });
+    } catch (err: any) {
+      res.status(500).json({ status: "error", message: err.message });
+    }
+  });
+
+  app.delete("/api/alerts/:id", authenticate, (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user.id;
+
+      const alert = db.prepare("SELECT created_by FROM alerts WHERE id = ?").get(id) as any;
+      if (!alert) {
+        return res.status(404).json({ status: "error", message: "Alerta não encontrado" });
+      }
+
+      if (alert.created_by !== userId) {
+        return res.status(403).json({ status: "error", message: "Apenas o criador pode deletar este alerta" });
+      }
+
+      db.prepare("DELETE FROM alerts WHERE id = ?").run(id);
+      db.prepare("DELETE FROM alert_reads WHERE alert_id = ?").run(id);
+
+      io.emit("alert_deleted", { id });
+
+      res.json({ status: "success" });
+    } catch (err: any) {
+      res.status(500).json({ status: "error", message: err.message });
+    }
+  });
+
   // Catch-all for API routes that don't match
   app.all("/api/*", (req, res) => {
     res.status(404).json({ status: "error", message: `API route not found: ${req.method} ${req.url}` });

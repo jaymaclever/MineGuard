@@ -317,6 +317,8 @@ export default function App() {
   const [isBellShaking, setIsBellShaking] = useState(false);
   const [alerts, setAlerts] = useState<any[]>([]);
   const [newAlert, setNewAlert] = useState({ titulo: '', mensagem: '', tipo: 'aviso' });
+  const [editingAlert, setEditingAlert] = useState<any>(null);
+  const [editAlertForm, setEditAlertForm] = useState({ titulo: '', mensagem: '', tipo: 'aviso' });
   const [mapCenter, setMapCenter] = useState<[number, number]>([-8.8383, 13.2344]); // Angola/Luanda default
   const [isEditingReport, setIsEditingReport] = useState(false);
   const [editingReportData, setEditingReportData] = useState<{ descricao: string; fotos: Array<{ file: File; caption: string }> }>({ descricao: '', fotos: [] });
@@ -406,6 +408,16 @@ export default function App() {
         'alert',
         alert.id
       );
+    });
+
+    socket.on('alert_updated', (alert: any) => {
+      setAlerts(prev => prev.map(a => a.id === alert.id ? alert : a));
+      toast.info(`Alerta atualizado: ${alert.titulo}`);
+    });
+
+    socket.on('alert_deleted', ({ id }: { id: number }) => {
+      setAlerts(prev => prev.filter(a => a.id !== id));
+      toast.info("Alerta removido");
     });
 
     return () => { socket.disconnect(); };
@@ -751,6 +763,52 @@ export default function App() {
       }
     } catch (err) {
       toast.error("Erro ao criar alerta");
+    }
+  };
+
+  const handleEditAlert = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingAlert) return;
+
+    try {
+      const res = await fetch(`/api/alerts/${editingAlert.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editAlertForm),
+        credentials: 'include'
+      });
+
+      const data = await res.json();
+      if (data.status === 'success') {
+        toast.success("Alerta atualizado!");
+        setEditingAlert(null);
+        // Updated via Socket.io listener
+      } else {
+        toast.error(data.message || "Erro ao atualizar alerta");
+      }
+    } catch (err) {
+      toast.error("Erro ao atualizar alerta");
+    }
+  };
+
+  const handleDeleteAlert = async (alertId: number) => {
+    if (!confirm("Tem certeza que deseja deletar este alerta?")) return;
+
+    try {
+      const res = await fetch(`/api/alerts/${alertId}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+
+      const data = await res.json();
+      if (data.status === 'success') {
+        toast.success("Alerta deletado!");
+        // Removed via Socket.io listener
+      } else {
+        toast.error(data.message || "Erro ao deletar alerta");
+      }
+    } catch (err) {
+      toast.error("Erro ao deletar alerta");
     }
   };
 
@@ -1960,10 +2018,29 @@ export default function App() {
                             </span>
                           </div>
                           <p className="text-sm text-zinc-300 mb-2">{alert.mensagem}</p>
-                          <div className="flex items-center justify-between text-[10px] text-zinc-500">
+                          <div className="flex items-center justify-between text-[10px] text-zinc-500 mb-3">
                             <span>Por: {alert.creator_name || 'Sistema'}</span>
                             <span>{new Date(alert.timestamp).toLocaleString('pt-BR')}</span>
                           </div>
+                          {currentUser?.id === alert.created_by && (
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => {
+                                  setEditingAlert(alert);
+                                  setEditAlertForm({ titulo: alert.titulo, mensagem: alert.mensagem, tipo: alert.tipo });
+                                }}
+                                className="flex-1 text-[9px] font-bold px-2 py-1.5 bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 rounded border border-blue-500/30 transition-colors uppercase tracking-tighter"
+                              >
+                                Editar
+                              </button>
+                              <button
+                                onClick={() => handleDeleteAlert(alert.id)}
+                                className="flex-1 text-[9px] font-bold px-2 py-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-300 rounded border border-red-500/30 transition-colors uppercase tracking-tighter"
+                              >
+                                Deletar
+                              </button>
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -2762,6 +2839,76 @@ export default function App() {
                 <button type="button" onClick={() => setShowReportPreview(false)} className="px-6 py-2.5 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white transition-colors">Voltar</button>
                 <button type="button" onClick={() => { setShowReportPreview(false); handleCreateReport(new Event('submit') as any); }} className="bg-primary hover:bg-primary/90 text-black font-black text-[10px] px-8 py-2.5 rounded-lg transition-all uppercase tracking-widest shadow-lg shadow-primary/20">Confirmar e Enviar</button>
               </div>
+            </motion.div>
+          </div>
+        )}
+
+        {editingAlert && (
+          <div key="edit-alert-modal" className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-[#0a0a0a] border border-zinc-800 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl"
+            >
+              <div className="p-6 border-b border-zinc-800 flex items-center justify-between">
+                <h3 className="text-xl font-black tracking-tighter uppercase">Editar Alerta</h3>
+                <button type="button" onClick={() => setEditingAlert(null)} className="text-zinc-500 hover:text-white transition-colors">
+                  <XCircle size={24} />
+                </button>
+              </div>
+
+              <form onSubmit={handleEditAlert} className="p-6 space-y-4">
+                <div>
+                  <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-2">Título</label>
+                  <input 
+                    type="text"
+                    required
+                    value={editAlertForm.titulo}
+                    onChange={(e) => setEditAlertForm({...editAlertForm, titulo: e.target.value})}
+                    className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-2">Mensagem</label>
+                  <textarea 
+                    required
+                    value={editAlertForm.mensagem}
+                    onChange={(e) => setEditAlertForm({...editAlertForm, mensagem: e.target.value})}
+                    className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary min-h-[80px] resize-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-2">Tipo</label>
+                  <select 
+                    value={editAlertForm.tipo}
+                    onChange={(e) => setEditAlertForm({...editAlertForm, tipo: e.target.value})}
+                    className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
+                  >
+                    <option value="aviso">Aviso</option>
+                    <option value="critico">Crítico</option>
+                    <option value="informativo">Informativo</option>
+                  </select>
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <button 
+                    type="button"
+                    onClick={() => setEditingAlert(null)}
+                    className="flex-1 px-6 py-2.5 text-[10px] font-bold uppercase tracking-widest text-zinc-500 hover:text-white transition-colors border border-zinc-800 rounded-lg"
+                  >
+                    Cancelar
+                  </button>
+                  <button 
+                    type="submit"
+                    className="flex-1 bg-primary hover:bg-primary/90 text-black font-black text-[10px] px-6 py-2.5 rounded-lg transition-all uppercase tracking-widest shadow-lg shadow-primary/20"
+                  >
+                    Salvar Alterações
+                  </button>
+                </div>
+              </form>
             </motion.div>
           </div>
         )}
