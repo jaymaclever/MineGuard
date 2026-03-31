@@ -909,6 +909,35 @@ async function startServer() {
     }
   });
 
+  // Daily Report Personal - User's consolidated daily report
+  app.get("/api/reports/daily-personal", authenticate, (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const today = new Date().toISOString().split('T')[0];
+      
+      const reports = db.prepare(`
+        SELECT r.* FROM reports r 
+        WHERE r.agente_id = ? AND DATE(r.timestamp) = ?
+      `).all(userId, today) as any[];
+
+      const summary = {
+        totalReports: reports.length,
+        byGravity: { G1: 0, G2: 0, G3: 0, G4: 0 },
+        byCategory: {} as any,
+        reports: reports
+      };
+
+      reports.forEach((r: any) => {
+        summary.byGravity[r.gravidade as keyof typeof summary.byGravity]++;
+        summary.byCategory[r.categoria] = (summary.byCategory[r.categoria] || 0) + 1;
+      });
+
+      res.json(summary);
+    } catch (err: any) {
+      res.status(500).json({ status: "error", message: err.message });
+    }
+  });
+
   app.post("/api/reports", authenticate, checkPermission('create_reports'), upload.array("fotos", 20), async (req: any, res) => {
     try {
       const { titulo, categoria, gravidade, descricao, coords_lat, coords_lng, metadata, captions } = req.body;

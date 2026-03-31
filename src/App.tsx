@@ -278,7 +278,7 @@ const Login = ({ onLogin, publicSettings }: { onLogin: (user: any) => void, publ
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'reports' | 'users' | 'permissions' | 'daily_reports' | 'personal_reports' | 'settings'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'reports' | 'users' | 'permissions' | 'daily_reports' | 'personal_reports' | 'daily_report_personal' | 'settings'>('dashboard');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
   const [filterSeverity, setFilterSeverity] = useState('');
@@ -292,6 +292,8 @@ export default function App() {
   const [personalReports, setPersonalReports] = useState<Report[]>([]);
   const [personalReportsStartDate, setPersonalReportsStartDate] = useState('');
   const [personalReportsEndDate, setPersonalReportsEndDate] = useState('');
+  const [dailyReportPersonal, setDailyReportPersonal] = useState<any>(null);
+  const [showReportPreview, setShowReportPreview] = useState(false);
   const [systemSettings, setSystemSettings] = useState<any[]>([]);
   const [publicSettings, setPublicSettings] = useState<any>({
     app_name: 'MINEGUARD',
@@ -546,6 +548,25 @@ export default function App() {
     }
   }, [activeTab, personalReportsStartDate, personalReportsEndDate, currentUser]);
 
+  const fetchDailyReportPersonal = async () => {
+    if (!currentUser) return;
+    try {
+      const res = await fetch('/api/reports/daily-personal', { credentials: 'include' });
+      if (res.ok) {
+        const data = await res.json();
+        setDailyReportPersonal(data);
+      }
+    } catch (err) {
+      console.error("Erro ao buscar relatório diário pessoal:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'daily_report_personal') {
+      fetchDailyReportPersonal();
+    }
+  }, [activeTab, currentUser]);
+
   // Get user's geolocation for map
   useEffect(() => {
     if (navigator.geolocation) {
@@ -796,6 +817,7 @@ export default function App() {
           {currentUser.permissions?.view_reports === true && <SidebarItem icon={FileText} label={publicSettings.app_layout === 'compact' ? "" : "Ocorrências"} active={activeTab === 'reports'} onClick={() => setActiveTab('reports')} />}
           {currentUser.permissions?.view_daily_reports === true && <SidebarItem icon={Calendar} label={publicSettings.app_layout === 'compact' ? "" : "Relatórios Diários"} active={activeTab === 'daily_reports'} onClick={() => setActiveTab('daily_reports')} />}
           <SidebarItem icon={FileText} label={publicSettings.app_layout === 'compact' ? "" : "Meus Relatórios"} active={activeTab === 'personal_reports'} onClick={() => setActiveTab('personal_reports')} />
+          <SidebarItem icon={Calendar} label={publicSettings.app_layout === 'compact' ? "" : "Meu Dia"} active={activeTab === 'daily_report_personal'} onClick={() => setActiveTab('daily_report_personal')} />
           {currentUser.permissions?.manage_users === true && <SidebarItem icon={Users} label={publicSettings.app_layout === 'compact' ? "" : "Gestão de Pessoal"} active={activeTab === 'users'} onClick={() => setActiveTab('users')} />}
           {currentUser.permissions?.manage_permissions === true && <SidebarItem icon={Lock} label={publicSettings.app_layout === 'compact' ? "" : "Permissões & Roles"} active={activeTab === 'permissions'} onClick={() => setActiveTab('permissions')} />}
           {currentUser.permissions?.manage_settings === true && <SidebarItem icon={SettingsIcon} label={publicSettings.app_layout === 'compact' ? "" : "Configurações"} active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} />}
@@ -1507,6 +1529,126 @@ export default function App() {
               </motion.div>
             )}
 
+            {activeTab === 'daily_report_personal' && (
+              <motion.div 
+                key="daily_report_personal"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="space-y-6"
+              >
+                <div>
+                  <h2 className="text-2xl font-black tracking-tighter">MEU RELATÓRIO DO DIA</h2>
+                  <p className="text-sm text-zinc-500">{new Date().toLocaleDateString('pt-BR')}</p>
+                </div>
+
+                {dailyReportPersonal ? (
+                  <>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                      <Card className="border-primary/30 bg-primary/5">
+                        <div className="text-center">
+                          <p className="text-3xl font-black text-primary">{dailyReportPersonal.totalReports}</p>
+                          <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mt-2">Ocorrências Registradas</p>
+                        </div>
+                      </Card>
+                      
+                      <Card className="border-red-500/30 bg-red-500/5">
+                        <div className="text-center">
+                          <p className="text-3xl font-black text-red-400">{dailyReportPersonal.byGravity.G4}</p>
+                          <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mt-2">Crítica (G4)</p>
+                        </div>
+                      </Card>
+
+                      <Card className="border-orange-500/30 bg-orange-500/5">
+                        <div className="text-center">
+                          <p className="text-3xl font-black text-orange-400">{dailyReportPersonal.byGravity.G3}</p>
+                          <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mt-2">Alta (G3)</p>
+                        </div>
+                      </Card>
+
+                      <Card className="border-yellow-500/30 bg-yellow-500/5">
+                        <div className="text-center">
+                          <p className="text-3xl font-black text-yellow-400">{dailyReportPersonal.byGravity.G2 + dailyReportPersonal.byGravity.G1}</p>
+                          <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mt-2">Baixa/Média</p>
+                        </div>
+                      </Card>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      <Card title="Distribuição por Categoria">
+                        <div className="space-y-3">
+                          {Object.entries(dailyReportPersonal.byCategory).map(([cat, count]: [string, any]) => (
+                            <div key={cat} className="flex items-center justify-between">
+                              <span className="text-sm text-zinc-300">{cat}</span>
+                              <div className="flex items-center gap-2">
+                                <div className="w-32 h-2 bg-zinc-800 rounded-full overflow-hidden">
+                                  <div 
+                                    className="h-full bg-primary rounded-full" 
+                                    style={{width: `${(count / dailyReportPersonal.totalReports) * 100}%`}}
+                                  />
+                                </div>
+                                <span className="text-sm font-bold text-primary">{count}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </Card>
+
+                      <Card title="Distribuição por Gravidade">
+                        <div className="space-y-3">
+                          {Object.entries(dailyReportPersonal.byGravity).map(([gravity, count]: [string, any]) => {
+                            const colors = { G1: 'bg-blue-500', G2: 'bg-yellow-500', G3: 'bg-orange-500', G4: 'bg-red-500' };
+                            return (
+                              <div key={gravity} className="flex items-center justify-between">
+                                <span className="text-sm text-zinc-300 font-bold">{gravity}</span>
+                                <div className="flex items-center gap-2">
+                                  <div className="w-32 h-2 bg-zinc-800 rounded-full overflow-hidden">
+                                    <div 
+                                      className={`h-full rounded-full ${colors[gravity as keyof typeof colors]}`}
+                                      style={{width: dailyReportPersonal.totalReports > 0 ? `${(count / dailyReportPersonal.totalReports) * 100}%` : '0'}}
+                                    />
+                                  </div>
+                                  <span className="text-sm font-bold">{count}</span>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </Card>
+                    </div>
+
+                    {dailyReportPersonal.reports.length > 0 && (
+                      <Card title={`Ocorrências de Hoje (${dailyReportPersonal.reports.length})`}>
+                        <div className="space-y-2">
+                          {dailyReportPersonal.reports.map((report: Report) => (
+                            <div 
+                              key={report.id}
+                              onClick={() => setSelectedReport(report)}
+                              className="flex items-center justify-between p-3 bg-zinc-800/30 border border-zinc-800 rounded-lg hover:border-primary/50 cursor-pointer transition-all"
+                            >
+                              <div className="flex-1">
+                                <p className="text-sm font-bold text-zinc-100">{report.titulo || 'Sem título'}</p>
+                                <p className="text-xs text-zinc-500">{report.categoria}</p>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Badge gravidade={report.gravidade} />
+                                <ChevronRight size={16} className="text-zinc-600" />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </Card>
+                    )}
+                  </>
+                ) : (
+                  <div className="py-20 text-center">
+                    <Calendar className="mx-auto text-zinc-800 mb-4" size={48} />
+                    <p className="text-zinc-500 font-bold uppercase tracking-widest text-xs">Nenhuma ocorrência registrada hoje</p>
+                  </div>
+                )}
+              </motion.div>
+            )}
+
             {activeTab === 'users' && (
               <motion.div 
                 key="users"
@@ -2107,9 +2249,68 @@ export default function App() {
                 </div>
                 <div className="p-6 bg-zinc-900/20 border-t border-zinc-800 flex justify-end gap-3">
                   <button type="button" onClick={() => setIsNewReportModalOpen(false)} className="px-6 py-2.5 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white transition-colors">Cancelar</button>
+                  <button type="button" onClick={() => setShowReportPreview(true)} className="bg-zinc-700 hover:bg-zinc-600 text-white font-black text-[10px] px-8 py-2.5 rounded-lg transition-all uppercase tracking-widest">Visualizar</button>
                   <button type="submit" className="bg-primary hover:bg-primary/90 text-black font-black text-[10px] px-8 py-2.5 rounded-lg transition-all uppercase tracking-widest shadow-lg shadow-primary/20">Transmitir Relatório</button>
                 </div>
               </form>
+            </motion.div>
+          </div>
+        )}
+
+        {showReportPreview && (
+          <div key="preview-modal" className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-[#0a0a0a] border border-zinc-800 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl"
+            >
+              <div className="p-6 border-b border-zinc-800 flex items-center justify-between bg-zinc-900/20">
+                <h3 className="text-xl font-black tracking-tighter uppercase">Visualização da Ocorrência</h3>
+                <button type="button" onClick={() => setShowReportPreview(false)} className="text-zinc-500 hover:text-white transition-colors">
+                  <XCircle size={24} />
+                </button>
+              </div>
+              <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
+                <div>
+                  <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Título</p>
+                  <p className="text-lg font-bold text-zinc-100">{newReport.titulo || 'Sem título'}</p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Categoria</p>
+                    <p className="text-sm text-zinc-300 bg-zinc-900/50 p-2 rounded">{newReport.categoria}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Gravidade</p>
+                    <div className="inline-block"><Badge gravidade={newReport.gravidade} /></div>
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Descrição</p>
+                  <p className="text-sm text-zinc-300 bg-zinc-900/50 p-3 rounded leading-relaxed">{newReport.descricao || 'Sem descrição'}</p>
+                </div>
+
+                {newReport.fotos.length > 0 && (
+                  <div>
+                    <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-3">Evidências ({newReport.fotos.length})</p>
+                    <div className="grid grid-cols-2 gap-3">
+                      {newReport.fotos.map((foto, idx) => (
+                        <div key={idx} className="space-y-1">
+                          <img src={URL.createObjectURL(foto.file)} alt={`Preview ${idx}`} className="w-full h-32 object-cover rounded border border-zinc-800" />
+                          {foto.caption && <p className="text-xs text-zinc-400">{foto.caption}</p>}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div className="p-6 bg-zinc-900/20 border-t border-zinc-800 flex justify-end gap-3">
+                <button type="button" onClick={() => setShowReportPreview(false)} className="px-6 py-2.5 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white transition-colors">Voltar</button>
+                <button type="button" onClick={() => { setShowReportPreview(false); handleCreateReport(new Event('submit') as any); }} className="bg-primary hover:bg-primary/90 text-black font-black text-[10px] px-8 py-2.5 rounded-lg transition-all uppercase tracking-widest shadow-lg shadow-primary/20">Confirmar e Enviar</button>
+              </div>
             </motion.div>
           </div>
         )}
