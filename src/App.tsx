@@ -2232,10 +2232,18 @@ export default function App() {
                           { name: 'view_dashboard', label: 'Acesso ao Dashboard', desc: 'Visualização de estatísticas e gráficos.' },
                           { name: 'view_reports', label: 'Visualizar Ocorrências', desc: 'Acesso ao log de registros operacionais.' },
                           { name: 'create_reports', label: 'Registrar Ocorrências', desc: 'Permissão para enviar novos relatos.' },
+                          { name: 'conclude_reports', label: 'Finalizar Ocorrências', desc: 'Permissão para fechar/concluir ocorrências.' },
+                          { name: 'view_daily_reports', label: 'Visualizar Relatórios Diários', desc: 'Acesso aos relatórios consolidados do dia.' },
+                          { name: 'view_team_daily', label: 'Visualizar Dia da Equipe', desc: 'Ver relatórios consolidados de toda a equipe.' },
+                          { name: 'create_alerts', label: 'Criar Alertas', desc: 'Permissão para criar alertas para a equipe.' },
+                          { name: 'edit_own_alerts', label: 'Editar Alertas Próprios', desc: 'Editar e deletar alertas que você criou.' },
+                          { name: 'view_audit_logs', label: 'Auditoria de Logs', desc: 'Visualização de logs e histórico do sistema.' },
                           { name: 'manage_users', label: 'Gestão de Usuários', desc: 'Permite criar, editar e remover agentes.' },
                           { name: 'manage_permissions', label: 'Gestão de Permissões', desc: 'Configuração de privilégios e roles.' },
-                          { name: 'view_daily_reports', label: 'Auditoria de Logs', desc: 'Visualização de relatórios diários.' },
                           { name: 'manage_settings', label: 'Configurações de Sistema', desc: 'Acesso às chaves de integração e sistema.' },
+                          { name: 'export_reports', label: 'Exportar Relatórios', desc: 'Permissão para exportar relatórios em diversos formatos.' },
+                          { name: 'view_personal_reports', label: 'Meus Relatórios', desc: 'Acesso aos seus relatórios pessoais.' },
+                          { name: 'view_personal_daily', label: 'Meu Dia', desc: 'Ver consolidado pessoal do dia.' },
                         ].map((p) => {
                           const isEnabled = rolePermissions.find(rp => rp.permissao_nome === p.name)?.is_enabled ?? false;
                           return (
