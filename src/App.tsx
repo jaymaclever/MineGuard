@@ -745,7 +745,7 @@ export default function App() {
       if (data.status === 'success') {
         toast.success("Alerta criado com sucesso!");
         setNewAlert({ titulo: '', mensagem: '', tipo: 'aviso' });
-        setAlerts(prev => [data.alert, ...prev]);
+        // Alert will be added via Socket.io listener
       } else {
         toast.error(data.message || "Erro ao criar alerta");
       }
