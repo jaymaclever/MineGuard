@@ -159,21 +159,54 @@ if (weightsCount.count === 0) {
   weights.forEach(w => insertWeight.run(w[0], w[1]));
 }
 
-// Seed default permissions for Superadmin if empty
+// Seed default permissions for all roles if empty
 const permsCount = db.prepare("SELECT COUNT(*) as count FROM permissions").get() as any;
 if (permsCount.count === 0) {
   const insertPerm = db.prepare("INSERT INTO permissions (nivel_hierarquico, permissao_nome, is_enabled) VALUES (?, ?, ?)");
-  const defaultPerms = [
-    'view_dashboard', 'view_reports', 'create_reports', 'manage_users', 
-    'manage_permissions', 'view_daily_reports', 'manage_settings', 'conclude_reports'
-  ];
-  defaultPerms.forEach(p => insertPerm.run('Superadmin', p, 1));
-  // Sierra 1 defaults
-  ['view_dashboard', 'view_reports', 'create_reports', 'view_daily_reports', 'conclude_reports'].forEach(p => insertPerm.run('Sierra 1', p, 1));
-  // Oficial defaults
-  ['view_dashboard', 'view_reports', 'create_reports', 'conclude_reports'].forEach(p => insertPerm.run('Oficial', p, 1));
-  // Agente defaults
-  ['view_reports', 'create_reports'].forEach(p => insertPerm.run('Agente', p, 1));
+  
+  // Define permissions matrix
+  const rolePermissions: Record<string, string[]> = {
+    'Superadmin': [
+      'view_dashboard', 'view_reports', 'create_reports', 'conclude_reports',
+      'view_daily_reports', 'view_team_daily', 'create_alerts', 'edit_own_alerts',
+      'manage_users', 'manage_permissions', 'manage_settings',
+      'view_personal_reports', 'view_personal_daily'
+    ],
+    'Admin': [
+      'view_dashboard', 'view_reports', 'create_reports', 'conclude_reports',
+      'view_daily_reports', 'view_team_daily', 'create_alerts', 'edit_own_alerts',
+      'manage_users', 'manage_permissions', 'manage_settings',
+      'view_personal_reports', 'view_personal_daily'
+    ],
+    'Sierra 1': [
+      'view_dashboard', 'view_reports', 'create_reports', 'conclude_reports',
+      'view_daily_reports', 'view_team_daily', 'create_alerts', 'edit_own_alerts',
+      'manage_users', 'view_personal_reports', 'view_personal_daily'
+    ],
+    'Sierra 2': [
+      'view_dashboard', 'view_reports', 'create_reports', 'conclude_reports',
+      'view_daily_reports', 'view_team_daily', 'create_alerts', 'edit_own_alerts',
+      'manage_users', 'view_personal_reports', 'view_personal_daily'
+    ],
+    'Oficial': [
+      'view_dashboard', 'view_reports', 'create_reports', 'conclude_reports',
+      'view_daily_reports', 'create_alerts', 'edit_own_alerts',
+      'view_personal_reports', 'view_personal_daily'
+    ],
+    'Supervisor': [
+      'view_dashboard', 'view_reports', 'create_reports', 'conclude_reports',
+      'view_daily_reports', 'view_team_daily', 'create_alerts', 'edit_own_alerts',
+      'view_personal_reports', 'view_personal_daily'
+    ],
+    'Agente': [
+      'view_dashboard', 'view_reports', 'create_reports', 'edit_own_alerts',
+      'view_personal_reports', 'view_personal_daily'
+    ]
+  };
+
+  Object.entries(rolePermissions).forEach(([role, perms]) => {
+    perms.forEach(p => insertPerm.run(role, p, 1));
+  });
 }
 
 // Seed mock users if empty
@@ -1113,15 +1146,9 @@ ${coords_lat ? `<b>Local:</b> <a href="https://www.google.com/maps?q=${coords_la
     }
   });
 
-  app.post("/api/alerts", authenticate, (req: any, res) => {
+  app.post("/api/alerts", authenticate, checkPermission('create_alerts'), (req: any, res) => {
     try {
       const userId = req.user.id;
-      const roleWeights = db.prepare("SELECT peso FROM role_weights WHERE nivel_hierarquico = ?").get(req.user.nivel_hierarquico) as any;
-      const peso = roleWeights?.peso || 0;
-
-      if (peso < 60) {
-        return res.status(403).json({ status: "error", message: "Sem permissão para criar alertas. Apenas oficiais e cargos superiores." });
-      }
 
       const { titulo, mensagem, tipo } = req.body;
       if (!titulo || !mensagem) {
@@ -1170,7 +1197,7 @@ ${coords_lat ? `<b>Local:</b> <a href="https://www.google.com/maps?q=${coords_la
     }
   });
 
-  app.patch("/api/alerts/:id", authenticate, (req: any, res) => {
+  app.patch("/api/alerts/:id", authenticate, checkPermission('edit_own_alerts'), (req: any, res) => {
     try {
       const { id } = req.params;
       const userId = req.user.id;
@@ -1197,7 +1224,7 @@ ${coords_lat ? `<b>Local:</b> <a href="https://www.google.com/maps?q=${coords_la
     }
   });
 
-  app.delete("/api/alerts/:id", authenticate, (req: any, res) => {
+  app.delete("/api/alerts/:id", authenticate, checkPermission('edit_own_alerts'), (req: any, res) => {
     try {
       const { id } = req.params;
       const userId = req.user.id;

@@ -740,7 +740,7 @@ export default function App() {
   const handleCreateAlert = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if ((currentUser?.peso || 0) < 60) {
+    if (!currentUser?.permissions?.create_alerts) {
       toast.error("Sem permissão para criar alertas");
       return;
     }
@@ -963,7 +963,7 @@ export default function App() {
           {currentUser.permissions?.view_daily_reports === true && <SidebarItem icon={Calendar} label={publicSettings.app_layout === 'compact' ? "" : "Relatórios Diários"} active={activeTab === 'daily_reports'} onClick={() => setActiveTab('daily_reports')} />}
           <SidebarItem icon={FileText} label={publicSettings.app_layout === 'compact' ? "" : "Meus Relatórios"} active={activeTab === 'personal_reports'} onClick={() => setActiveTab('personal_reports')} />
           <SidebarItem icon={Calendar} label={publicSettings.app_layout === 'compact' ? "" : "Meu Dia"} active={activeTab === 'daily_report_personal'} onClick={() => setActiveTab('daily_report_personal')} />
-          {(currentUser.peso || 0) >= 50 && <SidebarItem icon={Users} label={publicSettings.app_layout === 'compact' ? "" : "Dia da Equipe"} active={activeTab === 'daily_report_team'} onClick={() => setActiveTab('daily_report_team')} />}
+          {currentUser.permissions?.view_team_daily && <SidebarItem icon={Users} label={publicSettings.app_layout === 'compact' ? "" : "Dia da Equipe"} active={activeTab === 'daily_report_team'} onClick={() => setActiveTab('daily_report_team')} />}
           <SidebarItem icon={AlertTriangle} label={publicSettings.app_layout === 'compact' ? "" : "Alertas"} active={activeTab === 'alerts'} onClick={() => setActiveTab('alerts')} />
           {currentUser.permissions?.manage_users === true && <SidebarItem icon={Users} label={publicSettings.app_layout === 'compact' ? "" : "Gestão de Pessoal"} active={activeTab === 'users'} onClick={() => setActiveTab('users')} />}
           {currentUser.permissions?.manage_permissions === true && <SidebarItem icon={Lock} label={publicSettings.app_layout === 'compact' ? "" : "Permissões & Roles"} active={activeTab === 'permissions'} onClick={() => setActiveTab('permissions')} />}
@@ -1942,8 +1942,8 @@ export default function App() {
                   <p className="text-sm text-zinc-500">Gerencie alertas para toda a equipe</p>
                 </div>
 
-                {(currentUser?.peso || 0) >= 60 && (
-                  <Card title="Criar Novo Alerta" subtitle="Apenas oficiais e cargos superiores">
+                {currentUser?.permissions?.create_alerts && (
+                  <Card title="Criar Novo Alerta" subtitle="Criar alertas para toda a equipe">
                     <form onSubmit={handleCreateAlert} className="space-y-4 mt-4">
                       <div>
                         <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-2">Título do Alerta</label>
