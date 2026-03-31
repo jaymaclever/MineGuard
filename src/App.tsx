@@ -278,7 +278,7 @@ const Login = ({ onLogin, publicSettings }: { onLogin: (user: any) => void, publ
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'reports' | 'users' | 'permissions' | 'daily_reports' | 'personal_reports' | 'daily_report_personal' | 'daily_report_team' | 'settings'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'reports' | 'users' | 'permissions' | 'daily_reports' | 'personal_reports' | 'daily_report_personal' | 'daily_report_team' | 'alerts' | 'settings'>('dashboard');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
   const [filterSeverity, setFilterSeverity] = useState('');
@@ -315,6 +315,8 @@ export default function App() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isBellShaking, setIsBellShaking] = useState(false);
+  const [alerts, setAlerts] = useState<any[]>([]);
+  const [newAlert, setNewAlert] = useState({ titulo: '', mensagem: '', tipo: 'aviso' });
   const [mapCenter, setMapCenter] = useState<[number, number]>([-8.8383, 13.2344]); // Angola/Luanda default
   const [isEditingReport, setIsEditingReport] = useState(false);
   const [editingReportData, setEditingReportData] = useState<{ descricao: string; fotos: Array<{ file: File; caption: string }> }>({ descricao: '', fotos: [] });
@@ -394,6 +396,16 @@ export default function App() {
       if (selectedReport && selectedReport.id === id) {
         setSelectedReport(prev => prev ? { ...prev, status } : null);
       }
+    });
+
+    socket.on('new_alert', (alert: any) => {
+      setAlerts(prev => [alert, ...prev]);
+      addNotification(
+        `Novo Alerta: ${alert.titulo}`,
+        alert.mensagem,
+        'alert',
+        alert.id
+      );
     });
 
     return () => { socket.disconnect(); };
@@ -487,6 +499,10 @@ export default function App() {
         keys.push('settings');
       }
 
+      // Always fetch alerts
+      promises.push(fetch('/api/alerts', { credentials: 'include' }));
+      keys.push('alerts');
+
       if (promises.length === 0) return;
 
       const responses = await Promise.all(promises);
@@ -501,6 +517,7 @@ export default function App() {
         if (key === 'stats') setStats(data);
         if (key === 'daily') setDailyReports(data);
         if (key === 'settings') setSystemSettings(data);
+        if (key === 'alerts') setAlerts(data.alerts || []);
       });
     } catch (error) {
       console.error("Fetch error:", error);
@@ -708,6 +725,35 @@ export default function App() {
     }
   };
 
+  const handleCreateAlert = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if ((currentUser?.peso || 0) < 60) {
+      toast.error("Sem permissão para criar alertas");
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/alerts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newAlert),
+        credentials: 'include'
+      });
+
+      const data = await res.json();
+      if (data.status === 'success') {
+        toast.success("Alerta criado com sucesso!");
+        setNewAlert({ titulo: '', mensagem: '', tipo: 'aviso' });
+        setAlerts(prev => [data.alert, ...prev]);
+      } else {
+        toast.error(data.message || "Erro ao criar alerta");
+      }
+    } catch (err) {
+      toast.error("Erro ao criar alerta");
+    }
+  };
+
   const handleLogout = async () => {
     await fetch('/api/logout', { method: 'POST', credentials: 'include' });
     setCurrentUser(null);
@@ -860,6 +906,7 @@ export default function App() {
           <SidebarItem icon={FileText} label={publicSettings.app_layout === 'compact' ? "" : "Meus Relatórios"} active={activeTab === 'personal_reports'} onClick={() => setActiveTab('personal_reports')} />
           <SidebarItem icon={Calendar} label={publicSettings.app_layout === 'compact' ? "" : "Meu Dia"} active={activeTab === 'daily_report_personal'} onClick={() => setActiveTab('daily_report_personal')} />
           {(currentUser.peso || 0) >= 50 && <SidebarItem icon={Users} label={publicSettings.app_layout === 'compact' ? "" : "Dia da Equipe"} active={activeTab === 'daily_report_team'} onClick={() => setActiveTab('daily_report_team')} />}
+          <SidebarItem icon={AlertTriangle} label={publicSettings.app_layout === 'compact' ? "" : "Alertas"} active={activeTab === 'alerts'} onClick={() => setActiveTab('alerts')} />
           {currentUser.permissions?.manage_users === true && <SidebarItem icon={Users} label={publicSettings.app_layout === 'compact' ? "" : "Gestão de Pessoal"} active={activeTab === 'users'} onClick={() => setActiveTab('users')} />}
           {currentUser.permissions?.manage_permissions === true && <SidebarItem icon={Lock} label={publicSettings.app_layout === 'compact' ? "" : "Permissões & Roles"} active={activeTab === 'permissions'} onClick={() => setActiveTab('permissions')} />}
           {currentUser.permissions?.manage_settings === true && <SidebarItem icon={SettingsIcon} label={publicSettings.app_layout === 'compact' ? "" : "Configurações"} active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} />}
@@ -1280,7 +1327,7 @@ export default function App() {
                     </div>
                   </Card>
 
-                  <Card title="Alertas do Sistema" subtitle="Notificações críticas e avisos">
+                  <Card title="Alertas" subtitle="Notificações críticas e avisos">
                     <div className="space-y-4 mt-4">
                       <div className="flex gap-4 p-3 rounded-xl bg-red-500/5 border border-red-500/10">
                         <div className="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center text-red-500 shrink-0">
@@ -1811,6 +1858,107 @@ export default function App() {
                     <p className="text-zinc-500 font-bold uppercase tracking-widest text-xs">Nenhuma ocorrência da equipe registrada hoje</p>
                   </div>
                 )}
+              </motion.div>
+            )}
+
+            {activeTab === 'alerts' && (
+              <motion.div 
+                key="alerts"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="space-y-6"
+              >
+                <div>
+                  <h2 className="text-2xl font-black tracking-tighter">ALERTAS</h2>
+                  <p className="text-sm text-zinc-500">Gerencie alertas para toda a equipe</p>
+                </div>
+
+                {(currentUser?.peso || 0) >= 60 && (
+                  <Card title="Criar Novo Alerta" subtitle="Apenas oficiais e cargos superiores">
+                    <form onSubmit={handleCreateAlert} className="space-y-4 mt-4">
+                      <div>
+                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-2">Título do Alerta</label>
+                        <input 
+                          type="text"
+                          required
+                          placeholder="Ex: Manutenção de Emergência"
+                          value={newAlert.titulo}
+                          onChange={(e) => setNewAlert({...newAlert, titulo: e.target.value})}
+                          className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-2">Mensagem</label>
+                        <textarea 
+                          required
+                          placeholder="Descreva o alerta..."
+                          value={newAlert.mensagem}
+                          onChange={(e) => setNewAlert({...newAlert, mensagem: e.target.value})}
+                          className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary min-h-[80px] resize-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-2">Tipo</label>
+                        <select 
+                          value={newAlert.tipo}
+                          onChange={(e) => setNewAlert({...newAlert, tipo: e.target.value})}
+                          className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
+                        >
+                          <option value="aviso">Aviso</option>
+                          <option value="critico">Crítico</option>
+                          <option value="informativo">Informativo</option>
+                        </select>
+                      </div>
+
+                      <button 
+                        type="submit"
+                        className="w-full bg-primary hover:bg-primary/90 text-black font-black text-[10px] px-6 py-2.5 rounded-lg transition-all uppercase tracking-widest shadow-lg shadow-primary/20"
+                      >
+                        Enviar Alerta
+                      </button>
+                    </form>
+                  </Card>
+                )}
+
+                <Card title={`Alertas (${alerts.length})`}>
+                  {alerts.length === 0 ? (
+                    <div className="p-8 text-center">
+                      <AlertTriangle className="mx-auto text-zinc-600 mb-2" size={32} />
+                      <p className="text-xs text-zinc-500">Nenhum alerta no momento</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                      {alerts.map((alert: any) => (
+                        <div key={alert.id} className={cn(
+                          "p-4 rounded-lg border transition-colors",
+                          alert.tipo === 'critico' ? "bg-red-900/20 border-red-800/50" :
+                          alert.tipo === 'aviso' ? "bg-orange-900/20 border-orange-800/50" :
+                          "bg-blue-900/20 border-blue-800/50"
+                        )}>
+                          <div className="flex items-start justify-between mb-2">
+                            <h4 className="font-bold text-sm">{alert.titulo}</h4>
+                            <span className={cn(
+                              "text-[8px] font-black px-2 py-1 rounded uppercase tracking-tighter",
+                              alert.tipo === 'critico' ? "bg-red-500 text-white" :
+                              alert.tipo === 'aviso' ? "bg-orange-500 text-white" :
+                              "bg-blue-500 text-white"
+                            )}>
+                              {alert.tipo}
+                            </span>
+                          </div>
+                          <p className="text-sm text-zinc-300 mb-2">{alert.mensagem}</p>
+                          <div className="flex items-center justify-between text-[10px] text-zinc-500">
+                            <span>Por: {alert.creator_name || 'Sistema'}</span>
+                            <span>{new Date(alert.timestamp).toLocaleString('pt-BR')}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </Card>
               </motion.div>
             )}
 

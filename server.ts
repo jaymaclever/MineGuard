@@ -78,6 +78,27 @@ db.exec(`
     FOREIGN KEY(report_id) REFERENCES reports(id) ON DELETE CASCADE
   );
 
+  CREATE TABLE IF NOT EXISTS alerts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    created_by INTEGER NOT NULL,
+    titulo TEXT NOT NULL,
+    mensagem TEXT NOT NULL,
+    tipo TEXT DEFAULT 'aviso',
+    timestamp TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(created_by) REFERENCES users(id)
+  );
+
+  CREATE TABLE IF NOT EXISTS alert_reads (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    alert_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    read BOOLEAN DEFAULT 0,
+    timestamp TEXT DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(alert_id, user_id),
+    FOREIGN KEY(alert_id) REFERENCES alerts(id) ON DELETE CASCADE,
+    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+  );
+
   -- Seed default system settings if empty
   INSERT OR IGNORE INTO system_settings (key, value, description) VALUES ('app_name', 'MINEGUARD', 'Nome da aplicação');
   INSERT OR IGNORE INTO system_settings (key, value, description) VALUES ('app_slogan', 'Security Operating System', 'Slogan da aplicação');
@@ -1067,6 +1088,84 @@ ${coords_lat ? `<b>Local:</b> <a href="https://www.google.com/maps?q=${coords_la
       }
 
       res.json({ status: "success", id: result.lastInsertRowid });
+    } catch (err: any) {
+      res.status(500).json({ status: "error", message: err.message });
+    }
+  });
+
+  // Alerts endpoints
+  app.get("/api/alerts", authenticate, (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const alerts = db.prepare(`
+        SELECT a.*, u.nome as creator_name, 
+          COALESCE(ar.read, 0) as read
+        FROM alerts a
+        LEFT JOIN alert_reads ar ON a.id = ar.alert_id AND ar.user_id = ?
+        LEFT JOIN users u ON a.created_by = u.id
+        ORDER BY a.timestamp DESC
+        LIMIT 100
+      `).all(userId) as any[];
+
+      res.json({ status: "success", alerts });
+    } catch (err: any) {
+      res.status(500).json({ status: "error", message: err.message });
+    }
+  });
+
+  app.post("/api/alerts", authenticate, (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const user = db.prepare("SELECT peso FROM users WHERE id = ?").get(userId) as any;
+      const roleWeights = db.prepare("SELECT peso FROM role_weights WHERE nivel_hierarquico = ?").get(req.user.nivel_hierarquico) as any;
+      const peso = roleWeights?.peso || 0;
+
+      if (peso < 60) {
+        return res.status(403).json({ status: "error", message: "Sem permissão para criar alertas. Apenas oficiais e cargos superiores." });
+      }
+
+      const { titulo, mensagem, tipo } = req.body;
+      if (!titulo || !mensagem) {
+        return res.status(400).json({ status: "error", message: "Título e mensagem são obrigatórios" });
+      }
+
+      const stmt = db.prepare(`
+        INSERT INTO alerts (created_by, titulo, mensagem, tipo, timestamp)
+        VALUES (?, ?, ?, ?, datetime('now'))
+      `);
+      
+      const result = stmt.run(userId, titulo, mensagem, tipo || 'aviso');
+      const alertId = result.lastInsertRowid as number;
+
+      // Insert into alert_reads for all users except creator
+      const allUsers = db.prepare("SELECT id FROM users WHERE id != ?").all(userId) as any[];
+      const insertRead = db.prepare("INSERT OR IGNORE INTO alert_reads (alert_id, user_id, read) VALUES (?, ?, 0)");
+      allUsers.forEach(u => insertRead.run(alertId, u.id));
+
+      const alert = db.prepare(`
+        SELECT a.*, u.nome as creator_name, 0 as read
+        FROM alerts a
+        LEFT JOIN users u ON a.created_by = u.id
+        WHERE a.id = ?
+      `).get(alertId) as any;
+
+      // Broadcast via Socket.io
+      io.emit("new_alert", alert);
+
+      res.json({ status: "success", alert });
+    } catch (err: any) {
+      res.status(500).json({ status: "error", message: err.message });
+    }
+  });
+
+  app.patch("/api/alerts/:id/read", authenticate, (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user.id;
+
+      db.prepare("INSERT OR REPLACE INTO alert_reads (alert_id, user_id, read) VALUES (?, ?, 1)").run(id, userId);
+
+      res.json({ status: "success" });
     } catch (err: any) {
       res.status(500).json({ status: "error", message: err.message });
     }
