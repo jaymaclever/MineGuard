@@ -33,7 +33,7 @@ echo -e "${YELLOW}[5/6] Configuring environment...${NC}"
 if [ ! -f .env ]; then
     cat > .env <<EOF
 NODE_ENV=production
-PORT=3000
+PORT=5000
 JWT_SECRET=b6f8a2c4e9d1f3a5b7c9d0e2f4a6b8c0d2e4f6a8b0c2d4e6f8a0c2d4e6f8a0c2
 ENCRYPTION_KEY=Lulo-CSI-Safe-Admin-Secret-Key-2026-Security-First!
 EOF
@@ -52,7 +52,7 @@ After=network.target
 Type=simple
 User=$SERVICE_USER
 WorkingDirectory=$APP_PATH
-ExecStart=$(which node) server.ts
+ExecStart=$(which npm) start
 Restart=always
 RestartSec=10
 Environment=NODE_ENV=production
@@ -71,7 +71,7 @@ echo -e "\n${GREEN}════════════════════�
 echo -e "${GREEN}   ✓ Installation Complete!${NC}"
 echo -e "${GREEN}════════════════════════════════════════${NC}"
 echo -e "\n${GREEN}🚀 Access MineGuard:${NC}"
-echo -e "   http://localhost:3000"
+echo -e "   http://localhost:5000"
 echo -e "\n${GREEN}📝 Login:${NC}"
 echo -e "   User: superadmin"
 echo -e "   Pass: secret"
