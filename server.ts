@@ -514,18 +514,19 @@ async function startServer() {
     }
   });
 
-  app.post("/api/backup/restore", authenticate, checkPermission('manage_settings'), (req, res) => {
+  app.post("/api/backup/restore", authenticate, checkPermission('manage_settings'), (req: any, res) => {
     try {
       if (!req.files || !req.files.backupFile) {
         return res.status(400).json({ status: "error", message: "Arquivo não fornecido" });
       }
 
-      const backupFile = req.files.backupFile as Express.Multer.File;
+      const backupFileArray = req.files.backupFile as any[];
+      const backupFile = Array.isArray(backupFileArray) ? backupFileArray[0] : backupFileArray;
       const dbPath = path.join(process.cwd(), 'mina_seguranca.db');
       const backupPath = path.join(process.cwd(), `mina_seguranca-${Date.now()}.backup`);
 
       fs.copyFileSync(dbPath, backupPath);
-      fs.writeFileSync(dbPath, backupFile.data);
+      fs.writeFileSync(dbPath, backupFile.data || backupFile);
 
       res.json({ status: "ok", message: "Backup restaurado com sucesso", backupPath });
     } catch (error: any) {

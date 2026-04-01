@@ -3090,8 +3090,8 @@ export default function App() {
                         e.preventDefault();
                         e.currentTarget.classList.remove('border-primary/70', 'bg-primary/5');
                         const files = e.dataTransfer.files;
-                        Array.from(files).forEach(file => {
-                          if (file.type.startsWith('image/')) {
+                        Array.from(files).forEach((file: File) => {
+                          if (file.type && file.type.startsWith('image/')) {
                             setNewReport({...newReport, fotos: [...newReport.fotos, { file, caption: '' }]});
                           }
                         });
@@ -3425,8 +3425,8 @@ export default function App() {
                             e.preventDefault();
                             e.currentTarget.classList.remove('border-primary/70', 'bg-primary/5');
                             const files = e.dataTransfer.files;
-                            Array.from(files).forEach(file => {
-                              if (file.type.startsWith('image/')) {
+                            Array.from(files).forEach((file: File) => {
+                              if (file.type && file.type.startsWith('image/')) {
                                 setEditingReportData({...editingReportData, fotos: [...editingReportData.fotos, { file, caption: '' }]});
                               }
                             });
