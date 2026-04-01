@@ -620,10 +620,7 @@ export default function App() {
         if (key === 'users') setUsers(data);
         if (key === 'roles') setRoles(data);
         if (key === 'stats') setStats(data);
-        if (key === 'daily') {
-          console.log('[DEBUG] Daily reports data received:', data);
-          setDailyReports(Array.isArray(data) ? data : []);
-        }
+        if (key === 'daily') setDailyReports(Array.isArray(data) ? data : []);
         if (key === 'settings') setSystemSettings(data);
         if (key === 'alerts') setAlerts(data.alerts || []);
       });
@@ -2697,12 +2694,21 @@ export default function App() {
                     <form onSubmit={async (e) => {
                       e.preventDefault();
                       const formData = new FormData(e.currentTarget);
+                      const channels: string[] = [];
+                      if (formData.get('scheduled_reports_email_enabled') === 'on') channels.push('email');
+                      if (formData.get('scheduled_reports_telegram_enabled') === 'on') channels.push('telegram');
+                      
                       const settings = [
                         { key: 'scheduled_reports_enabled', value: (formData.get('scheduled_reports_enabled') === 'on') ? 'true' : 'false', description: 'Relatórios agendados ativados' },
                         { key: 'scheduled_reports_time', value: formData.get('scheduled_reports_time'), description: 'Horário de envio dos relatórios' },
-                        { key: 'scheduled_reports_channel', value: formData.get('scheduled_reports_channel'), description: 'Canal de entrega (email/telegram)' },
-                        { key: 'scheduled_reports_recipients', value: formData.get('scheduled_reports_recipients'), description: 'Destinatários dos relatórios' }
+                        { key: 'scheduled_reports_channel', value: channels.join(',') || 'email', description: 'Canais de entrega' },
+                        { key: 'scheduled_reports_recipients', value: formData.get('scheduled_reports_recipients'), description: 'Destinatários dos relatórios (Email)' },
+                        { key: 'scheduled_reports_telegram_chat', value: formData.get('scheduled_reports_telegram_chat'), description: 'Chat ID Telegram para relatórios' }
                       ];
+                      
+                      if (!channels.length) {
+                        return toast.error("Selecione pelo menos um canal de entrega");
+                      }
                       
                       try {
                         await fetch('/api/settings', {
@@ -2720,7 +2726,7 @@ export default function App() {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-sm font-bold text-zinc-200">Ativar Relatórios Agendados</p>
-                          <p className="text-[10px] text-zinc-500">Envio automático diário de relatórios.</p>
+                          <p className="text-[10px] text-zinc-500">Envio automático diário de relatórios consolidados.</p>
                         </div>
                         <input 
                           type="checkbox"
@@ -2730,39 +2736,66 @@ export default function App() {
                         />
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Horário de Envio</label>
-                          <input 
-                            type="time"
-                            name="scheduled_reports_time"
-                            defaultValue={systemSettings.find(s => s.key === 'scheduled_reports_time')?.value || '06:00'}
-                            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Canal de Entrega</label>
-                          <select 
-                            name="scheduled_reports_channel"
-                            defaultValue={systemSettings.find(s => s.key === 'scheduled_reports_channel')?.value || 'email'}
-                            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
-                          >
-                            <option value="email">Email</option>
-                            <option value="telegram">Telegram</option>
-                            <option value="both">Email + Telegram</option>
-                          </select>
-                        </div>
-                      </div>
-
                       <div className="space-y-2">
-                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Destinatários (Email)</label>
+                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Horário de Envio</label>
                         <input 
-                          type="text"
-                          name="scheduled_reports_recipients"
-                          placeholder="email1@example.com, email2@example.com"
-                          defaultValue={systemSettings.find(s => s.key === 'scheduled_reports_recipients')?.value || ''}
+                          type="time"
+                          name="scheduled_reports_time"
+                          defaultValue={systemSettings.find(s => s.key === 'scheduled_reports_time')?.value || '06:00'}
                           className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
                         />
+                      </div>
+
+                      <div className="space-y-3 bg-zinc-900/50 rounded-lg p-4 border border-zinc-800">
+                        <p className="text-sm font-bold text-zinc-200">Canais de Entrega</p>
+                        
+                        <div className="space-y-4">
+                          <div className="flex items-start gap-4">
+                            <input 
+                              type="checkbox"
+                              id="scheduled_reports_email_enabled"
+                              name="scheduled_reports_email_enabled"
+                              defaultChecked={systemSettings.find(s => s.key === 'scheduled_reports_channel')?.value?.includes('email') ?? true}
+                              className="w-4 h-4 rounded cursor-pointer mt-1"
+                            />
+                            <div className="flex-1 space-y-2">
+                              <label htmlFor="scheduled_reports_email_enabled" className="text-[10px] font-black text-zinc-300 uppercase tracking-widest cursor-pointer">
+                                Email
+                              </label>
+                              <input 
+                                type="text"
+                                name="scheduled_reports_recipients"
+                                placeholder="email1@example.com, email2@example.com"
+                                defaultValue={systemSettings.find(s => s.key === 'scheduled_reports_recipients')?.value || ''}
+                                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="flex items-start gap-4">
+                            <input 
+                              type="checkbox"
+                              id="scheduled_reports_telegram_enabled"
+                              name="scheduled_reports_telegram_enabled"
+                              defaultChecked={systemSettings.find(s => s.key === 'scheduled_reports_channel')?.value?.includes('telegram') ?? false}
+                              className="w-4 h-4 rounded cursor-pointer mt-1"
+                            />
+                            <div className="flex-1 space-y-2">
+                              <label htmlFor="scheduled_reports_telegram_enabled" className="text-[10px] font-black text-zinc-300 uppercase tracking-widest cursor-pointer">
+                                Telegram
+                              </label>
+                              <input 
+                                type="text"
+                                name="scheduled_reports_telegram_chat"
+                                placeholder="Chat ID ou @username do Telegram"
+                                defaultValue={systemSettings.find(s => s.key === 'scheduled_reports_telegram_chat')?.value || ''}
+                                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        <p className="text-[10px] text-zinc-400">Selecione um ou ambos os canais para envio simultâneo.</p>
                       </div>
 
                       <div className="flex justify-end gap-3">
