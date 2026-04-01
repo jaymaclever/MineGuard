@@ -34,8 +34,8 @@ if [ ! -f .env ]; then
     cat > .env <<EOF
 NODE_ENV=production
 PORT=3000
-JWT_SECRET=mineguard_jwt_secret_key_12345
-ENCRYPTION_KEY=mineguard_secret_key_32_chars_!!
+JWT_SECRET=b6f8a2c4e9d1f3a5b7c9d0e2f4a6b8c0d2e4f6a8b0c2d4e6f8a0c2d4e6f8a0c2
+ENCRYPTION_KEY=Lulo-CSI-Safe-Admin-Secret-Key-2026-Security-First!
 EOF
 fi
 
