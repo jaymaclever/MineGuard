@@ -1,174 +1,238 @@
 # 🛡️ MineGuard - Sistema de Segurança de Mina
 
-**MineGuard** é um sistema de gestão de segurança operacional de ponta a ponta para mineração, projetado para monitoramento em tempo real, registro de incidentes e auditoria ativa.
+**MineGuard** é um sistema completo de gestão de segurança operacional para mineração, projetado para monitoramento em tempo real, registro de incidentes e auditoria ativa.
 
-Este é um aplicativo **Full-Stack** construído com foco em performance, segurança e usabilidade em ambientes críticos.
+Sistema **Full-Stack** moderno com React 18, TypeScript, Express e SQLite. Pronto para produção em Ubuntu Server.
 
 ---
 
 ## 🚀 Funcionalidades Principais
 
-- **Dashboard em Tempo Real:** Visualização de estatísticas, gráficos de volume de ocorrências e mapa de operações simulado.
-- **Gestão de Ocorrências:** Registro detalhado de incidentes com categorias, gravidade (G1 a G4), coordenadas GPS e metadados customizados.
-- **Exportação para PDF:** Gere relatórios detalhados de ocorrências individuais ou listas completas com formatação profissional pronta para impressão.
-- **Controle de Acesso Hierárquico (RBAC):** Sistema robusto de permissões baseado em níveis (Superadmin, Sierra 1, Sierra 2, Oficial, Supervisor, Agente).
-- **Notificações em Tempo Real:** Integração via WebSockets para alertas instantâneos de novas ocorrências.
-- **Integração com Telegram:** (Opcional) Envio automático de alertas para grupos de resposta rápida.
-- **Personalização da UI:** O Superadmin pode alterar o nome da aplicação, slogan, modo visual (claro/escuro), paleta de cores (laranja, azul, verde, vermelho, roxo) e layout (padrão ou compacto) diretamente nas configurações.
-- **Auditoria Ativa:** Log completo de ações e histórico de registros.
-
----
-
-## 📋 Roadmap de Desenvolvimento (Feature Roadmap)
-
-### ✅ Implementadas
-1. **[✅] Multilíngue - Suporte i18n**
-   - Português (Brasil) e English (US)
-   - Seletor de idioma nas Configurações
-   - Tradução de toda a interface
-
-2. **[✅] Filtros Avançados - Busca Completa**
-   - Filtro por categoria, gravidade, status
-   - Filtro por intervalo de datas (data inicial e final)
-   - Filtro por agente/usuário
-   - Botão para limpar todos os filtros
-   - Backend totalmente integrado
-
-3. **[✅] Paginação de Relatórios**
-   - 20 itens por página (configurável)
-   - Componente de navegação anterior/próximo
-   - Indicador de página atual
-   - Integração completa com backend
-   - Reseta página ao alterar filtros
-
-4. **[✅] Relatórios Agendados**
-   - Interface de configuração na seção de Settings
-   - Seleção de horário de envio customizável
-   - Escolha de canal (Email, Telegram ou Ambos)
-   - Configuração de destinatários para email
-   - Toggle para ativar/desativar agendamento
-
-5. **[✅] Mobile App - PWA (Progressive Web App)**
-   - Manifest.json com configurações PWA completas
-   - Service Worker para offline functionality
-   - Meta tags para iOS/Android
-   - Ícones responsivos (192x192 e 512x512)
-   - Instalável em dispositivos móveis como app nativo
-   - Sincronização em background
-
-6. **[✅] Backup Automático**
-   - Botão para fazer download manual do banco de dados
-   - Upload e restauração de backups pelo navegador
-   - Timestamp automático nos nomes de arquivo
-   - Criação automática de backup anterior ao restaurar
-   - Interface intuitiva na seção de Settings
-
-7. **[✅] Versioning & Atualizações**
-   - Exibição da versão atual do sistema
-   - Campo para URL do repositório GitHub
-   - Botão para verificar atualizações manualmente
-   - Configuração de verificação automática diária
-   - Interface na seção de Settings
+- ✅ **Dashboard em Tempo Real** - Visualização de estatísticas, gráficos e mapa de operações
+- ✅ **Gestão de Ocorrências** - Registro detalhado com categorias, gravidade (G1-G4), GPS e metadados
+- ✅ **Exportação para PDF** - Relatórios profissionais formatados para impressão
+- ✅ **RBAC Hierárquico** - Controle de acesso robusto (Superadmin, Sierra, Oficial, Supervisor, Agente)
+- ✅ **Notificações em Tempo Real** - WebSockets para alertas instantâneos
+- ✅ **Integração Telegram** - Envio automático de alertas para grupos
+- ✅ **Email SMTP** - Relatórios agendados por email
+- ✅ **Relatórios Agendados** - Configure horário, canal (Email/Telegram) e conteúdo
+- ✅ **Multilíngue (i18n)** - Português (BR) e English (US) com preferência por usuário
+- ✅ **PWA (Progressive Web App)** - Instalável como app nativo em mobile
+- ✅ **Backup & Restauração** - Gerencie backups do banco de dados pelo navegador
+- ✅ **Personalização de UI** - Altere nome, slogan, tema, cores e layout
+- ✅ **Auditoria Ativa** - Log completo de ações e histórico
 
 ---
 
 ## 🛠️ Stack Tecnológica
 
 ### Frontend
-- **React 18+** com **TypeScript**
-- **Vite** (Build Tool)
-- **Tailwind CSS** (Estilização)
-- **Motion (Framer Motion)** (Animações)
-- **Lucide React** (Ícones)
-- **Recharts** (Gráficos e Visualização de Dados)
+- React 18+ com TypeScript
+- Vite (Build Tool moderno)
+- Tailwind CSS (Estilização)
+- Motion/Framer Motion (Animações)
+- Lucide React (Ícones)
+- Recharts (Gráficos)
+- i18next (Multilíngue)
 
 ### Backend
-- **Node.js** com **Express**
-- **SQLite** (`better-sqlite3`) para persistência de dados
-- **Socket.io** para comunicação em tempo real
-- **JWT** para autenticação segura
-- **tsx** para execução de TypeScript no servidor
+- Node.js v20 com Express
+- SQLite (better-sqlite3)
+- Socket.io (Comunicação em tempo real)
+- JWT (Autenticação segura)
+- Criptografia AES-256
 
 ---
 
-## 📦 Instalação (Linux Server)
+## 📥 Instalação Rápida (Ubuntu Server)
 
-Preparamos um script de instalação automatizada para facilitar o deploy em servidores Linux (Ubuntu/Debian).
+### One-Line Installation
+```bash
+git clone https://github.com/seu-usuario/mineguard.git && cd mineguard && sudo bash install.sh
+```
 
-### 1. Clone o repositório
+Ou passo a passo:
 ```bash
 git clone https://github.com/seu-usuario/mineguard.git
 cd mineguard
+sudo bash install.sh
 ```
 
-### 2. Execute o script de instalação
-```bash
-chmod +x install.sh
-./install.sh
+### O que o instalador faz automaticamente:
+1. ✅ Atualiza pacotes do sistema
+2. ✅ Instala Node.js v20 (se não existir)
+3. ✅ Instala todas as dependências npm
+4. ✅ Compila o frontend (Vite)
+5. ✅ Cria `.env` com chaves seguras
+6. ✅ Configura serviço systemd
+7. ✅ **Inicia o servidor automaticamente**
+
+### Pronto! Acesse:
 ```
+http://localhost:3000
 
-O script irá:
-1. Verificar as versões do Node.js e npm.
-2. Instalar todas as dependências do projeto.
-3. Compilar o frontend para produção.
-4. Criar o arquivo `.env` inicial.
-5. **Configurar o serviço `systemd` para iniciar automaticamente no boot.**
-
----
-
-## ⚙️ Configuração (.env)
-
-Após a instalação, edite o arquivo `.env` com suas credenciais:
-
-```env
-# Gemini AI (Opcional para recursos inteligentes)
-GEMINI_API_KEY="sua_chave_aqui"
-
-# Segurança
-JWT_SECRET="seu_segredo_jwt"
-ENCRYPTION_KEY="sua_chave_de_criptografia_32_chars"
-
-# Telegram (Opcional)
-TELEGRAM_BOT_TOKEN="token_do_seu_bot"
-TELEGRAM_GROUP_OFICIAIS_SIERRAS_ID="id_do_grupo"
+👤 Usuário: superadmin
+🔑 Senha: secret
 ```
 
 ---
 
-## 🚦 Gerenciamento do Serviço (systemd)
+## 🎮 Gerenciamento do Serviço (systemd)
 
-O instalador configura o MineGuard como um serviço do sistema. Use os comandos abaixo para gerenciá-lo:
+O servidor roda como serviço do sistema. Comandos úteis:
 
-### Iniciar o servidor
 ```bash
-sudo systemctl start mineguard
-```
-
-### Parar o servidor
-```bash
-sudo systemctl stop mineguard
-```
-
-### Verificar o status
-```bash
+# Ver status
 sudo systemctl status mineguard
-```
 
-### Reiniciar o servidor
-```bash
+# Parar
+sudo systemctl stop mineguard
+
+# Iniciar
+sudo systemctl start mineguard
+
+# Reiniciar
 sudo systemctl restart mineguard
+
+# Ver logs em tempo real
+sudo journalctl -u mineguard -f
 ```
 
-### Ver logs em tempo real
+---
+
+## ⚙️ Configuração Avançada
+
+### Editar .env (após instalação)
 ```bash
-journalctl -u mineguard -f
+nano /path/to/mineguard/.env
 ```
+
+Chaves disponíveis:
+```env
+NODE_ENV=production
+PORT=3000
+JWT_SECRET=b6f8a2c4e9d1f3a5b7c9d0e2f4a6b8c0d2e4f6a8b0c2d4e6f8a0c2d4e6f8a0c2
+ENCRYPTION_KEY=Lulo-CSI-Safe-Admin-Secret-Key-2026-Security-First!
+
+# Telegram (opcional)
+TELEGRAM_BOT_TOKEN=seu_token_aqui
+TELEGRAM_CHAT_ID=seu_chat_id
+
+# Email SMTP (opcional)
+EMAIL_SENDER=noreply@mineguard.com
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=seu_email@gmail.com
+SMTP_PASSWORD=sua_senha_app
+```
+
+---
+
+## 📱 Recursos Especiais
+
+### Preferência de Idioma por Usuário
+1. Vá para **Gestão de Pessoal**
+2. Clique em **Editar Agente**
+3. Selecione **Idioma Preferido** (Português/English)
+4. O idioma é aplicado automaticamente ao login
+
+### Relatórios Agendados
+Na seção **Configurações → 🔔 Notificações → Relatórios Agendados**:
+- Escolha horário de envio
+- Selecione canais (Email e/ou Telegram)
+- Configure destinatários
+- Selecione o conteúdo a incluir
+
+### Integração Telegram
+1. Crie um bot com @BotFather no Telegram
+2. Obtenha o token do bot
+3. Descobra o Chat ID com `/getid`
+4. Configure em **Configurações → 🔔 Notificações → Telegram**
+
+---
+
+## 🔐 Segurança
+
+- JWT com chave hexadecimal de 256 bits
+- Criptografia AES-256 para dados sensíveis
+- Senhas hasheadas com padrão seguro
+- CORS configurado para produção
+- Headers de segurança HTTP
+- Rate limiting recomendado (configure no nginx/Apache)
+
+---
+
+## 🚨 Troubleshooting
+
+### Porta 3000 já em uso
+```bash
+lsof -i :3000
+kill -9 <PID>
+# ou altere PORT no .env
+```
+
+### Serviço não inicia
+```bash
+sudo journalctl -u mineguard -n 50
+# Verifique o .env e permissões de arquivo
+```
+
+### Banco de dados corrompido
+```bash
+rm mina_seguranca.db
+sudo systemctl restart mineguard
+# DB será recriado automaticamente
+```
+
+---
+
+## 📊 Estrutura de Dados
+
+### Usuários
+- ID, Nome, Função, Nº Mecanográfico
+- Nível Hierárquico (RBAC)
+- Idioma Preferido
+- Senha (criptografada)
+
+### Ocorrências (Reports)
+- ID, Agente ID, Categoria
+- Gravidade (G1-G4)
+- Descrição, Coordenadas GPS
+- Timestamp, Status
+
+### Configurações
+- Email SMTP
+- Telegram (Bot Token, Chat ID)
+- Relatórios Agendados
+- Personalização de UI
+
+---
+
+## 📄 Credenciais Padrão
+
+```
+👤 Usuário: superadmin
+🔑 Senha: secret
+🔐 Nível: Superadmin (acesso total)
+```
+
+⚠️ **IMPORTANTE:** Mude a senha padrão em produção!
+
+---
+
+## 📞 Suporte
+
+Para problemas:
+1. Verifique os logs: `sudo journalctl -u mineguard -f`
+2. Valide o `.env`: `cat .env`
+3. Reinicie o serviço: `sudo systemctl restart mineguard`
 
 ---
 
 ## 📄 Licença
 
-Este projeto é de uso restrito e confidencial para operações de segurança. Consulte os termos de uso da sua organização.
+Projeto confidencial para operações de segurança. Acesso restrito.
 
 ---
-*Desenvolvido com ❤️ por AI Studio Build.*
+
+*Desenvolvido com ❤️ para operações críticas de segurança.*
