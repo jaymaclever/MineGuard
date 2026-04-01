@@ -303,6 +303,17 @@ async function startServer() {
 
   app.use(cookieParser());
   app.use(express.json());
+  
+  // Disable cache in development
+  if (process.env.NODE_ENV !== "production") {
+    app.use((req, res, next) => {
+      res.header('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
+      res.header('Pragma', 'no-cache');
+      res.header('Expires', '0');
+      next();
+    });
+  }
+  
   app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
   // Auth Middleware
