@@ -411,7 +411,7 @@ async function startServer() {
   });
 
   // --- Report API ---
-  app.get("/api/reports/daily", authenticate, checkPermission('view_daily_reports'), (req, res) => {
+  app.get("/api/reports/daily", authenticate, (req, res) => {
     const reportsDir = path.join(process.cwd(), "daily_reports");
     if (!fs.existsSync(reportsDir)) {
       return res.json([]);

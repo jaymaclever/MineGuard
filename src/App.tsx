@@ -620,7 +620,10 @@ export default function App() {
         if (key === 'users') setUsers(data);
         if (key === 'roles') setRoles(data);
         if (key === 'stats') setStats(data);
-        if (key === 'daily') setDailyReports(data);
+        if (key === 'daily') {
+          console.log('[DEBUG] Daily reports data received:', data);
+          setDailyReports(Array.isArray(data) ? data : []);
+        }
         if (key === 'settings') setSystemSettings(data);
         if (key === 'alerts') setAlerts(data.alerts || []);
       });
@@ -2335,28 +2338,36 @@ export default function App() {
                   </button>
                 </div>
 
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                  {dailyReports.map((report) => (
-                    <Card key={report.name} className="group hover:border-primary/30 transition-all">
-                      <div className="p-3 bg-zinc-800/50 rounded-lg w-fit mb-4 text-zinc-400 group-hover:text-primary transition-colors">
-                        <FileText size={24} />
-                      </div>
-                      <h3 className="text-sm font-bold text-zinc-200 truncate">{report.name}</h3>
-                      <p className="text-[10px] text-zinc-500 mt-1 flex items-center gap-1">
-                        <Clock size={10} /> {report.date}
-                      </p>
-                      <a 
-                        href={report.url} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="mt-4 w-full flex items-center justify-center gap-2 py-2 bg-zinc-800 hover:bg-primary hover:text-black text-zinc-300 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all"
-                      >
-                        Visualizar
-                        <ChevronRight size={14} />
-                      </a>
-                    </Card>
-                  ))}
-                </div>
+                {dailyReports.length > 0 ? (
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    {dailyReports.map((report) => (
+                      <Card key={report.name} className="group hover:border-primary/30 transition-all">
+                        <div className="p-3 bg-zinc-800/50 rounded-lg w-fit mb-4 text-zinc-400 group-hover:text-primary transition-colors">
+                          <FileText size={24} />
+                        </div>
+                        <h3 className="text-sm font-bold text-zinc-200 truncate">{report.name}</h3>
+                        <p className="text-[10px] text-zinc-500 mt-1 flex items-center gap-1">
+                          <Clock size={10} /> {report.date}
+                        </p>
+                        <a 
+                          href={report.url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="mt-4 w-full flex items-center justify-center gap-2 py-2 bg-zinc-800 hover:bg-primary hover:text-black text-zinc-300 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all"
+                        >
+                          Visualizar
+                          <ChevronRight size={14} />
+                        </a>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <Card className="text-center py-8 text-zinc-500">
+                    <FileText size={32} className="mx-auto mb-4 opacity-50" />
+                    <p>Nenhum relatório diário gerado ainda.</p>
+                    <p className="text-xs mt-2">Clique em "Gerar Agora" para criar o primeiro.</p>
+                  </Card>
+                )}
               </motion.div>
             )}
 
