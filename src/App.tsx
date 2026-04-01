@@ -2498,194 +2498,215 @@ export default function App() {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  <Card title="Email SMTP" subtitle="Configure remetente para notificações">
-                    <form onSubmit={async (e) => {
-                      e.preventDefault();
-                      const formData = new FormData(e.currentTarget);
-                      
-                      try {
-                        await fetch('/api/settings', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({
-                            settings: [
-                              { key: 'email_sender', value: formData.get('email_sender'), description: 'Email do remetente' },
-                              { key: 'email_sender_name', value: formData.get('email_sender_name'), description: 'Nome do remetente' },
-                              { key: 'smtp_host', value: formData.get('smtp_host'), description: 'Host SMTP' },
-                              { key: 'smtp_port', value: formData.get('smtp_port'), description: 'Porta SMTP' },
-                              { key: 'smtp_user', value: formData.get('smtp_user'), description: 'Usuário SMTP' },
-                              { key: 'smtp_password', value: formData.get('smtp_password'), description: 'Senha SMTP' }
-                            ]
-                          }),
-                          credentials: 'include'
-                        });
-                        toast.success("Configurações de email salvas!");
-                        fetchData();
-                      } catch (err) {
-                        toast.error("Erro ao salvar configurações");
-                      }
-                    }} className="space-y-3">
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="space-y-1">
-                          <label className="text-[10px] font-black text-zinc-500 uppercase">Email Remetente</label>
-                          <input 
-                            name="email_sender"
-                            type="email"
-                            defaultValue={systemSettings.find(s => s.key === 'email_sender')?.value || ''}
-                            placeholder="noreply@mineguard.com"
-                            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2 px-3 text-sm focus:outline-none focus:border-primary"
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <label className="text-[10px] font-black text-zinc-500 uppercase">Nome do Remetente</label>
-                          <input 
-                            name="email_sender_name"
-                            defaultValue={systemSettings.find(s => s.key === 'email_sender_name')?.value || 'MineGuard'}
-                            placeholder="MineGuard Security"
-                            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2 px-3 text-sm focus:outline-none focus:border-primary"
-                          />
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="space-y-1">
-                          <label className="text-[10px] font-black text-zinc-500 uppercase">Host SMTP</label>
-                          <input 
-                            name="smtp_host"
-                            defaultValue={systemSettings.find(s => s.key === 'smtp_host')?.value || ''}
-                            placeholder="smtp.gmail.com"
-                            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2 px-3 text-sm focus:outline-none focus:border-primary"
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <label className="text-[10px] font-black text-zinc-500 uppercase">Porta SMTP</label>
-                          <input 
-                            name="smtp_port"
-                            type="number"
-                            defaultValue={systemSettings.find(s => s.key === 'smtp_port')?.value || '587'}
-                            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2 px-3 text-sm focus:outline-none focus:border-primary"
-                          />
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="space-y-1">
-                          <label className="text-[10px] font-black text-zinc-500 uppercase">Usuário SMTP</label>
-                          <input 
-                            name="smtp_user"
-                            defaultValue={systemSettings.find(s => s.key === 'smtp_user')?.value || ''}
-                            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2 px-3 text-sm focus:outline-none focus:border-primary"
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <label className="text-[10px] font-black text-zinc-500 uppercase">Senha SMTP</label>
-                          <input 
-                            name="smtp_password"
-                            type="password"
-                            defaultValue={systemSettings.find(s => s.key === 'smtp_password')?.value || ''}
-                            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2 px-3 text-sm focus:outline-none focus:border-primary"
-                          />
-                        </div>
-                      </div>
-                      <div className="flex gap-2 pt-2">
-                        <button 
-                          type="submit"
-                          className="flex-1 py-2 bg-primary hover:opacity-90 text-black rounded-lg text-[10px] font-black uppercase transition-all"
-                        >
-                          Salvar SMTP
-                        </button>
-                      </div>
-                    </form>
-                  </Card>
-
-                  <Card title="Integração Telegram" subtitle="Configure Bot para alertas automáticos">
-                    <form onSubmit={async (e) => {
-                      e.preventDefault();
-                      const formData = new FormData(e.currentTarget);
-                      
-                      try {
-                        await fetch('/api/settings', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({
-                            settings: [
-                              { key: 'telegram_bot_token', value: formData.get('telegram_bot_token'), description: 'Token do Bot do Telegram' },
-                              { key: 'telegram_chat_id', value: formData.get('telegram_chat_id'), description: 'ID do Chat/Grupo do Telegram' },
-                              { key: 'telegram_alert_level', value: formData.get('telegram_alert_level'), description: 'Nível mínimo de alerta' }
-                            ]
-                          }),
-                          credentials: 'include'
-                        });
-                        toast.success("Configurações de Telegram salvas!");
-                        fetchData();
-                      } catch (err) {
-                        toast.error("Erro ao salvar configurações");
-                      }
-                    }} className="space-y-3">
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-black text-zinc-500 uppercase">Bot Token</label>
-                        <input 
-                          name="telegram_bot_token"
-                          type="password"
-                          defaultValue={systemSettings.find(s => s.key === 'telegram_bot_token')?.value || ''}
-                          placeholder="0000000000:AAH..."
-                          className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
-                        />
-                        <p className="text-[9px] text-zinc-500 mt-1">Obtenha em @BotFather no Telegram</p>
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-black text-zinc-500 uppercase">Chat ID</label>
-                        <input 
-                          name="telegram_chat_id"
-                          type="text"
-                          defaultValue={systemSettings.find(s => s.key === 'telegram_chat_id')?.value || ''}
-                          placeholder="-100123456789 ou @nomedogrupo"
-                          className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
-                        />
-                        <p className="text-[9px] text-zinc-500 mt-1">Use /getid para descobrir o ID do seu chat</p>
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-black text-zinc-500 uppercase">Nível Mínimo de Alerta</label>
-                        <select 
-                          name="telegram_alert_level"
-                          defaultValue={systemSettings.find(s => s.key === 'telegram_alert_level')?.value || 'G3'}
-                          className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
-                        >
-                          <option value="G4">G4 (Crítico)</option>
-                          <option value="G3">G3 e G4</option>
-                          <option value="G2">G2, G3 e G4</option>
-                        </select>
-                      </div>
-                      <div className="flex gap-2 pt-2">
-                        <button 
-                          type="button"
-                          onClick={async () => {
-                            const botToken = (document.getElementsByName('telegram_bot_token')[0] as HTMLInputElement).value;
-                            const chatId = (document.getElementsByName('telegram_chat_id')[0] as HTMLInputElement).value;
-                            if (!botToken || !chatId) return toast.error("Preencha os campos para testar");
-                            
-                            toast.loading("Enviando teste...");
-                            const res = await fetch('/api/test-telegram', {
+                  <Card title="🔔 Notificações" subtitle="Configure email, Telegram e relatórios agendados" className="lg:col-span-2">
+                    <div className="space-y-6">
+                      {/* Email SMTP Section */}
+                      <div className="border-b border-zinc-800 pb-6">
+                        <h3 className="text-sm font-black text-zinc-200 mb-4">📧 Email SMTP</h3>
+                        <form onSubmit={async (e) => {
+                          e.preventDefault();
+                          const formData = new FormData(e.currentTarget);
+                          try {
+                            await fetch('/api/settings', {
                               method: 'POST',
                               headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({ botToken, chatId }),
+                              body: JSON.stringify({
+                                settings: [
+                                  { key: 'email_sender', value: formData.get('email_sender'), description: 'Email do remetente' },
+                                  { key: 'email_sender_name', value: formData.get('email_sender_name'), description: 'Nome do remetente' },
+                                  { key: 'smtp_host', value: formData.get('smtp_host'), description: 'Host SMTP' },
+                                  { key: 'smtp_port', value: formData.get('smtp_port'), description: 'Porta SMTP' },
+                                  { key: 'smtp_user', value: formData.get('smtp_user'), description: 'Usuário SMTP' },
+                                  { key: 'smtp_password', value: formData.get('smtp_password'), description: 'Senha SMTP' }
+                                ]
+                              }),
                               credentials: 'include'
                             });
-                            const data = await res.json();
-                            toast.dismiss();
-                            if (data.status === 'ok') toast.success("Teste enviado com sucesso!");
-                            else toast.error("Falha no teste: " + data.message);
-                          }}
-                          className="flex-1 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg text-[10px] font-black uppercase transition-all"
-                        >
-                          Testar Conexão
-                        </button>
-                        <button 
-                          type="submit"
-                          className="flex-1 py-2.5 bg-primary hover:bg-primary/90 text-black rounded-lg text-[10px] font-black uppercase transition-all shadow-lg shadow-primary/20"
-                        >
-                          Salvar Alterações
-                        </button>
+                            toast.success("Email configurado!");
+                            fetchData();
+                          } catch (err) {
+                            toast.error("Erro ao salvar");
+                          }
+                        }} className="space-y-3">
+                          <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-1">
+                              <label className="text-[9px] font-black text-zinc-500 uppercase">Remetente</label>
+                              <input name="email_sender" type="email" defaultValue={systemSettings.find(s => s.key === 'email_sender')?.value || ''} placeholder="noreply@mineguard.com" className="w-full bg-zinc-800 border border-zinc-700 rounded py-2 px-3 text-sm focus:outline-none focus:border-primary" />
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-[9px] font-black text-zinc-500 uppercase">Nome</label>
+                              <input name="email_sender_name" defaultValue={systemSettings.find(s => s.key === 'email_sender_name')?.value || 'MineGuard'} className="w-full bg-zinc-800 border border-zinc-700 rounded py-2 px-3 text-sm focus:outline-none focus:border-primary" />
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-1">
+                              <label className="text-[9px] font-black text-zinc-500 uppercase">Host SMTP</label>
+                              <input name="smtp_host" defaultValue={systemSettings.find(s => s.key === 'smtp_host')?.value || ''} placeholder="smtp.gmail.com" className="w-full bg-zinc-800 border border-zinc-700 rounded py-2 px-3 text-sm focus:outline-none focus:border-primary" />
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-[9px] font-black text-zinc-500 uppercase">Porta</label>
+                              <input name="smtp_port" type="number" defaultValue={systemSettings.find(s => s.key === 'smtp_port')?.value || '587'} className="w-full bg-zinc-800 border border-zinc-700 rounded py-2 px-3 text-sm focus:outline-none focus:border-primary" />
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-1">
+                              <label className="text-[9px] font-black text-zinc-500 uppercase">Usuário</label>
+                              <input name="smtp_user" defaultValue={systemSettings.find(s => s.key === 'smtp_user')?.value || ''} className="w-full bg-zinc-800 border border-zinc-700 rounded py-2 px-3 text-sm focus:outline-none focus:border-primary" />
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-[9px] font-black text-zinc-500 uppercase">Senha</label>
+                              <input name="smtp_password" type="password" defaultValue={systemSettings.find(s => s.key === 'smtp_password')?.value || ''} className="w-full bg-zinc-800 border border-zinc-700 rounded py-2 px-3 text-sm focus:outline-none focus:border-primary" />
+                            </div>
+                          </div>
+                          <button type="submit" className="w-full py-2 bg-primary/20 hover:bg-primary/30 text-primary rounded text-[9px] font-black uppercase transition-all">Salvar Email</button>
+                        </form>
                       </div>
-                    </form>
+
+                      {/* Telegram Section */}
+                      <div className="border-b border-zinc-800 pb-6">
+                        <h3 className="text-sm font-black text-zinc-200 mb-4">📱 Telegram</h3>
+                        <form onSubmit={async (e) => {
+                          e.preventDefault();
+                          const formData = new FormData(e.currentTarget);
+                          try {
+                            await fetch('/api/settings', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                settings: [
+                                  { key: 'telegram_bot_token', value: formData.get('telegram_bot_token'), description: 'Token do Bot' },
+                                  { key: 'telegram_chat_id', value: formData.get('telegram_chat_id'), description: 'Chat ID' },
+                                  { key: 'telegram_alert_level', value: formData.get('telegram_alert_level'), description: 'Nível de alerta' }
+                                ]
+                              }),
+                              credentials: 'include'
+                            });
+                            toast.success("Telegram configurado!");
+                            fetchData();
+                          } catch (err) {
+                            toast.error("Erro ao salvar");
+                          }
+                        }} className="space-y-3">
+                          <div className="space-y-1">
+                            <label className="text-[9px] font-black text-zinc-500 uppercase">Bot Token</label>
+                            <input name="telegram_bot_token" type="password" defaultValue={systemSettings.find(s => s.key === 'telegram_bot_token')?.value || ''} placeholder="0000000000:AAH..." className="w-full bg-zinc-800 border border-zinc-700 rounded py-2 px-3 text-sm focus:outline-none focus:border-primary" />
+                            <p className="text-[8px] text-zinc-400">Obtenha em @BotFather</p>
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-[9px] font-black text-zinc-500 uppercase">Chat ID</label>
+                            <input name="telegram_chat_id" type="text" defaultValue={systemSettings.find(s => s.key === 'telegram_chat_id')?.value || ''} placeholder="-100123456789 ou @grupo" className="w-full bg-zinc-800 border border-zinc-700 rounded py-2 px-3 text-sm focus:outline-none focus:border-primary" />
+                            <p className="text-[8px] text-zinc-400">Use /getid para descobrir</p>
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-[9px] font-black text-zinc-500 uppercase">Nível Mínimo</label>
+                            <select name="telegram_alert_level" defaultValue={systemSettings.find(s => s.key === 'telegram_alert_level')?.value || 'G3'} className="w-full bg-zinc-800 border border-zinc-700 rounded py-2 px-3 text-sm focus:outline-none focus:border-primary">
+                              <option value="G4">G4 (Crítico)</option>
+                              <option value="G3">G3 e G4</option>
+                              <option value="G2">G2, G3 e G4</option>
+                            </select>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2">
+                            <button type="button" onClick={async () => {
+                              const token = (document.getElementsByName('telegram_bot_token')[0] as HTMLInputElement).value;
+                              const id = (document.getElementsByName('telegram_chat_id')[0] as HTMLInputElement).value;
+                              if (!token || !id) return toast.error("Preencha os campos");
+                              toast.loading("Testando...");
+                              const res = await fetch('/api/test-telegram', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ botToken: token, chatId: id }),
+                                credentials: 'include'
+                              });
+                              const data = await res.json();
+                              toast.dismiss();
+                              if (data.status === 'ok') toast.success("Enviado!");
+                              else toast.error("Falha: " + data.message);
+                            }} className="py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded text-[9px] font-black uppercase transition-all">Testar</button>
+                            <button type="submit" className="py-2 bg-primary/20 hover:bg-primary/30 text-primary rounded text-[9px] font-black uppercase transition-all">Salvar Telegram</button>
+                          </div>
+                        </form>
+                      </div>
+
+                      {/* Scheduled Reports Section */}
+                      <div>
+                        <h3 className="text-sm font-black text-zinc-200 mb-4">📨 Relatórios Agendados</h3>
+                        <form onSubmit={async (e) => {
+                          e.preventDefault();
+                          const formData = new FormData(e.currentTarget);
+                          const channels: string[] = [];
+                          if (formData.get('scheduled_reports_email_enabled') === 'on') channels.push('email');
+                          if (formData.get('scheduled_reports_telegram_enabled') === 'on') channels.push('telegram');
+                          const content: string[] = [];
+                          ['summary', 'daily_incidents', 'alerts_g4', 'alerts_g3', 'active_users', 'security_stats', 'perimeter_status'].forEach(item => {
+                            if (formData.get(`scheduled_reports_content_${item}`) === 'on') content.push(item);
+                          });
+                          if (!channels.length) return toast.error("Selecione um canal");
+                          try {
+                            await fetch('/api/settings', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                settings: [
+                                  { key: 'scheduled_reports_enabled', value: (formData.get('scheduled_reports_enabled') === 'on') ? 'true' : 'false', description: 'Ativado' },
+                                  { key: 'scheduled_reports_time', value: formData.get('scheduled_reports_time'), description: 'Horário' },
+                                  { key: 'scheduled_reports_channel', value: channels.join(','), description: 'Canais' },
+                                  { key: 'scheduled_reports_recipients', value: formData.get('scheduled_reports_recipients'), description: 'Emails' },
+                                  { key: 'scheduled_reports_telegram_chat', value: formData.get('scheduled_reports_telegram_chat'), description: 'Chat Telegram' },
+                                  { key: 'scheduled_reports_content', value: content.join(','), description: 'Conteúdo' }
+                                ]
+                              }),
+                              credentials: 'include'
+                            });
+                            toast.success("Relatórios configurados!");
+                            fetchData();
+                          } catch (err) {
+                            toast.error("Erro ao salvar");
+                          }
+                        }} className="space-y-4">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-black text-zinc-300 uppercase">Ativar Agendamento</span>
+                            <input type="checkbox" name="scheduled_reports_enabled" defaultChecked={systemSettings.find(s => s.key === 'scheduled_reports_enabled')?.value === 'true'} className="w-4 h-4 rounded" />
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-[9px] font-black text-zinc-500 uppercase">Horário de Envio</label>
+                            <input type="time" name="scheduled_reports_time" defaultValue={systemSettings.find(s => s.key === 'scheduled_reports_time')?.value || '06:00'} className="w-full bg-zinc-800 border border-zinc-700 rounded py-2 px-3 text-sm focus:outline-none focus:border-primary" />
+                          </div>
+                          <div className="grid grid-cols-2 gap-3">
+                            <label className="flex items-center gap-2 cursor-pointer">
+                              <input type="checkbox" name="scheduled_reports_email_enabled" defaultChecked={systemSettings.find(s => s.key === 'scheduled_reports_channel')?.value?.includes('email') ?? true} className="w-4 h-4 rounded" />
+                              <span className="text-[9px] font-bold text-zinc-300">Email</span>
+                            </label>
+                            <label className="flex items-center gap-2 cursor-pointer">
+                              <input type="checkbox" name="scheduled_reports_telegram_enabled" defaultChecked={systemSettings.find(s => s.key === 'scheduled_reports_channel')?.value?.includes('telegram') ?? false} className="w-4 h-4 rounded" />
+                              <span className="text-[9px] font-bold text-zinc-300">Telegram</span>
+                            </label>
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-[9px] font-black text-zinc-500 uppercase">Emails Destinatários</label>
+                            <input type="text" name="scheduled_reports_recipients" placeholder="email1@example.com, email2@example.com" defaultValue={systemSettings.find(s => s.key === 'scheduled_reports_recipients')?.value || ''} className="w-full bg-zinc-800 border border-zinc-700 rounded py-2 px-3 text-sm focus:outline-none focus:border-primary" />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-[9px] font-black text-zinc-500 uppercase">Conteúdo Incluído</label>
+                            <div className="grid grid-cols-2 gap-2">
+                              {[
+                                { id: 'summary', label: 'Resumo' },
+                                { id: 'daily_incidents', label: 'Incidentes' },
+                                { id: 'alerts_g4', label: 'Críticos (G4)' },
+                                { id: 'alerts_g3', label: 'Altos (G3)' },
+                                { id: 'active_users', label: 'Usuários' },
+                                { id: 'security_stats', label: 'Estatísticas' }
+                              ].map(item => (
+                                <label key={item.id} className="flex items-center gap-2 cursor-pointer">
+                                  <input type="checkbox" name={`scheduled_reports_content_${item.id}`} defaultChecked={systemSettings.find(s => s.key === 'scheduled_reports_content')?.value?.includes(item.id) ?? true} className="w-3 h-3 rounded" />
+                                  <span className="text-[8px] text-zinc-300">{item.label}</span>
+                                </label>
+                              ))}
+                            </div>
+                          </div>
+                          <button type="submit" className="w-full py-2 bg-primary hover:opacity-90 text-black rounded text-[9px] font-black uppercase transition-all">Salvar Relatórios</button>
+                        </form>
+                      </div>
+                    </div>
                   </Card>
 
                   <Card title="Parâmetros de Auditoria" subtitle="Configurações de relatórios e logs">
@@ -2809,211 +2830,6 @@ export default function App() {
 
                   <Card title="Preferências de Idioma" subtitle="Selecione o idioma da interface">
                     <LanguageSwitcher />
-                  </Card>
-
-                  <Card title="Relatórios Agendados" subtitle="Configure envio automático de relatórios" className="lg:col-span-2">
-                    <form onSubmit={async (e) => {
-                      e.preventDefault();
-                      const formData = new FormData(e.currentTarget);
-                      const channels: string[] = [];
-                      if (formData.get('scheduled_reports_email_enabled') === 'on') channels.push('email');
-                      if (formData.get('scheduled_reports_telegram_enabled') === 'on') channels.push('telegram');
-                      
-                      const content: string[] = [];
-                      const contentItems = ['summary', 'daily_incidents', 'alerts_g4', 'alerts_g3', 'active_users', 'security_stats', 'perimeter_status'];
-                      contentItems.forEach(item => {
-                        if (formData.get(`scheduled_reports_content_${item}`) === 'on') {
-                          content.push(item);
-                        }
-                      });
-                      
-                      const settings = [
-                        { key: 'scheduled_reports_enabled', value: (formData.get('scheduled_reports_enabled') === 'on') ? 'true' : 'false', description: 'Relatórios agendados ativados' },
-                        { key: 'scheduled_reports_time', value: formData.get('scheduled_reports_time'), description: 'Horário de envio dos relatórios' },
-                        { key: 'scheduled_reports_channel', value: channels.join(',') || 'email', description: 'Canais de entrega' },
-                        { key: 'scheduled_reports_recipients', value: formData.get('scheduled_reports_recipients'), description: 'Destinatários dos relatórios (Email)' },
-                        { key: 'scheduled_reports_telegram_chat', value: formData.get('scheduled_reports_telegram_chat'), description: 'Chat ID Telegram para relatórios' },
-                        { key: 'scheduled_reports_content', value: content.join(',') || 'summary', description: 'Conteúdos a incluir nos relatórios' }
-                      ];
-                      
-                      if (!channels.length) {
-                        return toast.error("Selecione pelo menos um canal de entrega");
-                      }
-                      
-                      try {
-                        await fetch('/api/settings', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ settings }),
-                          credentials: 'include'
-                        });
-                        toast.success("Agendamento de relatórios configurado!");
-                        fetchData();
-                      } catch (err) {
-                        toast.error("Erro ao salvar configurações");
-                      }
-                    }} className="space-y-6">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-bold text-zinc-200">Ativar Relatórios Agendados</p>
-                          <p className="text-[10px] text-zinc-500">Envio automático diário de relatórios consolidados.</p>
-                        </div>
-                        <input 
-                          type="checkbox"
-                          name="scheduled_reports_enabled"
-                          defaultChecked={systemSettings.find(s => s.key === 'scheduled_reports_enabled')?.value === 'true'}
-                          className="w-4 h-4 rounded cursor-pointer"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Horário de Envio</label>
-                        <input 
-                          type="time"
-                          name="scheduled_reports_time"
-                          defaultValue={systemSettings.find(s => s.key === 'scheduled_reports_time')?.value || '06:00'}
-                          className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
-                        />
-                      </div>
-
-                      <div className="space-y-3 bg-zinc-900/50 rounded-lg p-4 border border-zinc-800">
-                        <p className="text-sm font-bold text-zinc-200">Canais de Entrega</p>
-                        
-                        <div className="space-y-4">
-                          <div className="flex items-start gap-4">
-                            <input 
-                              type="checkbox"
-                              id="scheduled_reports_email_enabled"
-                              name="scheduled_reports_email_enabled"
-                              defaultChecked={systemSettings.find(s => s.key === 'scheduled_reports_channel')?.value?.includes('email') ?? true}
-                              className="w-4 h-4 rounded cursor-pointer mt-1"
-                            />
-                            <div className="flex-1 space-y-2">
-                              <label htmlFor="scheduled_reports_email_enabled" className="text-[10px] font-black text-zinc-300 uppercase tracking-widest cursor-pointer">
-                                Email
-                              </label>
-                              <input 
-                                type="text"
-                                name="scheduled_reports_recipients"
-                                placeholder="email1@example.com, email2@example.com"
-                                defaultValue={systemSettings.find(s => s.key === 'scheduled_reports_recipients')?.value || ''}
-                                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
-                              />
-                            </div>
-                          </div>
-
-                          <div className="flex items-start gap-4">
-                            <input 
-                              type="checkbox"
-                              id="scheduled_reports_telegram_enabled"
-                              name="scheduled_reports_telegram_enabled"
-                              defaultChecked={systemSettings.find(s => s.key === 'scheduled_reports_channel')?.value?.includes('telegram') ?? false}
-                              className="w-4 h-4 rounded cursor-pointer mt-1"
-                            />
-                            <div className="flex-1 space-y-2">
-                              <label htmlFor="scheduled_reports_telegram_enabled" className="text-[10px] font-black text-zinc-300 uppercase tracking-widest cursor-pointer">
-                                Telegram
-                              </label>
-                              <input 
-                                type="text"
-                                name="scheduled_reports_telegram_chat"
-                                placeholder="Chat ID ou @username do Telegram"
-                                defaultValue={systemSettings.find(s => s.key === 'scheduled_reports_telegram_chat')?.value || ''}
-                                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
-                              />
-                            </div>
-                          </div>
-                        </div>
-
-                        <p className="text-[10px] text-zinc-400">Selecione um ou ambos os canais para envio simultâneo.</p>
-                      </div>
-
-                      <div className="space-y-3 bg-zinc-900/50 rounded-lg p-4 border border-zinc-800">
-                        <p className="text-sm font-bold text-zinc-200">Conteúdo dos Relatórios</p>
-                        <p className="text-[10px] text-zinc-400">Escolha o que incluir nos envios automáticos:</p>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                          <label className="flex items-center gap-3 cursor-pointer hover:bg-zinc-800/50 p-2 rounded">
-                            <input 
-                              type="checkbox"
-                              name="scheduled_reports_content_summary"
-                              defaultChecked={systemSettings.find(s => s.key === 'scheduled_reports_content')?.value?.includes('summary') ?? true}
-                              className="w-4 h-4 rounded"
-                            />
-                            <span className="text-[10px] font-bold text-zinc-300">Resumo Executivo</span>
-                          </label>
-                          
-                          <label className="flex items-center gap-3 cursor-pointer hover:bg-zinc-800/50 p-2 rounded">
-                            <input 
-                              type="checkbox"
-                              name="scheduled_reports_content_daily_incidents"
-                              defaultChecked={systemSettings.find(s => s.key === 'scheduled_reports_content')?.value?.includes('daily_incidents') ?? true}
-                              className="w-4 h-4 rounded"
-                            />
-                            <span className="text-[10px] font-bold text-zinc-300">Incidentes do Dia</span>
-                          </label>
-                          
-                          <label className="flex items-center gap-3 cursor-pointer hover:bg-zinc-800/50 p-2 rounded">
-                            <input 
-                              type="checkbox"
-                              name="scheduled_reports_content_alerts_g4"
-                              defaultChecked={systemSettings.find(s => s.key === 'scheduled_reports_content')?.value?.includes('alerts_g4') ?? true}
-                              className="w-4 h-4 rounded"
-                            />
-                            <span className="text-[10px] font-bold text-zinc-300">Alertas Críticos (G4)</span>
-                          </label>
-                          
-                          <label className="flex items-center gap-3 cursor-pointer hover:bg-zinc-800/50 p-2 rounded">
-                            <input 
-                              type="checkbox"
-                              name="scheduled_reports_content_alerts_g3"
-                              defaultChecked={systemSettings.find(s => s.key === 'scheduled_reports_content')?.value?.includes('alerts_g3') ?? true}
-                              className="w-4 h-4 rounded"
-                            />
-                            <span className="text-[10px] font-bold text-zinc-300">Alertas Altos (G3)</span>
-                          </label>
-                          
-                          <label className="flex items-center gap-3 cursor-pointer hover:bg-zinc-800/50 p-2 rounded">
-                            <input 
-                              type="checkbox"
-                              name="scheduled_reports_content_active_users"
-                              defaultChecked={systemSettings.find(s => s.key === 'scheduled_reports_content')?.value?.includes('active_users') ?? true}
-                              className="w-4 h-4 rounded"
-                            />
-                            <span className="text-[10px] font-bold text-zinc-300">Usuários Ativos</span>
-                          </label>
-                          
-                          <label className="flex items-center gap-3 cursor-pointer hover:bg-zinc-800/50 p-2 rounded">
-                            <input 
-                              type="checkbox"
-                              name="scheduled_reports_content_security_stats"
-                              defaultChecked={systemSettings.find(s => s.key === 'scheduled_reports_content')?.value?.includes('security_stats') ?? true}
-                              className="w-4 h-4 rounded"
-                            />
-                            <span className="text-[10px] font-bold text-zinc-300">Estatísticas de Segurança</span>
-                          </label>
-                          
-                          <label className="flex items-center gap-3 cursor-pointer hover:bg-zinc-800/50 p-2 rounded">
-                            <input 
-                              type="checkbox"
-                              name="scheduled_reports_content_perimeter_status"
-                              defaultChecked={systemSettings.find(s => s.key === 'scheduled_reports_content')?.value?.includes('perimeter_status') ?? true}
-                              className="w-4 h-4 rounded"
-                            />
-                            <span className="text-[10px] font-bold text-zinc-300">Status do Perímetro</span>
-                          </label>
-                        </div>
-                      </div>
-
-                      <div className="flex justify-end gap-3">
-                        <button 
-                          type="submit"
-                          className="px-8 py-2.5 bg-primary hover:opacity-90 text-primary-foreground rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-primary/20"
-                        >
-                          Salvar Agendamento
-                        </button>
-                      </div>
-                    </form>
                   </Card>
 
                   <Card title="Backup & Restauração" subtitle="Gerencie backups do banco de dados" className="lg:col-span-2">
