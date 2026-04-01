@@ -1,0 +1,50 @@
+{
+  "name": "MineGuard - Sistema de Segurança de Mina",
+  "short_name": "MineGuard",
+  "description": "Sistema de gestão de segurança operacional de ponta a ponta para mineração",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#000000",
+  "theme_color": "#ff8c00",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%23000' width='192' height='192'/><rect fill='%23ff8c00' x='40' y='40' width='112' height='112' rx='16'/><path fill='%23000' d='M96 60c13.3 0 24 10.7 24 24s-10.7 24-24 24-24-10.7-24-24 10.7-24 24-24zm0 8c-8.8 0-16 7.2-16 16s7.2 16 16 16 16-7.2 16-16-7.2-16-16-16zm0 20c-2.2 0-4-1.8-4-4s1.8-4 4-4 4 1.8 4 4-1.8 4-4 4z' fill='%23000'/></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect fill='%23000' width='512' height='512'/><rect fill='%23ff8c00' x='106' y='106' width='300' height='300' rx='42'/><path fill='%23000' d='M256 160c53.2 0 96 42.8 96 96s-42.8 96-96 96-96-42.8-96-96 42.8-96 96-96zm0 32c-35.3 0-64 28.7-64 64s28.7 64 64 64 64-28.7 64-64-28.7-64-64-64zm0 80c-8.8 0-16-7.2-16-16s7.2-16 16-16 16 7.2 16 16-7.2 16-16 16z' fill='%23000'/></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["business", "productivity"],
+  "screenshots": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 540 720'><rect fill='%23000' width='540' height='720'/><rect fill='%23111' x='0' y='0' width='540' height='100'/><text x='270' y='60' font-size='32' font-weight='bold' fill='%23ff8c00' text-anchor='middle'>MineGuard</text><rect fill='%23222' x='10' y='120' width='520' height='580' rx='8'/><rect fill='%23333' x='20' y='140' width='500' height='60' rx='4'/><rect fill='%23444' x='20' y='220' width='500' height='40' rx='4'/><rect fill='%23444' x='20' y='280' width='500' height='40' rx='4'/><rect fill='%23444' x='20' y='340' width='500' height='40' rx='4'/><rect fill='%23444' x='20' y='400' width='500' height='40' rx='4'/><rect fill='%23ff8c00' x='20' y='480' width='500' height='50' rx='4'/></svg>",
+      "sizes": "540x720",
+      "type": "image/svg+xml",
+      "form_factor": "narrow"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Novo Relatório",
+      "short_name": "Novo",
+      "description": "Criar um novo relatório de incidente",
+      "url": "/?action=new-report",
+      "icons": [{ "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><rect fill='%23ff8c00' width='96' height='96'/><path fill='%23000' d='M48 24v48M24 48h48' stroke='%23000' stroke-width='4'/></svg>", "sizes": "96x96" }]
+    },
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "Ver dashboard de relatórios",
+      "url": "/?action=dashboard",
+      "icons": [{ "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><rect fill='%23ff8c00' width='96' height='96'/><rect fill='%23000' x='12' y='12' width='18' height='18'/><rect fill='%23000' x='39' y='12' width='18' height='18'/><rect fill='%23000' x='66' y='12' width='18' height='18'/><rect fill='%23000' x='12' y='39' width='72' height='18'/><rect fill='%23000' x='12' y='66' width='72' height='18'/></svg>", "sizes": "96x96" }]
+    }
+  ]
+}

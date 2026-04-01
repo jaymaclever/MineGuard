@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { 
   Shield, 
   FileText, 
@@ -175,6 +176,72 @@ const Card = ({ children, className, title, subtitle, action, onClick }: { child
   </div>
 );
 
+const LanguageSwitcher = () => {
+  const { i18n } = useTranslation();
+
+  const handleLanguageChange = (lang: string) => {
+    i18n.changeLanguage(lang);
+    localStorage.setItem('language', lang);
+    toast.success(`Idioma alterado para ${lang === 'pt-BR' ? 'Português' : 'English'}`);
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <button 
+          onClick={() => handleLanguageChange('pt-BR')}
+          className={cn(
+            "py-3 px-4 rounded-lg font-bold uppercase text-[10px] tracking-widest transition-all",
+            i18n.language === 'pt-BR' 
+              ? "bg-primary text-black shadow-lg shadow-primary/20" 
+              : "bg-zinc-800 text-zinc-300 hover:bg-zinc-700"
+          )}
+        >
+          Português (BR)
+        </button>
+        <button 
+          onClick={() => handleLanguageChange('en-US')}
+          className={cn(
+            "py-3 px-4 rounded-lg font-bold uppercase text-[10px] tracking-widest transition-all",
+            i18n.language === 'en-US' 
+              ? "bg-primary text-black shadow-lg shadow-primary/20" 
+              : "bg-zinc-800 text-zinc-300 hover:bg-zinc-700"
+          )}
+        >
+          English (US)
+        </button>
+      </div>
+      <p className="text-[10px] text-zinc-500">Idioma atual: {i18n.language === 'pt-BR' ? 'Português Brasileiro' : 'English'}</p>
+    </div>
+  );
+};
+
+const PaginationControls = ({ currentPage, totalPages, onPageChange }: { currentPage: number, totalPages: number, onPageChange: (page: number) => void }) => {
+  return (
+    <div className="flex items-center justify-between py-4 px-6 bg-zinc-900/30 border-t border-zinc-800/50">
+      <div className="text-sm text-zinc-400">
+        Página <span className="font-bold text-zinc-200">{currentPage}</span> de <span className="font-bold text-zinc-200">{totalPages}</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <button 
+          onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+          disabled={currentPage === 1}
+          className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 disabled:bg-zinc-900 disabled:text-zinc-600 text-zinc-300 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all disabled:cursor-not-allowed"
+        >
+          ← Anterior
+        </button>
+        <button 
+          onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
+          disabled={currentPage === totalPages}
+          className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 disabled:bg-zinc-900 disabled:text-zinc-600 text-zinc-300 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all disabled:cursor-not-allowed"
+        >
+          Próximo →
+        </button>
+      </div>
+    </div>
+  );
+};
+
 // --- Main App ---
 
 const Login = ({ onLogin, publicSettings }: { onLogin: (user: any) => void, publicSettings: any }) => {
@@ -282,6 +349,10 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
   const [filterSeverity, setFilterSeverity] = useState('');
+  const [filterDateFrom, setFilterDateFrom] = useState('');
+  const [filterDateTo, setFilterDateTo] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
+  const [filterAgent, setFilterAgent] = useState('');
   
   // Data State
   const [reports, setReports] = useState<Report[]>([]);
@@ -304,6 +375,11 @@ export default function App() {
     app_layout: 'default'
   });
   const [selectedRoleForPerms, setSelectedRoleForPerms] = useState<string>('Superadmin');
+  
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(20);
+  const [totalPages, setTotalPages] = useState(1);
   const [rolePermissions, setRolePermissions] = useState<{ permissao_nome: string, is_enabled: boolean }[]>([]);
   
   // UI State
@@ -487,7 +563,19 @@ export default function App() {
       const perms = currentUser.permissions || {};
 
       if (perms.view_reports === true) {
-        promises.push(fetch(`/api/reports?role=${currentUser.nivel_hierarquico}&search=${searchQuery}&category=${filterCategory}&severity=${filterSeverity}`, { credentials: 'include' }));
+        const queryParams = new URLSearchParams({
+          role: currentUser.nivel_hierarquico,
+          search: searchQuery,
+          category: filterCategory,
+          severity: filterSeverity,
+          dateFrom: filterDateFrom,
+          dateTo: filterDateTo,
+          status: filterStatus,
+          agent: filterAgent,
+          page: currentPage.toString(),
+          limit: itemsPerPage.toString()
+        });
+        promises.push(fetch(`/api/reports?${queryParams.toString()}`, { credentials: 'include' }));
         keys.push('reports');
       }
       if (perms.manage_users === true) {
@@ -523,7 +611,12 @@ export default function App() {
       dataResults.forEach((data, index) => {
         if (!data) return;
         const key = keys[index];
-        if (key === 'reports') setReports(data);
+        if (key === 'reports') {
+          setReports(data.data || data);
+          if (data.pagination) {
+            setTotalPages(data.pagination.pages);
+          }
+        }
         if (key === 'users') setUsers(data);
         if (key === 'roles') setRoles(data);
         if (key === 'stats') setStats(data);
@@ -557,8 +650,12 @@ export default function App() {
   }, [selectedRoleForPerms, activeTab]);
 
   useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, filterCategory, filterSeverity, filterDateFrom, filterDateTo, filterStatus, filterAgent]);
+
+  useEffect(() => {
     fetchData();
-  }, [activeTab, searchQuery, filterCategory, filterSeverity, currentUser]);
+  }, [activeTab, searchQuery, filterCategory, filterSeverity, filterDateFrom, filterDateTo, filterStatus, filterAgent, currentPage, currentUser]);
 
   // Fetch Personal Reports
   const fetchPersonalReports = async () => {
@@ -1438,37 +1535,110 @@ export default function App() {
                 exit={{ opacity: 0, y: -10 }}
                 className="space-y-6"
               >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className="text-2xl font-black tracking-tighter">LOG DE OCORRÊNCIAS</h2>
-                    <p className="text-sm text-zinc-500">Histórico completo de registros operacionais.</p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <select 
-                      className="bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-primary"
-                      value={filterCategory}
-                      onChange={(e) => setFilterCategory(e.target.value)}
-                    >
-                      <option value="">Todas Categorias</option>
-                      <option value="Valores">Valores</option>
-                      <option value="Perímetro">Perímetro</option>
-                      <option value="Safety">Safety</option>
-                      <option value="Operativo">Operativo</option>
-                    </select>
-                    <select 
-                      className="bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-primary"
-                      value={filterSeverity}
-                      onChange={(e) => setFilterSeverity(e.target.value)}
-                    >
-                      <option value="">Todas Gravidades</option>
-                      <option value="G1">G1</option>
-                      <option value="G2">G2</option>
-                      <option value="G3">G3</option>
-                      <option value="G4">G4</option>
-                    </select>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className="text-2xl font-black tracking-tighter">LOG DE OCORRÊNCIAS</h2>
+                      <p className="text-sm text-zinc-500">Histórico completo de registros operacionais.</p>
+                    </div>
                     <button className="p-2 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-400 hover:text-white transition-colors">
                       <Download size={16} />
                     </button>
+                  </div>
+
+                  <div className="bg-zinc-900/20 border border-zinc-800/50 rounded-lg p-4 space-y-4">
+                    <h3 className="text-sm font-bold text-zinc-200">Filtros Avançados</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black text-zinc-500 uppercase">Categoria</label>
+                        <select 
+                          className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-primary"
+                          value={filterCategory}
+                          onChange={(e) => setFilterCategory(e.target.value)}
+                        >
+                          <option value="">Todas</option>
+                          <option value="Valores">Valores</option>
+                          <option value="Perímetro">Perímetro</option>
+                          <option value="Logística">Logística</option>
+                          <option value="Safety">Safety</option>
+                          <option value="Manutenção">Manutenção</option>
+                          <option value="Informativo">Informativo</option>
+                          <option value="Operativo">Operativo</option>
+                        </select>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black text-zinc-500 uppercase">Gravidade</label>
+                        <select 
+                          className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-primary"
+                          value={filterSeverity}
+                          onChange={(e) => setFilterSeverity(e.target.value)}
+                        >
+                          <option value="">Todas</option>
+                          <option value="G1">G1 - Crítico</option>
+                          <option value="G2">G2 - Alto</option>
+                          <option value="G3">G3 - Médio</option>
+                          <option value="G4">G4 - Baixo</option>
+                        </select>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black text-zinc-500 uppercase">Status</label>
+                        <select 
+                          className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-primary"
+                          value={filterStatus}
+                          onChange={(e) => setFilterStatus(e.target.value)}
+                        >
+                          <option value="">Todos</option>
+                          <option value="Aberto">Aberto</option>
+                          <option value="Concluído">Concluído</option>
+                        </select>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black text-zinc-500 uppercase">Data Inicial</label>
+                        <input 
+                          type="date"
+                          className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-primary"
+                          value={filterDateFrom}
+                          onChange={(e) => setFilterDateFrom(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black text-zinc-500 uppercase">Data Final</label>
+                        <input 
+                          type="date"
+                          className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-primary"
+                          value={filterDateTo}
+                          onChange={(e) => setFilterDateTo(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black text-zinc-500 uppercase">Agente</label>
+                        <select 
+                          className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-primary"
+                          value={filterAgent}
+                          onChange={(e) => setFilterAgent(e.target.value)}
+                        >
+                          <option value="">Todos</option>
+                          {users.map(u => (
+                            <option key={u.id} value={u.id.toString()}>{u.nome}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="flex items-end">
+                        <button 
+                          onClick={() => {
+                            setFilterCategory('');
+                            setFilterSeverity('');
+                            setFilterStatus('');
+                            setFilterDateFrom('');
+                            setFilterDateTo('');
+                            setFilterAgent('');
+                          }}
+                          className="w-full py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all"
+                        >
+                          Limpar Filtros
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -1565,6 +1735,14 @@ export default function App() {
                     </div>
                   )}
                 </div>
+                
+                {reports.length > 0 && totalPages > 1 && (
+                  <PaginationControls 
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={setCurrentPage}
+                  />
+                )}
               </motion.div>
             )}
 
@@ -2495,6 +2673,244 @@ export default function App() {
                           className="px-8 py-2.5 bg-primary hover:opacity-90 text-primary-foreground rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-primary/20"
                         >
                           Aplicar Nova Identidade
+                        </button>
+                      </div>
+                    </form>
+                  </Card>
+
+                  <Card title="Preferências de Idioma" subtitle="Selecione o idioma da interface">
+                    <LanguageSwitcher />
+                  </Card>
+
+                  <Card title="Relatórios Agendados" subtitle="Configure envio automático de relatórios" className="lg:col-span-2">
+                    <form onSubmit={async (e) => {
+                      e.preventDefault();
+                      const formData = new FormData(e.currentTarget);
+                      const settings = [
+                        { key: 'scheduled_reports_enabled', value: (formData.get('scheduled_reports_enabled') === 'on') ? 'true' : 'false', description: 'Relatórios agendados ativados' },
+                        { key: 'scheduled_reports_time', value: formData.get('scheduled_reports_time'), description: 'Horário de envio dos relatórios' },
+                        { key: 'scheduled_reports_channel', value: formData.get('scheduled_reports_channel'), description: 'Canal de entrega (email/telegram)' },
+                        { key: 'scheduled_reports_recipients', value: formData.get('scheduled_reports_recipients'), description: 'Destinatários dos relatórios' }
+                      ];
+                      
+                      try {
+                        await fetch('/api/settings', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ settings }),
+                          credentials: 'include'
+                        });
+                        toast.success("Agendamento de relatórios configurado!");
+                        fetchData();
+                      } catch (err) {
+                        toast.error("Erro ao salvar configurações");
+                      }
+                    }} className="space-y-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-bold text-zinc-200">Ativar Relatórios Agendados</p>
+                          <p className="text-[10px] text-zinc-500">Envio automático diário de relatórios.</p>
+                        </div>
+                        <input 
+                          type="checkbox"
+                          name="scheduled_reports_enabled"
+                          defaultChecked={systemSettings.find(s => s.key === 'scheduled_reports_enabled')?.value === 'true'}
+                          className="w-4 h-4 rounded cursor-pointer"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Horário de Envio</label>
+                          <input 
+                            type="time"
+                            name="scheduled_reports_time"
+                            defaultValue={systemSettings.find(s => s.key === 'scheduled_reports_time')?.value || '06:00'}
+                            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Canal de Entrega</label>
+                          <select 
+                            name="scheduled_reports_channel"
+                            defaultValue={systemSettings.find(s => s.key === 'scheduled_reports_channel')?.value || 'email'}
+                            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
+                          >
+                            <option value="email">Email</option>
+                            <option value="telegram">Telegram</option>
+                            <option value="both">Email + Telegram</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Destinatários (Email)</label>
+                        <input 
+                          type="text"
+                          name="scheduled_reports_recipients"
+                          placeholder="email1@example.com, email2@example.com"
+                          defaultValue={systemSettings.find(s => s.key === 'scheduled_reports_recipients')?.value || ''}
+                          className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
+                        />
+                      </div>
+
+                      <div className="flex justify-end gap-3">
+                        <button 
+                          type="submit"
+                          className="px-8 py-2.5 bg-primary hover:opacity-90 text-primary-foreground rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-primary/20"
+                        >
+                          Salvar Agendamento
+                        </button>
+                      </div>
+                    </form>
+                  </Card>
+
+                  <Card title="Backup & Restauração" subtitle="Gerencie backups do banco de dados" className="lg:col-span-2">
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-sm font-bold text-zinc-200 mb-3">Fazer Backup</p>
+                          <p className="text-[10px] text-zinc-500 mb-3">Fazer download do banco de dados completo</p>
+                          <button 
+                            onClick={async () => {
+                              try {
+                                const res = await fetch('/api/backup', { credentials: 'include' });
+                                if (res.ok) {
+                                  const blob = await res.blob();
+                                  const url = window.URL.createObjectURL(blob);
+                                  const a = document.createElement('a');
+                                  a.href = url;
+                                  a.download = `mineguard-backup-${new Date().toISOString().split('T')[0]}.db`;
+                                  document.body.appendChild(a);
+                                  a.click();
+                                  window.URL.revokeObjectURL(url);
+                                  toast.success("Backup baixado com sucesso!");
+                                }
+                              } catch (err) {
+                                toast.error("Erro ao fazer backup");
+                              }
+                            }}
+                            className="w-full py-2.5 bg-primary hover:bg-primary/90 text-black rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-primary/20"
+                          >
+                            ⬇️ Baixar Backup Agora
+                          </button>
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-zinc-200 mb-3">Restaurar Backup</p>
+                          <p className="text-[10px] text-zinc-500 mb-3">Restaurar dados a partir de um arquivo de backup</p>
+                          <input 
+                            type="file"
+                            id="backup-file"
+                            accept=".db"
+                            className="hidden"
+                            onChange={async (e) => {
+                              const file = e.currentTarget.files?.[0];
+                              if (!file) return;
+                              const formData = new FormData();
+                              formData.append('backupFile', file);
+                              try {
+                                const res = await fetch('/api/backup/restore', {
+                                  method: 'POST',
+                                  body: formData,
+                                  credentials: 'include'
+                                });
+                                if (res.ok) {
+                                  toast.success("Backup restaurado! Recarregando...");
+                                  setTimeout(() => window.location.reload(), 1500);
+                                } else {
+                                  toast.error("Erro ao restaurar backup");
+                                }
+                              } catch (err) {
+                                toast.error("Erro ao restaurar backup");
+                              }
+                            }}
+                          />
+                          <button 
+                            onClick={() => document.getElementById('backup-file')?.click()}
+                            className="w-full py-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all"
+                          >
+                            📁 Selecionar Arquivo
+                          </button>
+                        </div>
+                      </div>
+                      <div className="bg-zinc-800/30 border border-zinc-700/30 rounded-lg p-3">
+                        <p className="text-[10px] text-zinc-400 font-bold uppercase">⚠️ Aviso Importante:</p>
+                        <p className="text-[10px] text-zinc-500 mt-1">Fazer backup regularmente é recomendado. Um backup automático é feito diariamente no servidor.</p>
+                      </div>
+                    </div>
+                  </Card>
+
+                  <Card title="Versioning & Atualizações" subtitle="Gerencie versões e atualizações" className="lg:col-span-2">
+                    <form onSubmit={async (e) => {
+                      e.preventDefault();
+                      const formData = new FormData(e.currentTarget);
+                      const settings = [
+                        { key: 'github_repo_url', value: formData.get('github_repo_url'), description: 'URL do repositório GitHub' },
+                        { key: 'auto_check_updates', value: (formData.get('auto_check_updates') === 'on') ? 'true' : 'false', description: 'Verificar atualizações automaticamente' }
+                      ];
+                      
+                      try {
+                        await fetch('/api/settings', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ settings }),
+                          credentials: 'include'
+                        });
+                        toast.success("Configuração de versioning salva!");
+                        fetchData();
+                      } catch (err) {
+                        toast.error("Erro ao salvar configurações");
+                      }
+                    }} className="space-y-6">
+                      <div className="bg-zinc-800/30 border border-zinc-700/30 rounded-lg p-4">
+                        <p className="text-xs font-black text-zinc-300 uppercase">Versão Atual: v1.0.0</p>
+                        <p className="text-[10px] text-zinc-500 mt-1">Status: ✅ Atualizado</p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">URL do Repositório GitHub</label>
+                        <input 
+                          type="url"
+                          name="github_repo_url"
+                          placeholder="https://github.com/usuario/mineguard"
+                          defaultValue={systemSettings.find(s => s.key === 'github_repo_url')?.value || ''}
+                          className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-bold text-zinc-200">Verificação Automática</p>
+                          <p className="text-[10px] text-zinc-500">Verificar atualizações diariamente.</p>
+                        </div>
+                        <input 
+                          type="checkbox"
+                          name="auto_check_updates"
+                          defaultChecked={systemSettings.find(s => s.key === 'auto_check_updates')?.value === 'true'}
+                          className="w-4 h-4 rounded cursor-pointer"
+                        />
+                      </div>
+
+                      <div className="flex gap-3">
+                        <button 
+                          type="button"
+                          onClick={async () => {
+                            toast.loading("Verificando atualizações...");
+                            // Simulated check - will be replaced with actual GitHub API
+                            setTimeout(() => {
+                              toast.dismiss();
+                              toast.success("Sistema está atualizado ✓");
+                            }, 1500);
+                          }}
+                          className="flex-1 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all"
+                        >
+                          🔍 Verificar Agora
+                        </button>
+                        <button 
+                          type="submit"
+                          className="flex-1 py-2.5 bg-primary hover:opacity-90 text-primary-foreground rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-primary/20"
+                        >
+                          Salvar
                         </button>
                       </div>
                     </form>

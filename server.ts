@@ -499,6 +499,40 @@ async function startServer() {
     }
   });
 
+  // --- Backup API ---
+  app.get("/api/backup", authenticate, checkPermission('manage_settings'), (req, res) => {
+    try {
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0];
+      const filename = `mineguard-backup-${timestamp}.db`;
+      const dbPath = path.join(process.cwd(), 'mina_seguranca.db');
+      
+      res.download(dbPath, filename, (err) => {
+        if (err) console.error("Backup download error:", err);
+      });
+    } catch (error) {
+      res.status(500).json({ status: "error", message: "Erro ao fazer backup" });
+    }
+  });
+
+  app.post("/api/backup/restore", authenticate, checkPermission('manage_settings'), (req, res) => {
+    try {
+      if (!req.files || !req.files.backupFile) {
+        return res.status(400).json({ status: "error", message: "Arquivo não fornecido" });
+      }
+
+      const backupFile = req.files.backupFile as Express.Multer.File;
+      const dbPath = path.join(process.cwd(), 'mina_seguranca.db');
+      const backupPath = path.join(process.cwd(), `mina_seguranca-${Date.now()}.backup`);
+
+      fs.copyFileSync(dbPath, backupPath);
+      fs.writeFileSync(dbPath, backupFile.data);
+
+      res.json({ status: "ok", message: "Backup restaurado com sucesso", backupPath });
+    } catch (error: any) {
+      res.status(500).json({ status: "error", message: error.message });
+    }
+  });
+
   // --- Stats API ---
   app.get("/api/stats", authenticate, checkPermission('view_dashboard'), (req: any, res) => {
     try {
@@ -862,6 +896,13 @@ async function startServer() {
     const search = req.query.search as string || '';
     const category = req.query.category as string || '';
     const severity = req.query.severity as string || '';
+    const dateFrom = req.query.dateFrom as string || '';
+    const dateTo = req.query.dateTo as string || '';
+    const status = req.query.status as string || '';
+    const agent = req.query.agent as string || '';
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const offset = (page - 1) * limit;
     
     // Pegar peso do usuário logado
     const userWeight = (db.prepare("SELECT peso FROM role_weights WHERE nivel_hierarquico = ?").get(userRole) as any)?.peso || 0;
@@ -897,15 +938,47 @@ async function startServer() {
       query += ` AND r.gravidade = ?`;
       params.push(severity);
     }
+    if (status) {
+      query += ` AND r.status = ?`;
+      params.push(status);
+    }
+    if (dateFrom) {
+      query += ` AND DATE(r.timestamp) >= ?`;
+      params.push(dateFrom);
+    }
+    if (dateTo) {
+      query += ` AND DATE(r.timestamp) <= ?`;
+      params.push(dateTo);
+    }
+    if (agent) {
+      query += ` AND r.agente_id = ?`;
+      params.push(parseInt(agent));
+    }
 
-    query += ` ORDER BY r.timestamp DESC`;
+    // Get total count for pagination
+    const countQuery = query.replace(/SELECT r\.\*, u\.nome.*FROM/, 'SELECT COUNT(*) as total FROM');
+    const countParams = params.slice();
+    const totalResult = db.prepare(countQuery).get(...countParams) as any;
+    const total = totalResult?.total || 0;
+
+    query += ` ORDER BY r.timestamp DESC LIMIT ? OFFSET ?`;
+    params.push(limit, offset);
 
     const reports = db.prepare(query).all(...params) as any[];
     // Add photos to each report
     reports.forEach((report) => {
       report.photos = db.prepare("SELECT * FROM report_photos WHERE report_id = ?").all(report.id);
     });
-    res.json(reports);
+    
+    res.json({
+      data: reports,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    });
   });
 
   // --- Operational Reports API (All) ---

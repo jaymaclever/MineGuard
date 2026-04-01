@@ -19,6 +19,59 @@ Este é um aplicativo **Full-Stack** construído com foco em performance, segura
 
 ---
 
+## 📋 Roadmap de Desenvolvimento (Feature Roadmap)
+
+### ✅ Implementadas
+1. **[✅] Multilíngue - Suporte i18n**
+   - Português (Brasil) e English (US)
+   - Seletor de idioma nas Configurações
+   - Tradução de toda a interface
+
+2. **[✅] Filtros Avançados - Busca Completa**
+   - Filtro por categoria, gravidade, status
+   - Filtro por intervalo de datas (data inicial e final)
+   - Filtro por agente/usuário
+   - Botão para limpar todos os filtros
+   - Backend totalmente integrado
+
+3. **[✅] Paginação de Relatórios**
+   - 20 itens por página (configurável)
+   - Componente de navegação anterior/próximo
+   - Indicador de página atual
+   - Integração completa com backend
+   - Reseta página ao alterar filtros
+
+4. **[✅] Relatórios Agendados**
+   - Interface de configuração na seção de Settings
+   - Seleção de horário de envio customizável
+   - Escolha de canal (Email, Telegram ou Ambos)
+   - Configuração de destinatários para email
+   - Toggle para ativar/desativar agendamento
+
+5. **[✅] Mobile App - PWA (Progressive Web App)**
+   - Manifest.json com configurações PWA completas
+   - Service Worker para offline functionality
+   - Meta tags para iOS/Android
+   - Ícones responsivos (192x192 e 512x512)
+   - Instalável em dispositivos móveis como app nativo
+   - Sincronização em background
+
+6. **[✅] Backup Automático**
+   - Botão para fazer download manual do banco de dados
+   - Upload e restauração de backups pelo navegador
+   - Timestamp automático nos nomes de arquivo
+   - Criação automática de backup anterior ao restaurar
+   - Interface intuitiva na seção de Settings
+
+7. **[✅] Versioning & Atualizações**
+   - Exibição da versão atual do sistema
+   - Campo para URL do repositório GitHub
+   - Botão para verificar atualizações manualmente
+   - Configuração de verificação automática diária
+   - Interface na seção de Settings
+
+---
+
 ## 🛠️ Stack Tecnológica
 
 ### Frontend

@@ -1,0 +1,113 @@
+{
+  "header": {
+    "dashboard": "Dashboard",
+    "reports": "Reports",
+    "users": "Users",
+    "settings": "Settings",
+    "logout": "Logout"
+  },
+  "sidebar": {
+    "dashboard": "Dashboard",
+    "operationalReports": "Operational Reports",
+    "dailyReports": "Daily Reports",
+    "management": "Management",
+    "users": "Users",
+    "permissions": "Permissions",
+    "audit": "Audit",
+    "settings": "Settings"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "totalReports": "Total Reports",
+    "totalUsers": "Total Users",
+    "recentIncidents": "Recent Incidents",
+    "reportsByCategory": "Reports by Category",
+    "reportsBySeverity": "Reports by Severity",
+    "last7Days": "Last 7 days"
+  },
+  "reports": {
+    "title": "Reports",
+    "newReport": "New Report",
+    "allReports": "All Reports",
+    "myReports": "My Reports",
+    "teamReports": "Team Reports",
+    "dailyReports": "Daily Reports",
+    "viewDetails": "View Details",
+    "downloadPDF": "Download PDF",
+    "print": "Print"
+  },
+  "forms": {
+    "reportTitle": "Report Title",
+    "category": "Category",
+    "severity": "Severity",
+    "description": "Description",
+    "location": "Location",
+    "coordinates": "Coordinates",
+    "photos": "Photos",
+    "witnesses": "Witnesses",
+    "riskPotential": "Risk Potential",
+    "immediateAction": "Immediate Action",
+    "submit": "Submit",
+    "cancel": "Cancel"
+  },
+  "filters": {
+    "filterBy": "Filter by",
+    "searchBy": "Search by",
+    "dateRange": "Date Range",
+    "fromDate": "From Date",
+    "toDate": "To Date",
+    "category": "Category",
+    "severity": "Severity",
+    "status": "Status",
+    "agent": "Agent",
+    "apply": "Apply",
+    "clear": "Clear"
+  },
+  "pagination": {
+    "page": "Page",
+    "of": "of",
+    "itemsPerPage": "Items per page",
+    "previous": "Previous",
+    "next": "Next"
+  },
+  "status": {
+    "open": "Open",
+    "closed": "Closed",
+    "pending": "Pending",
+    "inProgress": "In Progress"
+  },
+  "severity": {
+    "G1": "G1 - Critical",
+    "G2": "G2 - High",
+    "G3": "G3 - Medium",
+    "G4": "G4 - Low"
+  },
+  "categories": {
+    "valores": "Values",
+    "perimetro": "Perimeter",
+    "logistica": "Logistics",
+    "safety": "Safety",
+    "manutencao": "Maintenance",
+    "informativo": "Informational",
+    "operativo": "Operational"
+  },
+  "settings": {
+    "title": "Settings",
+    "appName": "Application Name",
+    "appSlogan": "Slogan",
+    "theme": "Theme",
+    "color": "Color",
+    "language": "Language",
+    "backup": "Backup",
+    "backupNow": "Backup Now",
+    "restoreBackup": "Restore Backup",
+    "githubUrl": "GitHub URL",
+    "checkUpdates": "Check Updates"
+  },
+  "messages": {
+    "success": "Operation completed successfully",
+    "error": "Error processing operation",
+    "loading": "Loading...",
+    "noData": "No data available"
+  }
+}
