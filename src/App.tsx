@@ -2488,12 +2488,10 @@ export default function App() {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  <Card title="Integração Telegram" subtitle="Alertas automáticos para G3/G4">
+                  <Card title="Email SMTP" subtitle="Configure remetente para notificações">
                     <form onSubmit={async (e) => {
                       e.preventDefault();
                       const formData = new FormData(e.currentTarget);
-                      const botToken = formData.get('telegram_bot_token') as string;
-                      const chatId = formData.get('telegram_chat_id') as string;
                       
                       try {
                         await fetch('/api/settings', {
@@ -2501,20 +2499,119 @@ export default function App() {
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({
                             settings: [
-                              { key: 'telegram_bot_token', value: botToken, description: 'Token do Bot do Telegram' },
-                              { key: 'telegram_chat_id', value: chatId, description: 'ID do Chat/Grupo do Telegram' }
+                              { key: 'email_sender', value: formData.get('email_sender'), description: 'Email do remetente' },
+                              { key: 'email_sender_name', value: formData.get('email_sender_name'), description: 'Nome do remetente' },
+                              { key: 'smtp_host', value: formData.get('smtp_host'), description: 'Host SMTP' },
+                              { key: 'smtp_port', value: formData.get('smtp_port'), description: 'Porta SMTP' },
+                              { key: 'smtp_user', value: formData.get('smtp_user'), description: 'Usuário SMTP' },
+                              { key: 'smtp_password', value: formData.get('smtp_password'), description: 'Senha SMTP' }
                             ]
                           }),
                           credentials: 'include'
                         });
-                        toast.success("Configurações salvas!");
+                        toast.success("Configurações de email salvas!");
                         fetchData();
                       } catch (err) {
                         toast.error("Erro ao salvar configurações");
                       }
-                    }} className="space-y-4">
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Bot Token</label>
+                    }} className="space-y-3">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-black text-zinc-500 uppercase">Email Remetente</label>
+                          <input 
+                            name="email_sender"
+                            type="email"
+                            defaultValue={systemSettings.find(s => s.key === 'email_sender')?.value || ''}
+                            placeholder="noreply@mineguard.com"
+                            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2 px-3 text-sm focus:outline-none focus:border-primary"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-black text-zinc-500 uppercase">Nome do Remetente</label>
+                          <input 
+                            name="email_sender_name"
+                            defaultValue={systemSettings.find(s => s.key === 'email_sender_name')?.value || 'MineGuard'}
+                            placeholder="MineGuard Security"
+                            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2 px-3 text-sm focus:outline-none focus:border-primary"
+                          />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-black text-zinc-500 uppercase">Host SMTP</label>
+                          <input 
+                            name="smtp_host"
+                            defaultValue={systemSettings.find(s => s.key === 'smtp_host')?.value || ''}
+                            placeholder="smtp.gmail.com"
+                            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2 px-3 text-sm focus:outline-none focus:border-primary"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-black text-zinc-500 uppercase">Porta SMTP</label>
+                          <input 
+                            name="smtp_port"
+                            type="number"
+                            defaultValue={systemSettings.find(s => s.key === 'smtp_port')?.value || '587'}
+                            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2 px-3 text-sm focus:outline-none focus:border-primary"
+                          />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-black text-zinc-500 uppercase">Usuário SMTP</label>
+                          <input 
+                            name="smtp_user"
+                            defaultValue={systemSettings.find(s => s.key === 'smtp_user')?.value || ''}
+                            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2 px-3 text-sm focus:outline-none focus:border-primary"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-black text-zinc-500 uppercase">Senha SMTP</label>
+                          <input 
+                            name="smtp_password"
+                            type="password"
+                            defaultValue={systemSettings.find(s => s.key === 'smtp_password')?.value || ''}
+                            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2 px-3 text-sm focus:outline-none focus:border-primary"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex gap-2 pt-2">
+                        <button 
+                          type="submit"
+                          className="flex-1 py-2 bg-primary hover:opacity-90 text-black rounded-lg text-[10px] font-black uppercase transition-all"
+                        >
+                          Salvar SMTP
+                        </button>
+                      </div>
+                    </form>
+                  </Card>
+
+                  <Card title="Integração Telegram" subtitle="Configure Bot para alertas automáticos">
+                    <form onSubmit={async (e) => {
+                      e.preventDefault();
+                      const formData = new FormData(e.currentTarget);
+                      
+                      try {
+                        await fetch('/api/settings', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            settings: [
+                              { key: 'telegram_bot_token', value: formData.get('telegram_bot_token'), description: 'Token do Bot do Telegram' },
+                              { key: 'telegram_chat_id', value: formData.get('telegram_chat_id'), description: 'ID do Chat/Grupo do Telegram' },
+                              { key: 'telegram_alert_level', value: formData.get('telegram_alert_level'), description: 'Nível mínimo de alerta' }
+                            ]
+                          }),
+                          credentials: 'include'
+                        });
+                        toast.success("Configurações de Telegram salvas!");
+                        fetchData();
+                      } catch (err) {
+                        toast.error("Erro ao salvar configurações");
+                      }
+                    }} className="space-y-3">
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black text-zinc-500 uppercase">Bot Token</label>
                         <input 
                           name="telegram_bot_token"
                           type="password"
@@ -2522,18 +2619,32 @@ export default function App() {
                           placeholder="0000000000:AAH..."
                           className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
                         />
+                        <p className="text-[9px] text-zinc-500 mt-1">Obtenha em @BotFather no Telegram</p>
                       </div>
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Chat ID</label>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black text-zinc-500 uppercase">Chat ID</label>
                         <input 
                           name="telegram_chat_id"
                           type="text"
                           defaultValue={systemSettings.find(s => s.key === 'telegram_chat_id')?.value || ''}
-                          placeholder="-100..."
+                          placeholder="-100123456789 ou @nomedogrupo"
                           className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
                         />
+                        <p className="text-[9px] text-zinc-500 mt-1">Use /getid para descobrir o ID do seu chat</p>
                       </div>
-                      <div className="flex gap-3 pt-2">
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black text-zinc-500 uppercase">Nível Mínimo de Alerta</label>
+                        <select 
+                          name="telegram_alert_level"
+                          defaultValue={systemSettings.find(s => s.key === 'telegram_alert_level')?.value || 'G3'}
+                          className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
+                        >
+                          <option value="G4">G4 (Crítico)</option>
+                          <option value="G3">G3 e G4</option>
+                          <option value="G2">G2, G3 e G4</option>
+                        </select>
+                      </div>
+                      <div className="flex gap-2 pt-2">
                         <button 
                           type="button"
                           onClick={async () => {
@@ -2553,13 +2664,13 @@ export default function App() {
                             if (data.status === 'ok') toast.success("Teste enviado com sucesso!");
                             else toast.error("Falha no teste: " + data.message);
                           }}
-                          className="flex-1 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all"
+                          className="flex-1 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg text-[10px] font-black uppercase transition-all"
                         >
                           Testar Conexão
                         </button>
                         <button 
                           type="submit"
-                          className="flex-1 py-2.5 bg-primary hover:bg-primary/90 text-black rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-primary/20"
+                          className="flex-1 py-2.5 bg-primary hover:bg-primary/90 text-black rounded-lg text-[10px] font-black uppercase transition-all shadow-lg shadow-primary/20"
                         >
                           Salvar Alterações
                         </button>
@@ -2698,12 +2809,21 @@ export default function App() {
                       if (formData.get('scheduled_reports_email_enabled') === 'on') channels.push('email');
                       if (formData.get('scheduled_reports_telegram_enabled') === 'on') channels.push('telegram');
                       
+                      const content: string[] = [];
+                      const contentItems = ['summary', 'daily_incidents', 'alerts_g4', 'alerts_g3', 'active_users', 'security_stats', 'perimeter_status'];
+                      contentItems.forEach(item => {
+                        if (formData.get(`scheduled_reports_content_${item}`) === 'on') {
+                          content.push(item);
+                        }
+                      });
+                      
                       const settings = [
                         { key: 'scheduled_reports_enabled', value: (formData.get('scheduled_reports_enabled') === 'on') ? 'true' : 'false', description: 'Relatórios agendados ativados' },
                         { key: 'scheduled_reports_time', value: formData.get('scheduled_reports_time'), description: 'Horário de envio dos relatórios' },
                         { key: 'scheduled_reports_channel', value: channels.join(',') || 'email', description: 'Canais de entrega' },
                         { key: 'scheduled_reports_recipients', value: formData.get('scheduled_reports_recipients'), description: 'Destinatários dos relatórios (Email)' },
-                        { key: 'scheduled_reports_telegram_chat', value: formData.get('scheduled_reports_telegram_chat'), description: 'Chat ID Telegram para relatórios' }
+                        { key: 'scheduled_reports_telegram_chat', value: formData.get('scheduled_reports_telegram_chat'), description: 'Chat ID Telegram para relatórios' },
+                        { key: 'scheduled_reports_content', value: content.join(',') || 'summary', description: 'Conteúdos a incluir nos relatórios' }
                       ];
                       
                       if (!channels.length) {
@@ -2796,6 +2916,83 @@ export default function App() {
                         </div>
 
                         <p className="text-[10px] text-zinc-400">Selecione um ou ambos os canais para envio simultâneo.</p>
+                      </div>
+
+                      <div className="space-y-3 bg-zinc-900/50 rounded-lg p-4 border border-zinc-800">
+                        <p className="text-sm font-bold text-zinc-200">Conteúdo dos Relatórios</p>
+                        <p className="text-[10px] text-zinc-400">Escolha o que incluir nos envios automáticos:</p>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <label className="flex items-center gap-3 cursor-pointer hover:bg-zinc-800/50 p-2 rounded">
+                            <input 
+                              type="checkbox"
+                              name="scheduled_reports_content_summary"
+                              defaultChecked={systemSettings.find(s => s.key === 'scheduled_reports_content')?.value?.includes('summary') ?? true}
+                              className="w-4 h-4 rounded"
+                            />
+                            <span className="text-[10px] font-bold text-zinc-300">Resumo Executivo</span>
+                          </label>
+                          
+                          <label className="flex items-center gap-3 cursor-pointer hover:bg-zinc-800/50 p-2 rounded">
+                            <input 
+                              type="checkbox"
+                              name="scheduled_reports_content_daily_incidents"
+                              defaultChecked={systemSettings.find(s => s.key === 'scheduled_reports_content')?.value?.includes('daily_incidents') ?? true}
+                              className="w-4 h-4 rounded"
+                            />
+                            <span className="text-[10px] font-bold text-zinc-300">Incidentes do Dia</span>
+                          </label>
+                          
+                          <label className="flex items-center gap-3 cursor-pointer hover:bg-zinc-800/50 p-2 rounded">
+                            <input 
+                              type="checkbox"
+                              name="scheduled_reports_content_alerts_g4"
+                              defaultChecked={systemSettings.find(s => s.key === 'scheduled_reports_content')?.value?.includes('alerts_g4') ?? true}
+                              className="w-4 h-4 rounded"
+                            />
+                            <span className="text-[10px] font-bold text-zinc-300">Alertas Críticos (G4)</span>
+                          </label>
+                          
+                          <label className="flex items-center gap-3 cursor-pointer hover:bg-zinc-800/50 p-2 rounded">
+                            <input 
+                              type="checkbox"
+                              name="scheduled_reports_content_alerts_g3"
+                              defaultChecked={systemSettings.find(s => s.key === 'scheduled_reports_content')?.value?.includes('alerts_g3') ?? true}
+                              className="w-4 h-4 rounded"
+                            />
+                            <span className="text-[10px] font-bold text-zinc-300">Alertas Altos (G3)</span>
+                          </label>
+                          
+                          <label className="flex items-center gap-3 cursor-pointer hover:bg-zinc-800/50 p-2 rounded">
+                            <input 
+                              type="checkbox"
+                              name="scheduled_reports_content_active_users"
+                              defaultChecked={systemSettings.find(s => s.key === 'scheduled_reports_content')?.value?.includes('active_users') ?? true}
+                              className="w-4 h-4 rounded"
+                            />
+                            <span className="text-[10px] font-bold text-zinc-300">Usuários Ativos</span>
+                          </label>
+                          
+                          <label className="flex items-center gap-3 cursor-pointer hover:bg-zinc-800/50 p-2 rounded">
+                            <input 
+                              type="checkbox"
+                              name="scheduled_reports_content_security_stats"
+                              defaultChecked={systemSettings.find(s => s.key === 'scheduled_reports_content')?.value?.includes('security_stats') ?? true}
+                              className="w-4 h-4 rounded"
+                            />
+                            <span className="text-[10px] font-bold text-zinc-300">Estatísticas de Segurança</span>
+                          </label>
+                          
+                          <label className="flex items-center gap-3 cursor-pointer hover:bg-zinc-800/50 p-2 rounded">
+                            <input 
+                              type="checkbox"
+                              name="scheduled_reports_content_perimeter_status"
+                              defaultChecked={systemSettings.find(s => s.key === 'scheduled_reports_content')?.value?.includes('perimeter_status') ?? true}
+                              className="w-4 h-4 rounded"
+                            />
+                            <span className="text-[10px] font-bold text-zinc-300">Status do Perímetro</span>
+                          </label>
+                        </div>
                       </div>
 
                       <div className="flex justify-end gap-3">
