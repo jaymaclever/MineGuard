@@ -524,6 +524,9 @@ export default function App() {
       .then(user => {
         if (user) {
           setCurrentUser(user);
+          // Use user's preferred language
+          const preferredLang = (user as any).preferred_language || 'pt-BR';
+          i18n.changeLanguage(preferredLang);
           // Initial notifications
           setNotifications([
             {
@@ -547,6 +550,13 @@ export default function App() {
         setIsLoading(false);
       });
   }, []);
+
+  // Change language based on user's preferred language
+  useEffect(() => {
+    if (currentUser && (currentUser as any).preferred_language) {
+      i18n.changeLanguage((currentUser as any).preferred_language);
+    }
+  }, [(currentUser as any)?.preferred_language]);
 
   useEffect(() => {
     if (currentUser && activeTab === 'dashboard' && currentUser.permissions?.view_dashboard !== true) {
@@ -3911,7 +3921,7 @@ export default function App() {
                       />
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Nível Hierárquico</label>
                       <select 
@@ -3922,6 +3932,17 @@ export default function App() {
                         {roles.map(r => (
                           <option key={r.nivel_hierarquico} value={r.nivel_hierarquico}>{r.nivel_hierarquico}</option>
                         ))}
+                      </select>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Idioma Preferido</label>
+                      <select 
+                        className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
+                        value={(newUser as any).preferred_language || 'pt-BR'}
+                        onChange={(e) => setNewUser({...newUser, preferred_language: e.target.value} as any)}
+                      >
+                        <option value="pt-BR">Português (BR)</option>
+                        <option value="en-US">English (US)</option>
                       </select>
                     </div>
                     <div className="space-y-2">

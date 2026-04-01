@@ -43,7 +43,8 @@ db.exec(`
     funcao TEXT NOT NULL,
     numero_mecanografico TEXT UNIQUE NOT NULL,
     nivel_hierarquico TEXT NOT NULL,
-    password TEXT NOT NULL DEFAULT '123456'
+    password TEXT NOT NULL DEFAULT '123456',
+    preferred_language TEXT DEFAULT 'pt-BR'
   );
 
   CREATE TABLE IF NOT EXISTS reports (
@@ -114,6 +115,18 @@ try {
   try {
     db.exec("ALTER TABLE users ADD COLUMN password TEXT NOT NULL DEFAULT '123456'");
     console.log("Migration: Added password column to users table.");
+  } catch (alterErr) {
+    console.error("Migration failed:", alterErr);
+  }
+}
+
+// Migration: Add preferred_language column if it doesn't exist
+try {
+  db.prepare("SELECT preferred_language FROM users LIMIT 1").get();
+} catch (e) {
+  try {
+    db.exec("ALTER TABLE users ADD COLUMN preferred_language TEXT DEFAULT 'pt-BR'");
+    console.log("Migration: Added preferred_language column to users table.");
   } catch (alterErr) {
     console.error("Migration failed:", alterErr);
   }
@@ -342,6 +355,7 @@ async function startServer() {
           nome: user.nome, 
           nivel_hierarquico: user.nivel_hierarquico,
           peso: userWeight,
+          preferred_language: user.preferred_language || 'pt-BR',
           permissions: permissions.reduce((acc, p) => ({ ...acc, [p.permissao_nome]: !!p.is_enabled }), {})
         }, JWT_SECRET, { expiresIn: "24h" });
         
@@ -354,6 +368,7 @@ async function startServer() {
             nivel_hierarquico: user.nivel_hierarquico, 
             peso: userWeight,
             numero_mecanografico: user.numero_mecanografico,
+            preferred_language: user.preferred_language || 'pt-BR',
             permissions: permissions.reduce((acc, p) => ({ ...acc, [p.permissao_nome]: !!p.is_enabled }), {})
           } 
         });
@@ -394,7 +409,7 @@ async function startServer() {
   });
 
   app.get("/api/me", authenticate, (req: any, res) => {
-    const user = db.prepare("SELECT id, nome, funcao, numero_mecanografico, nivel_hierarquico FROM users WHERE id = ?").get(req.user.id) as any;
+    const user = db.prepare("SELECT id, nome, funcao, numero_mecanografico, nivel_hierarquico, preferred_language FROM users WHERE id = ?").get(req.user.id) as any;
     if (user) {
       const userWeight = (db.prepare("SELECT peso FROM role_weights WHERE nivel_hierarquico = ?").get(user.nivel_hierarquico) as any)?.peso || 0;
       const permissions = db.prepare("SELECT permissao_nome, is_enabled FROM permissions WHERE nivel_hierarquico = ?").all(user.nivel_hierarquico) as any[];
@@ -617,7 +632,7 @@ async function startServer() {
   // --- Users API CRUD ---
   app.get("/api/users", authenticate, checkPermission('manage_users'), (req, res) => {
     try {
-      const users = db.prepare("SELECT id, nome, funcao, numero_mecanografico, nivel_hierarquico FROM users").all();
+      const users = db.prepare("SELECT id, nome, funcao, numero_mecanografico, nivel_hierarquico, preferred_language FROM users").all();
       res.json(users);
     } catch (err: any) {
       res.status(500).json({ status: "error", message: err.message });
@@ -626,9 +641,9 @@ async function startServer() {
 
   app.post("/api/users", authenticate, checkPermission('manage_users'), (req, res) => {
     try {
-      const { nome, funcao, numero_mecanografico, nivel_hierarquico, password } = req.body;
-      const stmt = db.prepare("INSERT INTO users (nome, funcao, numero_mecanografico, nivel_hierarquico, password) VALUES (?, ?, ?, ?, ?)");
-      const result = stmt.run(nome, funcao, numero_mecanografico, nivel_hierarquico, password || '123456');
+      const { nome, funcao, numero_mecanografico, nivel_hierarquico, password, preferred_language } = req.body;
+      const stmt = db.prepare("INSERT INTO users (nome, funcao, numero_mecanografico, nivel_hierarquico, password, preferred_language) VALUES (?, ?, ?, ?, ?, ?)");
+      const result = stmt.run(nome, funcao, numero_mecanografico, nivel_hierarquico, password || '123456', preferred_language || 'pt-BR');
       res.json({ status: "success", id: result.lastInsertRowid });
     } catch (err: any) {
       res.status(500).json({ status: "error", message: err.message });
@@ -638,10 +653,10 @@ async function startServer() {
   app.put("/api/users/:id", authenticate, checkPermission('manage_users'), (req, res) => {
     try {
       const { id } = req.params;
-      const { nome, funcao, numero_mecanografico, nivel_hierarquico, password } = req.body;
+      const { nome, funcao, numero_mecanografico, nivel_hierarquico, password, preferred_language } = req.body;
       
-      let query = "UPDATE users SET nome = ?, funcao = ?, numero_mecanografico = ?, nivel_hierarquico = ?";
-      const params = [nome, funcao, numero_mecanografico, nivel_hierarquico];
+      let query = "UPDATE users SET nome = ?, funcao = ?, numero_mecanografico = ?, nivel_hierarquico = ?, preferred_language = ?";
+      const params = [nome, funcao, numero_mecanografico, nivel_hierarquico, preferred_language || 'pt-BR'];
       
       if (password) {
         query += ", password = ?";
