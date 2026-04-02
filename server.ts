@@ -11,6 +11,8 @@ import jwt from "jsonwebtoken";
 import cookieParser from "cookie-parser";
 import { Server } from "socket.io";
 import http from "http";
+import bcrypt from "bcryptjs";
+import { Parser } from "json2csv";
 import { generateDailyReport } from "./report_generator";
 
 const db = new Database("mina_seguranca.db");
@@ -99,6 +101,37 @@ db.exec(`
     FOREIGN KEY(alert_id) REFERENCES alerts(id) ON DELETE CASCADE,
     FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
   );
+
+  CREATE TABLE IF NOT EXISTS telegram_queue (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    report_id INTEGER,
+    gravidade TEXT NOT NULL,
+    titulo TEXT,
+    categoria TEXT,
+    agente_nome TEXT,
+    descricao TEXT,
+    coords_lat REAL,
+    coords_lng REAL,
+    status TEXT DEFAULT 'pending',
+    retry_count INTEGER DEFAULT 0,
+    timestamp TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(report_id) REFERENCES reports(id) ON DELETE CASCADE
+  );
+
+  CREATE TABLE IF NOT EXISTS audit_logs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER,
+    action TEXT NOT NULL,
+    target_id INTEGER,
+    details TEXT,
+    ip_address TEXT,
+    timestamp TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE SET NULL
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_reports_categoria ON reports(categoria);
+  CREATE INDEX IF NOT EXISTS idx_reports_gravidade ON reports(gravidade);
+  CREATE INDEX IF NOT EXISTS idx_reports_timestamp ON reports(timestamp);
 
   -- Seed default system settings if empty
   INSERT OR IGNORE INTO system_settings (key, value, description) VALUES ('app_name', 'MINEGUARD', 'Nome da aplicação');
@@ -228,25 +261,50 @@ if (permsCount.count === 0) {
 const usersCount = db.prepare("SELECT COUNT(*) as count FROM users").get() as any;
 if (usersCount.count === 0) {
   const insertUser = db.prepare("INSERT INTO users (nome, funcao, numero_mecanografico, nivel_hierarquico, password) VALUES (?, ?, ?, ?, ?)");
-  insertUser.run('Superadmin', 'Administrador do Sistema', 'superadmin', 'Superadmin', 'secret');
-  insertUser.run('Ana Santos', 'Monitora de Perímetro', 'M-2055', 'Agente', '123456');
-  insertUser.run('João Pereira', 'Supervisor de Turno', 'M-1542', 'Supervisor', '123456');
+  insertUser.run('Superadmin', 'Administrador do Sistema', 'superadmin', 'Superadmin', bcrypt.hashSync('secret', 10));
+  insertUser.run('Ana Santos', 'Monitora de Perímetro', 'M-2055', 'Agente', bcrypt.hashSync('123456', 10));
+  insertUser.run('João Pereira', 'Supervisor de Turno', 'M-1542', 'Supervisor', bcrypt.hashSync('123456', 10));
 } else {
-  // Garantir que o superadmin tenha as credenciais corretas
+  // Garantir que o superadmin tenha as credenciais corretas, this block is legacy and migrated to bcrypt
   const adminExists = db.prepare("SELECT id FROM users WHERE numero_mecanografico = ?").get('superadmin');
-  if (adminExists) {
-    db.prepare("UPDATE users SET password = ? WHERE numero_mecanografico = ?").run('secret', 'superadmin');
-  } else {
-    // Se não existir 'superadmin', mas existir 'M-1024', migrar
+  if (!adminExists) {
     const oldAdminExists = db.prepare("SELECT id FROM users WHERE numero_mecanografico = ?").get('M-1024');
     if (oldAdminExists) {
-      db.prepare("UPDATE users SET numero_mecanografico = ?, password = ?, nome = ? WHERE numero_mecanografico = ?").run('superadmin', 'secret', 'Superadmin', 'M-1024');
+      db.prepare("UPDATE users SET numero_mecanografico = ?, password = ?, nome = ? WHERE numero_mecanografico = ?").run('superadmin', bcrypt.hashSync('secret', 10), 'Superadmin', 'M-1024');
     } else {
-      // Caso contrário, inserir novo
-      db.prepare("INSERT INTO users (nome, funcao, numero_mecanografico, nivel_hierarquico, password) VALUES (?, ?, ?, ?, ?)").run('Superadmin', 'Administrador do Sistema', 'superadmin', 'Superadmin', 'secret');
+      db.prepare("INSERT INTO users (nome, funcao, numero_mecanografico, nivel_hierarquico, password) VALUES (?, ?, ?, ?, ?)").run('Superadmin', 'Administrador do Sistema', 'superadmin', 'Superadmin', bcrypt.hashSync('secret', 10));
     }
   }
 }
+
+// Migration: Ensure passwords are hashed securely
+try {
+  const usersToMigrate = db.prepare("SELECT id, password FROM users").all() as any[];
+  usersToMigrate.forEach(u => {
+    if (u.password && !u.password.startsWith('$2')) {
+      const hash = bcrypt.hashSync(u.password, 10);
+      db.prepare("UPDATE users SET password = ? WHERE id = ?").run(hash, u.id);
+    }
+  });
+  console.log("Migration: Ensured all passwords are encrypted.");
+} catch (e) {
+  console.error("Migration password fail:", e);
+}
+
+// Migration: Ensure approve_reports exists
+try {
+  const approvePermExists = db.prepare("SELECT COUNT(*) as count FROM permissions WHERE permissao_nome = 'approve_reports'").get() as any;
+  if (approvePermExists.count === 0) {
+    const insertPerm = db.prepare("INSERT INTO permissions (nivel_hierarquico, permissao_nome, is_enabled) VALUES (?, 'approve_reports', 1)");
+    ['Superadmin', 'Admin', 'Sierra 1', 'Sierra 2'].forEach(role => {
+      try { insertPerm.run(role); } catch(e) {}
+    });
+    console.log("Migration: Added approve_reports permission to administrative roles.");
+  }
+} catch (e) {
+  console.error(e);
+}
+
 
 // Seed mock reports if empty
 const reportsCount = db.prepare("SELECT COUNT(*) as count FROM reports").get() as any;
@@ -355,10 +413,14 @@ async function startServer() {
     console.log(`Tentativa de login: ${numero_mecanografico}`);
     
     try {
-      const user = db.prepare("SELECT * FROM users WHERE numero_mecanografico = ? AND password = ?").get(numero_mecanografico, password) as any;
+      const user = db.prepare("SELECT * FROM users WHERE numero_mecanografico = ?").get(numero_mecanografico) as any;
       
-      if (user) {
+      if (user && user.password && bcrypt.compareSync(password, user.password)) {
         console.log(`Login bem-sucedido para: ${user.nome}`);
+        
+        // Audit log success
+        db.prepare("INSERT INTO audit_logs (user_id, action, details) VALUES (?, ?, ?)").run(user.id, "LOGIN_SUCCESS", "User logged into the system");
+        
         const permissions = db.prepare("SELECT permissao_nome, is_enabled FROM permissions WHERE nivel_hierarquico = ?").all(user.nivel_hierarquico) as any[];
         const userWeight = (db.prepare("SELECT peso FROM role_weights WHERE nivel_hierarquico = ?").get(user.nivel_hierarquico) as any)?.peso || 0;
         const token = jwt.sign({ 
@@ -385,6 +447,9 @@ async function startServer() {
         });
       } else {
         console.log(`Falha no login: Credenciais incorretas para ${numero_mecanografico}`);
+        if (user) {
+          db.prepare("INSERT INTO audit_logs (user_id, action, details) VALUES (?, ?, ?)").run(user.id, "LOGIN_FAILED", "Invalid password attempt");
+        }
         res.status(401).json({ status: "error", message: "Credenciais inválidas" });
       }
     } catch (dbErr) {
@@ -653,8 +718,9 @@ async function startServer() {
   app.post("/api/users", authenticate, checkPermission('manage_users'), (req, res) => {
     try {
       const { nome, funcao, numero_mecanografico, nivel_hierarquico, password, preferred_language } = req.body;
+      const hashedPassword = bcrypt.hashSync(password || '123456', 10);
       const stmt = db.prepare("INSERT INTO users (nome, funcao, numero_mecanografico, nivel_hierarquico, password, preferred_language) VALUES (?, ?, ?, ?, ?, ?)");
-      const result = stmt.run(nome, funcao, numero_mecanografico, nivel_hierarquico, password || '123456', preferred_language || 'pt-BR');
+      const result = stmt.run(nome, funcao, numero_mecanografico, nivel_hierarquico, hashedPassword, preferred_language || 'pt-BR');
       res.json({ status: "success", id: result.lastInsertRowid });
     } catch (err: any) {
       res.status(500).json({ status: "error", message: err.message });
@@ -669,9 +735,9 @@ async function startServer() {
       let query = "UPDATE users SET nome = ?, funcao = ?, numero_mecanografico = ?, nivel_hierarquico = ?, preferred_language = ?";
       const params = [nome, funcao, numero_mecanografico, nivel_hierarquico, preferred_language || 'pt-BR'];
       
-      if (password) {
+      if (password && password.trim().length > 0) {
         query += ", password = ?";
-        params.push(password);
+        params.push(bcrypt.hashSync(password, 10));
       }
       
       query += " WHERE id = ?";
@@ -817,13 +883,17 @@ async function startServer() {
     const { id } = req.params;
     const { status } = req.body;
 
-    if (!['Aberto', 'Concluído'].includes(status)) {
+    if (!['Aberto', 'Concluído', 'Aprovado'].includes(status)) {
       return res.status(400).json({ status: 'error', message: 'Status inválido' });
     }
 
     // Reopening requires permission
     if (status === 'Aberto' && !req.user.permissions?.conclude_reports) {
       return res.status(403).json({ status: 'error', message: 'Permissão insuficiente para reabrir relatório' });
+    }
+
+    if (status === 'Aprovado' && !req.user.permissions?.approve_reports) {
+      return res.status(403).json({ status: 'error', message: 'Permissão insuficiente para aprovar relatórios' });
     }
 
     try {
@@ -917,6 +987,48 @@ async function startServer() {
     }
   });
 
+  app.get("/api/reports/export", authenticate, checkPermission('view_reports'), (req: any, res) => {
+    try {
+      const userRole = req.user.nivel_hierarquico;
+      const userId = req.user.id;
+      const userWeight = (db.prepare("SELECT peso FROM role_weights WHERE nivel_hierarquico = ?").get(userRole) as any)?.peso || 0;
+      
+      let query = `
+        SELECT r.id, r.timestamp, r.titulo, r.categoria, r.gravidade, r.status, u.nome as agente_nome, r.descricao
+        FROM reports r
+        JOIN users u ON r.agente_id = u.id
+        JOIN role_weights rw ON u.nivel_hierarquico = rw.nivel_hierarquico
+        WHERE 1=1
+      `;
+      const params: any[] = [];
+      
+      if (userWeight < 60) {
+        query += ` AND r.agente_id = ?`;
+        params.push(userId);
+      } else {
+        query += ` AND rw.peso <= ?`;
+        params.push(userWeight);
+      }
+      
+      query += ` ORDER BY r.timestamp DESC`;
+      const reports = db.prepare(query).all(...params);
+      
+      if (reports.length === 0) {
+        return res.status(404).send("Nenhum dado para exportar.");
+      }
+
+      const json2csvParser = new Parser({ fields: ['id', 'timestamp', 'titulo', 'categoria', 'gravidade', 'status', 'agente_nome', 'descricao'] });
+      const csv = json2csvParser.parse(reports);
+      
+      res.header('Content-Type', 'text/csv');
+      res.attachment(`export_mineguard_${new Date().getTime()}.csv`);
+      res.send(csv);
+    } catch (err: any) {
+      console.error(err);
+      res.status(500).send("Erro ao gerar exportação.");
+    }
+  });
+
   app.get("/api/reports", authenticate, checkPermission('view_reports'), (req: any, res) => {
     const userRole = req.user.nivel_hierarquico;
     const userId = req.user.id;
@@ -983,7 +1095,7 @@ async function startServer() {
     }
 
     // Get total count for pagination
-    const countQuery = query.replace(/SELECT r\.\*, u\.nome.*FROM/, 'SELECT COUNT(*) as total FROM');
+    const countQuery = query.replace(/SELECT[\s\S]*?FROM/, 'SELECT COUNT(*) as total FROM');
     const countParams = params.slice();
     const totalResult = db.prepare(countQuery).get(...countParams) as any;
     const total = totalResult?.total || 0;
@@ -1153,6 +1265,16 @@ async function startServer() {
         return res.status(400).json({ status: "error", message: "Missing required fields" });
       }
 
+      if (categoria === 'Safety') {
+        let metadataObj: any = {};
+        try {
+          metadataObj = metadata ? JSON.parse(metadata) : {};
+        } catch(e) {}
+        if (!metadataObj.incidentType || !metadataObj.ppeUsage) {
+          return res.status(400).json({ status: "error", message: "Safety reports require Incident Type and PPE Usage" });
+        }
+      }
+
       const stmt = db.prepare(`
         INSERT INTO reports (agente_id, titulo, categoria, gravidade, descricao, metadata, fotos_path, coords_lat, coords_lng, setor, pessoas_envolvidas, equipamento, acao_imediata, requer_investigacao, testemunhas, potencial_risco, timestamp)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
@@ -1191,34 +1313,15 @@ async function startServer() {
       // Notify via Socket.io
       io.emit("new_report", newReport);
 
-      // Telegram Alert for G3/G4
+      // Telegram Alert Queueing for G3/G4
       if (gravidade === 'G3' || gravidade === 'G4') {
         try {
-          const settings = db.prepare("SELECT key, value FROM system_settings").all() as any[];
-          const botToken = settings.find((s: any) => s.key === 'telegram_bot_token')?.value;
-          const chatId = settings.find((s: any) => s.key === 'telegram_chat_id')?.value;
-
-          if (botToken && chatId) {
-            const decryptedToken = decrypt(botToken);
-            const decryptedChatId = decrypt(chatId);
-            
-            const alertText = `
-🚨 <b>ALERTA DE SEGURANÇA - ${gravidade}</b> 🚨
-<b>Título:</b> ${titulo || 'Sem título'}
-<b>Categoria:</b> ${categoria}
-<b>Agente:</b> ${req.user.nome}
-<b>Descrição:</b> ${descricao}
-${coords_lat ? `<b>Local:</b> <a href="https://www.google.com/maps?q=${coords_lat},${coords_lng}">Ver no Mapa</a>` : ''}
-            `;
-
-            await axios.post(`https://api.telegram.org/bot${decryptedToken}/sendMessage`, {
-              chat_id: decryptedChatId,
-              text: alertText,
-              parse_mode: "HTML"
-            });
-          }
-        } catch (teleErr) {
-          console.error("Erro ao enviar alerta Telegram:", teleErr);
+          db.prepare(`
+            INSERT INTO telegram_queue (report_id, gravidade, titulo, categoria, agente_nome, descricao, coords_lat, coords_lng)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+          `).run(result.lastInsertRowid, gravidade, titulo || null, categoria, req.user.nome, descricao, coords_lat || null, coords_lng || null);
+        } catch (queueErr) {
+          console.error("Erro ao inserir na fila do Telegram:", queueErr);
         }
       }
 
@@ -1370,6 +1473,49 @@ ${coords_lat ? `<b>Local:</b> <a href="https://www.google.com/maps?q=${coords_la
       res.sendFile(path.join(distPath, "index.html"));
     });
   }
+
+  // --- Asynchronous Telegram Queue Processor ---
+  setInterval(async () => {
+    try {
+      const pendingAlerts = db.prepare("SELECT * FROM telegram_queue WHERE status = 'pending' OR (status = 'failed' AND retry_count < 5) LIMIT 5").all() as any[];
+      if (pendingAlerts.length === 0) return;
+
+      const settings = db.prepare("SELECT key, value FROM system_settings").all() as any[];
+      const botToken = settings.find((s: any) => s.key === 'telegram_bot_token')?.value;
+      const chatId = settings.find((s: any) => s.key === 'telegram_chat_id')?.value;
+
+      if (!botToken || !chatId) return;
+
+      const decryptedToken = decrypt(botToken);
+      const decryptedChatId = decrypt(chatId);
+
+      for (const alert of pendingAlerts) {
+        try {
+          const alertText = `
+🚨 <b>ALERTA DE SEGURANÇA - ${alert.gravidade}</b> 🚨
+<b>Título:</b> ${alert.titulo || 'Sem título'}
+<b>Categoria:</b> ${alert.categoria}
+<b>Agente:</b> ${alert.agente_nome}
+<b>Descrição:</b> ${alert.descricao}
+${alert.coords_lat ? `<b>Local:</b> <a href="https://www.google.com/maps?q=${alert.coords_lat},${alert.coords_lng}">Ver no Mapa</a>` : ''}
+          `;
+
+          await axios.post(`https://api.telegram.org/bot${decryptedToken}/sendMessage`, {
+            chat_id: decryptedChatId,
+            text: alertText,
+            parse_mode: "HTML"
+          }, { timeout: 10000 });
+
+          db.prepare("UPDATE telegram_queue SET status = 'sent' WHERE id = ?").run(alert.id);
+        } catch (reqErr: any) {
+          db.prepare("UPDATE telegram_queue SET status = 'failed', retry_count = retry_count + 1 WHERE id = ?").run(alert.id);
+          console.error(`Falha ao processar alerta Telegram ID ${alert.id}. Retry: ${alert.retry_count + 1}`);
+        }
+      }
+    } catch (dbErr) {
+      console.error("Worker Erro na fila do Telegram:", dbErr);
+    }
+  }, 15000);
 
   server.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on http://localhost:${PORT}`);

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import i18n from './i18n';
+import imageCompression from 'browser-image-compression';
 import { 
   Shield, 
   FileText, 
@@ -130,14 +131,15 @@ const SidebarItem = ({ icon: Icon, label, active, onClick }: { icon: any, label:
   <button 
     onClick={onClick}
     className={cn(
-      "w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-all duration-200",
+      "w-full flex items-center gap-3 px-6 py-4 text-sm font-bold uppercase tracking-widest transition-all duration-300 relative group",
       active 
-        ? "bg-primary/10 text-primary border-r-2 border-primary" 
-        : "text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900/50"
+        ? "text-primary bg-primary/5" 
+        : "text-zinc-500 hover:text-zinc-200 hover:bg-white/5"
     )}
   >
-    <Icon size={18} className={active ? "text-primary" : "text-zinc-500"} />
-    {label}
+    {active && <motion.div layoutId="active-nav" className="absolute left-0 w-1 h-2/3 bg-primary rounded-r-full" />}
+    <Icon size={18} className={cn("transition-transform group-hover:scale-110", active ? "text-primary glow-amber" : "text-zinc-600")} />
+    <span className="truncate">{label}</span>
   </button>
 );
 
@@ -145,11 +147,14 @@ const Badge = ({ gravidade }: { gravidade: Gravidade }) => {
   const colors = {
     G1: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
     G2: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
-    G3: 'bg-primary/10 text-primary/80 border-primary/20',
-    G4: 'bg-red-500/10 text-red-400 border-red-500/20',
+    G3: 'bg-primary/10 text-primary text-primary/90 border-primary/20',
+    G4: 'bg-red-500/10 text-red-500 border-red-500/20 animate-pulse-critical',
   };
   return (
-    <span className={cn("px-2 py-0.5 rounded text-[10px] font-bold border uppercase tracking-wider", colors[gravidade])}>
+    <span className={cn(
+      "px-3 py-1 rounded-full text-[9px] font-black border uppercase tracking-widest shadow-sm", 
+      colors[gravidade]
+    )}>
       {gravidade}
     </span>
   );
@@ -159,21 +164,21 @@ const Card = ({ children, className, title, subtitle, action, onClick }: { child
   <div 
     onClick={onClick}
     className={cn(
-      "bg-zinc-900/40 border border-zinc-800/50 rounded-xl overflow-hidden backdrop-blur-sm transition-all", 
-      onClick && "cursor-pointer hover:border-zinc-700 hover:bg-zinc-900/60 active:scale-[0.98]",
+      "glass-card rounded-2xl overflow-hidden group", 
+      onClick && "cursor-pointer hover:bg-zinc-900/40 active:scale-[0.99]",
       className
     )}
   >
     {(title || action) && (
-      <div className="p-3 md:p-4 border-b border-zinc-800/50 flex items-center justify-between">
+      <div className="p-4 md:p-6 border-b border-zinc-800/40 flex items-center justify-between bg-white/[0.02]">
         <div>
-          {title && <h3 className="text-sm font-bold text-zinc-100 uppercase tracking-widest">{title}</h3>}
-          {subtitle && <p className="text-[10px] text-zinc-500 mt-0.5">{subtitle}</p>}
+          {title && <h3 className="text-xs font-black text-zinc-100 uppercase tracking-[0.2em]">{title}</h3>}
+          {subtitle && <p className="text-[10px] text-zinc-500 mt-1 font-bold">{subtitle}</p>}
         </div>
         {action}
       </div>
     )}
-    <div className="p-3 md:p-4">{children}</div>
+    <div className="p-4 md:p-6">{children}</div>
   </div>
 );
 
@@ -397,7 +402,37 @@ export default function App() {
   const [editingAlert, setEditingAlert] = useState<any>(null);
   const [editAlertForm, setEditAlertForm] = useState({ titulo: '', mensagem: '', tipo: 'aviso' });
   const [mapCenter, setMapCenter] = useState<[number, number]>([-8.8383, 13.2344]); // Angola/Luanda default
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isEditingReport, setIsEditingReport] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [showInstallBtn, setShowInstallBtn] = useState(false);
+  const [showInstallGuide, setShowInstallGuide] = useState(false);
+
+  // PWA Logic
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowInstallBtn(true);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      setDeferredPrompt(null);
+      setShowInstallBtn(false);
+    }
+  };
+
   const [editingReportData, setEditingReportData] = useState<{ descricao: string; fotos: Array<{ file: File; caption: string }> }>({ descricao: '', fotos: [] });
   
   // Form States
@@ -446,9 +481,10 @@ export default function App() {
   useEffect(() => {
     const socket = io();
     socket.on('new_report', (report: Report) => {
-      // Check if user should see this report
+      // Robust check: use currentUser weight if available
+      const weight = (currentUser as any)?.peso || 0;
       const isAuthor = report.agente_id === currentUser?.id;
-      const isOficialPlus = (currentUser?.peso || 0) >= 60;
+      const isOficialPlus = weight >= 60;
 
       if (isAuthor || isOficialPlus) {
         setReports(prev => [report, ...prev]);
@@ -803,11 +839,18 @@ export default function App() {
       formData.append('potencial_risco', newReport.potencial_risco);
       formData.append('metadata', JSON.stringify(newReport.metadata));
       
-      // Add multiple photos with captions
-      newReport.fotos.forEach((foto, index) => {
-        formData.append(`fotos`, foto.file);
+      // Add multiple photos with captions & compression
+      for (const foto of newReport.fotos) {
+        try {
+          const options = { maxSizeMB: 0.3, maxWidthOrHeight: 1280, useWebWorker: true };
+          const compressedFile = await imageCompression(foto.file, options);
+          formData.append(`fotos`, compressedFile);
+        } catch (e) {
+          console.error("Image compression failed", e);
+          formData.append(`fotos`, foto.file);
+        }
         formData.append(`captions`, foto.caption);
-      });
+      }
 
       const res = await fetch('/api/reports', {
         method: 'POST',
@@ -973,11 +1016,20 @@ export default function App() {
         formData.append('descricao', editingReportData.descricao);
       }
       
-      // Add multiple photos with captions
-      editingReportData.fotos.forEach((foto) => {
-        formData.append(`fotos`, foto.file);
+      // Add multiple photos with captions & compression
+      for (const foto of editingReportData.fotos) {
+        if (foto.file) {
+          try {
+            const options = { maxSizeMB: 0.3, maxWidthOrHeight: 1280, useWebWorker: true };
+            const compressedFile = await imageCompression(foto.file, options);
+            formData.append(`fotos`, compressedFile);
+          } catch (e) {
+            console.error("Image compression failed", e);
+            formData.append(`fotos`, foto.file);
+          }
+        }
         formData.append(`captions`, foto.caption);
-      });
+      }
 
       const res = await fetch(`/api/reports/${selectedReport.id}`, {
         method: 'PATCH',
@@ -1041,8 +1093,46 @@ export default function App() {
 
   const COLORS = ['#f97316', '#3b82f6', '#10b981', '#ef4444', '#a855f7', '#eab308'];
 
+  if (isLoading) {
+    return (
+      <div className="h-screen w-full bg-[#050505] flex flex-col items-center justify-center p-8 text-center overscroll-none overflow-hidden">
+        <motion.div 
+          animate={{ scale: [1, 1.1, 1], rotate: [0, 180, 360] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+          className="w-24 h-24 bg-primary rounded-3xl flex items-center justify-center shadow-2xl shadow-primary/30 mb-8 border-4 border-black group"
+        >
+          <Shield size={48} className="text-black" strokeWidth={3} />
+        </motion.div>
+        <div className="space-y-3">
+          <h2 className="text-2xl font-black uppercase tracking-tighter text-white">MineGuard</h2>
+          <div className="flex items-center gap-2 justify-center">
+            <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" />
+            <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:0.2s]" />
+            <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:0.4s]" />
+          </div>
+          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Inicializando Sistemas de Segurança</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!currentUser) {
+    return (
+      <Login 
+        onLogin={(user) => { 
+          setCurrentUser(user); 
+          fetchData(); 
+        }} 
+        publicSettings={publicSettings} 
+      />
+    );
+  }
+
   return (
-    <div className="flex h-screen bg-[var(--bg-main)] text-[var(--text-main)] font-sans selection:bg-primary/30">
+    <div className="flex h-screen bg-[var(--bg-main)] text-[var(--text-main)] font-sans selection:bg-primary/30 relative overflow-hidden">
+      <div className="absolute inset-0 industrial-grid opacity-[0.03] pointer-events-none" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[50vh] bg-gradient-to-b from-primary/10 to-transparent opacity-30 pointer-events-none" />
+      
       <Toaster position="top-right" theme="dark" richColors />
       
       {/* Sidebar */}
@@ -1104,17 +1194,25 @@ export default function App() {
       {/* Main Content */}
       <main className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <header className="h-16 border-b border-[var(--border)] flex items-center justify-between px-4 md:px-8 bg-[var(--bg-card)]/80 backdrop-blur-md z-10 no-print">
-          <div className="flex items-center gap-4 flex-1 max-w-xl">
-            <div className="relative w-full group">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] group-focus-within:text-primary transition-colors" size={16} />
-              <input 
-                type="text" 
-                placeholder="Pesquisar por descrição, agente ou ID..." 
-                className="w-full bg-[var(--bg-main)]/50 border border-[var(--border)] rounded-lg py-2 pl-10 pr-4 text-sm focus:outline-none focus:border-primary/50 focus:bg-[var(--bg-main)] transition-all"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
+        <header className="h-16 border-b border-[var(--border)] flex items-center justify-between px-4 md:px-8 bg-[var(--bg-card)]/80 backdrop-blur-md z-40 transition-all no-print">
+          <div className="flex items-center gap-3">
+            <div className="md:hidden w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-lg shadow-primary/20 shrink-0">
+              <Shield className="text-black" size={18} strokeWidth={3} />
+            </div>
+            <div className="hidden md:flex items-center gap-4 flex-1 max-w-xl">
+              <div className="relative w-full group">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] group-focus-within:text-primary transition-colors" size={16} />
+                <input 
+                  type="text" 
+                  placeholder="Pesquisar registros..." 
+                  className="w-full bg-[var(--bg-main)]/50 border border-[var(--border)] rounded-lg py-2 pl-10 pr-4 text-sm focus:outline-none focus:border-primary/50 focus:bg-[var(--bg-main)] transition-all"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="md:hidden">
+              <h1 className="text-xs font-black tracking-tighter uppercase line-clamp-1">{publicSettings.app_name}</h1>
             </div>
           </div>
           
@@ -1248,13 +1346,16 @@ export default function App() {
 
             <div className="h-6 w-[1px] bg-[var(--border)] mx-2" />
             {currentUser.permissions?.create_reports !== false && (
-              <button 
+              <motion.button 
+                whileHover={{ scale: 1.02, boxShadow: '0 0 20px rgba(249, 115, 22, 0.3)' }}
+                whileTap={{ scale: 0.98 }}
                 onClick={() => setIsNewReportModalOpen(true)}
-                className="hidden md:flex items-center gap-2 bg-primary hover:opacity-90 text-primary-foreground font-black text-[10px] px-5 py-2.5 rounded-lg transition-all active:scale-95 shadow-lg shadow-primary/20 uppercase tracking-widest"
+                className="hidden md:flex items-center gap-2 bg-primary text-black font-black text-[10px] px-6 py-3 rounded-xl transition-all shadow-xl shadow-primary/20 uppercase tracking-[0.2em] relative overflow-hidden group"
               >
-                <Plus size={16} strokeWidth={3} />
-                Nova Ocorrência
-              </button>
+                <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
+                <Plus size={16} strokeWidth={4} className="relative z-10 group-hover:rotate-90 transition-transform" />
+                <span className="relative z-10">Nova Ocorrência</span>
+              </motion.button>
             )}
           </div>
         </header>
@@ -1270,43 +1371,58 @@ export default function App() {
                 exit={{ opacity: 0, y: -10 }}
                 className="space-y-8"
               >
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div>
-                    <h2 className="text-3xl font-black tracking-tighter">CENTRAL DE COMANDO</h2>
-                    <p className="text-sm text-zinc-500 mt-1">Visão geral em tempo real das operações de segurança.</p>
+                    <h2 className="text-2xl md:text-3xl font-black tracking-tighter">CENTRAL DE COMANDO</h2>
+                    <p className="text-[10px] md:text-sm text-zinc-500 mt-1 uppercase font-bold tracking-widest md:normal-case md:font-normal">Visão geral em tempo real</p>
                   </div>
-                  <div className="flex items-center gap-2 bg-zinc-900/50 p-1 rounded-lg border border-zinc-800/50">
-                    <button className="px-3 py-1.5 text-[10px] font-bold bg-zinc-800 rounded-md text-zinc-100">HOJE</button>
+                  <div className="flex items-center gap-2 bg-zinc-900/50 p-1 rounded-xl border border-zinc-800/50 self-start md:self-auto">
+                    <button className="px-3 py-1.5 text-[10px] font-bold bg-zinc-800 rounded-lg text-zinc-100 transition-all">HOJE</button>
                     <button className="px-3 py-1.5 text-[10px] font-bold text-zinc-500 hover:text-zinc-300">7 DIAS</button>
                     <button className="px-3 py-1.5 text-[10px] font-bold text-zinc-500 hover:text-zinc-300">30 DIAS</button>
                   </div>
                 </div>
 
                 {/* Stats Grid */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6">
                   <Card 
-                    className="border-l-4 border-l-blue-500"
+                    className="border-t-2 border-t-blue-500/50 relative group overflow-hidden"
                     onClick={() => setActiveTab('reports')}
                   >
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="p-2 bg-blue-500/10 rounded-lg text-blue-500"><FileText size={20} /></div>
-                      <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Total</span>
+                    <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-[0.07] group-hover:scale-125 transition-all">
+                      <FileText size={80} />
                     </div>
-                    <p className="text-2xl md:text-4xl font-black tracking-tighter">{stats?.totalReports || 0}</p>
-                    <p className="text-[8px] md:text-[10px] text-zinc-500 font-bold uppercase mt-1 tracking-widest">Ocorrências Registradas</p>
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="w-12 h-12 bg-blue-500/10 rounded-2xl flex items-center justify-center text-blue-500 border border-blue-500/20"><FileText size={24} /></div>
+                      <div className="text-right">
+                        <span className="text-[10px] text-zinc-500 font-black uppercase tracking-[0.2em]">Total</span>
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-4xl font-black tracking-tighter text-white">{stats?.totalReports || 0}</p>
+                      <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Ocorrências</p>
+                    </div>
                   </Card>
+
                   <Card 
-                    className="border-l-4 border-l-red-500"
+                    className="border-t-2 border-t-red-500/50 relative group overflow-hidden"
                     onClick={() => setActiveTab('reports')}
                   >
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="p-2 bg-red-500/10 rounded-lg text-red-500"><AlertTriangle size={20} /></div>
-                      <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Crítico</span>
+                    <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-[0.07] group-hover:scale-125 transition-all">
+                      <AlertTriangle size={80} />
                     </div>
-                    <p className="text-2xl md:text-4xl font-black tracking-tighter">
-                      {stats?.reportsBySeverity.find(s => s.name === 'G4')?.value || 0}
-                    </p>
-                    <p className="text-[8px] md:text-[10px] text-zinc-500 font-bold uppercase mt-1 tracking-widest">Alertas de Nível G4</p>
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="w-12 h-12 bg-red-500/10 rounded-2xl flex items-center justify-center text-red-500 border border-red-500/20"><AlertTriangle size={24} /></div>
+                      <div className="text-right">
+                        <span className="text-[10px] text-zinc-500 font-black uppercase tracking-[0.2em]">Crítico</span>
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-4xl font-black tracking-tighter text-white">
+                        {stats?.reportsBySeverity.find(s => s.name === 'G4')?.value || 0}
+                      </p>
+                      <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Nível G4</p>
+                    </div>
                   </Card>
                   <Card 
                     className="border-l-4 border-l-green-500"
@@ -1552,9 +1668,9 @@ export default function App() {
                       <h2 className="text-2xl font-black tracking-tighter">LOG DE OCORRÊNCIAS</h2>
                       <p className="text-sm text-zinc-500">Histórico completo de registros operacionais.</p>
                     </div>
-                    <button className="p-2 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-400 hover:text-white transition-colors">
+                    <a href="/api/reports/export" target="_blank" rel="noopener noreferrer" className="p-2 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-400 hover:text-white transition-colors flex items-center justify-center">
                       <Download size={16} />
-                    </button>
+                    </a>
                   </div>
 
                   <div className="bg-zinc-900/20 border border-zinc-800/50 rounded-lg p-4 space-y-4">
@@ -1653,98 +1769,162 @@ export default function App() {
                   </div>
                 </div>
 
-                <div className="bg-zinc-900/30 border border-zinc-800/50 rounded-xl overflow-hidden">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="border-b border-zinc-800 bg-zinc-900/50">
-                        <th className="hidden md:table-cell px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">ID</th>
-                        <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">Título / Descrição</th>
-                        <th className="hidden lg:table-cell px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">Categoria</th>
-                        <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">Gravidade</th>
-                        <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">Status</th>
-                        <th className="hidden sm:table-cell px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">Agente</th>
-                        <th className="hidden md:table-cell px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">Data/Hora</th>
-                        <th className="px-6 py-4"></th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-zinc-800/50">
-                      {reports.map((report) => (
-                        <tr 
-                          key={report.id} 
-                          onClick={() => setSelectedReport(report)}
-                          className="hover:bg-zinc-800/20 transition-colors group cursor-pointer"
-                        >
-                          <td className="hidden md:table-cell px-6 py-4 font-mono text-xs text-zinc-500">#{report.id}</td>
-                          <td className="px-6 py-4">
-                            <div className="flex items-center gap-3">
-                              {report.fotos_path && (
-                                <div className="w-10 h-10 rounded-lg overflow-hidden border border-zinc-800 shrink-0">
-                                  <img src={report.fotos_path} alt="Evidência" className="w-full h-full object-cover" />
-                                </div>
-                              )}
-                              <div className="flex flex-col">
-                                <span className="text-xs font-black text-zinc-100 uppercase tracking-tight">{report.titulo || 'Sem Título'}</span>
-                                <p className="text-[11px] text-zinc-500 line-clamp-1 group-hover:line-clamp-none transition-all">{report.descricao}</p>
-                                <button className="md:hidden mt-2 text-[9px] font-black text-primary uppercase tracking-widest text-left">Mais detalhes</button>
-                                {report.metadata && Object.keys(report.metadata).length > 0 && (
-                                  <div className="hidden sm:flex flex-wrap gap-1.5 mt-1">
-                                    {Object.entries(report.metadata).map(([key, value]) => (
-                                      <span key={key} className="text-[8px] font-black bg-zinc-800 text-zinc-500 px-1 py-0.5 rounded uppercase tracking-widest">
-                                        {key.replace('_', ' ')}: {value as string}
-                                      </span>
-                                    ))}
+                <div className="glass-card rounded-2xl overflow-hidden mb-20 md:mb-0">
+                  <div className="hidden md:block">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="border-b border-zinc-800 bg-zinc-900/50">
+                          <th className="hidden md:table-cell px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">ID</th>
+                          <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">Título / Descrição</th>
+                          <th className="hidden lg:table-cell px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">Categoria</th>
+                          <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">Gravidade</th>
+                          <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">Status</th>
+                          <th className="hidden sm:table-cell px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">Agente</th>
+                          <th className="hidden md:table-cell px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">Data/Hora</th>
+                          <th className="px-6 py-4"></th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-zinc-800/30">
+                        <AnimatePresence initial={false}>
+                          {reports.length === 0 ? (
+                            <tr>
+                              <td colSpan={8} className="py-20 text-center">
+                                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center gap-4 text-zinc-500">
+                                  <Search size={48} strokeWidth={1} className="opacity-20" />
+                                  <p className="text-xs font-black uppercase tracking-[0.3em]">Nenhuma ocorrência encontrada</p>
+                                </motion.div>
+                              </td>
+                            </tr>
+                          ) : reports.map((report, index) => (
+                            <motion.tr 
+                              key={report.id}
+                              initial={{ opacity: 0, x: -10 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: index * 0.03 }}
+                              onClick={() => setSelectedReport(report)}
+                              className="hover:bg-white/[0.02] transition-colors group cursor-pointer border-zinc-800/40"
+                            >
+                            <td className="hidden md:table-cell px-6 py-4 font-mono text-xs text-zinc-500">#{report.id}</td>
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-3">
+                                {report.fotos_path && (
+                                  <div className="w-10 h-10 rounded-lg overflow-hidden border border-zinc-800 shrink-0">
+                                    <img src={report.fotos_path} alt="Evidência" className="w-full h-full object-cover" />
                                   </div>
                                 )}
+                                <div className="flex flex-col">
+                                  <span className="text-xs font-black text-zinc-100 uppercase tracking-tight">{report.titulo || 'Sem Título'}</span>
+                                  <p className="text-[11px] text-zinc-500 line-clamp-1 group-hover:line-clamp-none transition-all">{report.descricao}</p>
+                                  {report.metadata && Object.keys(report.metadata).length > 0 && (
+                                    <div className="hidden sm:flex flex-wrap gap-1.5 mt-1">
+                                      {Object.entries(report.metadata).map(([key, value]) => (
+                                        <span key={key} className="text-[8px] font-black bg-zinc-800 text-zinc-500 px-1 py-0.5 rounded uppercase tracking-widest">
+                                          {key.replace('_', ' ')}: {value as string}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </td>
+                            <td className="hidden lg:table-cell px-6 py-4">
+                              <div className="flex items-center gap-2">
+                                <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                                <span className="text-xs text-zinc-400 font-bold uppercase">{report.categoria}</span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4"><Badge gravidade={report.gravidade} /></td>
+                            <td className="px-6 py-4">
+                              <div className={cn(
+                                "inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border",
+                                report.status === 'Concluído' 
+                                  ? "bg-green-500/10 text-green-400 border-green-500/20" 
+                                  : "bg-zinc-800 text-zinc-500 border-zinc-700"
+                              )}>
+                                {report.status === 'Concluído' ? <CheckCircle2 size={10} /> : <Clock size={10} />}
+                                {report.status || 'Aberto'}
+                              </div>
+                            </td>
+                            <td className="hidden sm:table-cell px-6 py-4">
+                              <div className="flex items-center gap-2">
+                                <div className="w-6 h-6 rounded bg-zinc-800 flex items-center justify-center text-[10px] font-bold text-zinc-400">
+                                  {report.agente_nome.charAt(0)}
+                                </div>
+                                <span className="text-xs font-medium text-zinc-300">{report.agente_nome}</span>
+                              </div>
+                            </td>
+                            <td className="hidden md:table-cell px-6 py-4">
+                              <div className="flex flex-col">
+                                <span className="text-xs text-zinc-400">{new Date(report.timestamp).toLocaleDateString()}</span>
+                                <span className="text-[10px] text-zinc-600">{new Date(report.timestamp).toLocaleTimeString()}</span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 text-right">
+                              <motion.button 
+                                whileHover={{ scale: 1.1 }}
+                                whileTap={{ scale: 0.9 }}
+                                className="p-1.5 text-zinc-600 hover:text-white transition-colors"
+                              >
+                                <ChevronRight size={18} />
+                              </motion.button>
+                            </td>
+                          </motion.tr>
+                        ))}
+                        </AnimatePresence>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Mobile Cards Layout */}
+                  <div className="md:hidden divide-y divide-zinc-800/30">
+                    <AnimatePresence initial={false}>
+                      {reports.length === 0 ? (
+                        <div className="py-20 text-center">
+                          <Search size={32} className="mx-auto text-zinc-800 mb-4 opacity-20" />
+                          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">Nenhum registro encontrado</p>
+                        </div>
+                      ) : reports.map((report, index) => (
+                        <motion.div 
+                          key={report.id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.05 }}
+                          onClick={() => setSelectedReport(report)}
+                          className="p-4 active:bg-white/[0.03] transition-colors flex items-center justify-between gap-4"
+                        >
+                          <div className="flex items-center gap-4 flex-1 min-w-0">
+                            {report.fotos_path ? (
+                              <div className="w-12 h-12 rounded-xl overflow-hidden border border-zinc-800 shrink-0">
+                                <img src={report.fotos_path} alt="Evidência" className="w-full h-full object-cover" />
+                              </div>
+                            ) : (
+                              <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0">
+                                <FileText size={20} className="text-zinc-700" />
+                              </div>
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <Badge gravidade={report.gravidade} />
+                                <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">{report.categoria}</span>
+                              </div>
+                              <p className="text-xs font-black text-zinc-200 uppercase truncate">{report.titulo || 'Ocorrência s/Título'}</p>
+                              <div className="flex items-center gap-2 mt-1.5">
+                                <div className="text-[9px] text-zinc-600 font-bold uppercase tracking-wider flex items-center gap-1">
+                                  <Clock size={10} />
+                                  {new Date(report.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </div>
+                                <div className="w-1 h-1 rounded-full bg-zinc-800" />
+                                <div className="text-[9px] text-zinc-600 font-bold uppercase tracking-wider">
+                                  {report.agente_nome.split(' ')[0]}
+                                </div>
                               </div>
                             </div>
-                          </td>
-                          <td className="hidden lg:table-cell px-6 py-4">
-                            <div className="flex items-center gap-2">
-                              <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-                              <span className="text-xs text-zinc-400 font-bold uppercase">{report.categoria}</span>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4"><Badge gravidade={report.gravidade} /></td>
-                          <td className="px-6 py-4">
-                            <div className={cn(
-                              "inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border",
-                              report.status === 'Concluído' 
-                                ? "bg-green-500/10 text-green-400 border-green-500/20" 
-                                : "bg-zinc-800 text-zinc-500 border-zinc-700"
-                            )}>
-                              {report.status === 'Concluído' ? <CheckCircle2 size={10} /> : <Clock size={10} />}
-                              {report.status || 'Aberto'}
-                            </div>
-                          </td>
-                          <td className="hidden sm:table-cell px-6 py-4">
-                            <div className="flex items-center gap-2">
-                              <div className="w-6 h-6 rounded bg-zinc-800 flex items-center justify-center text-[10px] font-bold text-zinc-400">
-                                {report.agente_nome.charAt(0)}
-                              </div>
-                              <span className="text-xs font-medium text-zinc-300">{report.agente_nome}</span>
-                            </div>
-                          </td>
-                          <td className="hidden md:table-cell px-6 py-4">
-                            <div className="flex flex-col">
-                              <span className="text-xs text-zinc-400">{new Date(report.timestamp).toLocaleDateString()}</span>
-                              <span className="text-[10px] text-zinc-600">{new Date(report.timestamp).toLocaleTimeString()}</span>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 text-right">
-                            <button className="p-1.5 text-zinc-600 hover:text-white transition-colors">
-                              <ChevronRight size={18} />
-                            </button>
-                          </td>
-                        </tr>
+                          </div>
+                          <ChevronRight size={16} className="text-zinc-700 shrink-0" />
+                        </motion.div>
                       ))}
-                    </tbody>
-                  </table>
-                  {reports.length === 0 && (
-                    <div className="py-20 text-center">
-                      <Search className="mx-auto text-zinc-800 mb-4" size={48} />
-                      <p className="text-zinc-500 font-bold uppercase tracking-widest text-xs">Nenhum registro encontrado</p>
-                    </div>
-                  )}
+                    </AnimatePresence>
+                  </div>
                 </div>
                 
                 {reports.length > 0 && totalPages > 1 && (
@@ -2993,12 +3173,12 @@ export default function App() {
       {/* Modals */}
       <AnimatePresence>
         {isNewReportModalOpen && (
-          <div key="new-report-modal" className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+          <div key="new-report-modal" className="fixed inset-0 z-[100] flex items-center justify-center p-0 md:p-4 bg-black/90 backdrop-blur-md no-print">
             <motion.div 
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-[#0a0a0a] border border-zinc-800 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl"
+              className="bg-[#0a0a0a] border border-zinc-800 w-full max-w-lg h-full md:h-auto md:max-h-[90vh] md:rounded-2xl overflow-hidden shadow-2xl flex flex-col relative"
             >
               <form onSubmit={handleCreateReport}>
                 <div className="p-6 border-b border-zinc-800 flex items-center justify-between bg-zinc-900/20">
@@ -3063,6 +3243,40 @@ export default function App() {
                       onChange={(e) => setNewReport({...newReport, descricao: e.target.value})}
                     />
                   </div>
+
+                  {newReport.categoria === 'Safety' && (
+                    <div className="grid grid-cols-2 gap-4 mb-4 p-4 border border-orange-500/30 bg-orange-500/5 rounded-lg">
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black text-orange-400 uppercase tracking-widest">Tipo de Incidente (Safety)</label>
+                        <select 
+                          required
+                          className="w-full bg-zinc-950 border border-orange-500/50 rounded-lg py-2 px-3 text-xs focus:outline-none focus:border-orange-500"
+                          value={newReport.metadata?.incidentType || ''}
+                          onChange={(e) => setNewReport({...newReport, metadata: {...newReport.metadata, incidentType: e.target.value}})}
+                        >
+                          <option value="">Selecione...</option>
+                          <option value="Queda">Queda de mesmo nível</option>
+                          <option value="Esmagamento">Risco de Esmagamento</option>
+                          <option value="Quimico">Derramamento Químico</option>
+                          <option value="Outro">Outro</option>
+                        </select>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black text-orange-400 uppercase tracking-widest">Uso de EPI</label>
+                        <select 
+                          required
+                          className="w-full bg-zinc-950 border border-orange-500/50 rounded-lg py-2 px-3 text-xs focus:outline-none focus:border-orange-500"
+                          value={newReport.metadata?.ppeUsage || ''}
+                          onChange={(e) => setNewReport({...newReport, metadata: {...newReport.metadata, ppeUsage: e.target.value}})}
+                        >
+                          <option value="">Selecione...</option>
+                          <option value="Total">Sim, todos adequados</option>
+                          <option value="Parcial">Parcial / Inadequado</option>
+                          <option value="Nenhum">Não estava usando</option>
+                        </select>
+                      </div>
+                    </div>
+                  )}
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
@@ -3406,12 +3620,12 @@ export default function App() {
         )}
 
         {selectedReport && (
-          <div key="report-details-modal" className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+          <div key="report-details-modal" className="fixed inset-0 z-[100] flex items-center justify-center p-0 md:p-4 bg-black/90 backdrop-blur-md no-print">
             <motion.div 
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-[#0a0a0a] border border-zinc-800 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl"
+              className="bg-[#0a0a0a] border border-zinc-800 w-full max-w-2xl h-full md:h-auto md:max-h-[90vh] md:rounded-2xl overflow-hidden shadow-2xl flex flex-col relative"
             >
               <div className="p-6 border-b border-zinc-800 flex items-center justify-between bg-zinc-900/20">
                 <div className="flex items-center gap-3">
@@ -3643,7 +3857,7 @@ export default function App() {
                           Editar
                         </button>
                       )}
-                      {(selectedReport.status !== 'Concluído' || currentUser?.permissions?.conclude_reports) && (
+                      {selectedReport.status !== 'Aprovado' && (selectedReport.status !== 'Concluído' || currentUser?.permissions?.conclude_reports) && (
                         <button 
                           onClick={() => handleConcludeReport(selectedReport.id, selectedReport.status || 'Aberto')}
                           className={cn(
@@ -3664,6 +3878,36 @@ export default function App() {
                               Concluir Relatório
                             </>
                           )}
+                        </button>
+                      )}
+
+                      {selectedReport.status !== 'Aprovado' && selectedReport.status === 'Concluído' && currentUser?.permissions?.approve_reports && (
+                        <button 
+                          onClick={async () => {
+                            try {
+                              const res = await fetch(`/api/reports/${selectedReport.id}/status`, {
+                                method: 'PATCH',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ status: 'Aprovado' }),
+                                credentials: 'include'
+                              });
+                              const data = await res.json();
+                              if (data.status === 'success') {
+                                toast.success("Relatório aprovado e selado com sucesso!");
+                                // Update via state hook directly avoids missing updates
+                                setReports(reports.map(r => r.id === selectedReport.id ? { ...r, status: 'Aprovado' as any } : r));
+                                setSelectedReport({ ...selectedReport, status: 'Aprovado' as any });
+                              } else {
+                                toast.error(data.message);
+                              }
+                            } catch (err) {
+                              toast.error("Erro ao aprovar relatório");
+                            }
+                          }}
+                          className="bg-indigo-600 hover:bg-indigo-500 text-white font-black text-[10px] px-8 py-2.5 rounded-lg transition-all uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-indigo-900/20"
+                        >
+                          <Shield size={14} />
+                          Aprovar (Selar)
                         </button>
                       )}
                       <button 
@@ -3786,37 +4030,190 @@ export default function App() {
       </AnimatePresence>
 
       {/* Bottom Navigation (Mobile) */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-[#080808] border-t border-zinc-900 flex items-center justify-around px-4 z-50">
-        {currentUser.permissions?.view_dashboard === true && (
-          <button onClick={() => setActiveTab('dashboard')} className={cn("flex flex-col items-center gap-1", activeTab === 'dashboard' ? "text-primary" : "text-zinc-500")}>
-            <Activity size={20} />
-            <span className="text-[8px] font-black uppercase">Dash</span>
-          </button>
-        )}
-        {currentUser.permissions?.view_reports === true && (
-          <button onClick={() => setActiveTab('reports')} className={cn("flex flex-col items-center gap-1", activeTab === 'reports' ? "text-primary" : "text-zinc-500")}>
-            <FileText size={20} />
-            <span className="text-[8px] font-black uppercase">Logs</span>
-          </button>
-        )}
-        {currentUser.permissions?.create_reports === true && (
-          <button onClick={() => setIsNewReportModalOpen(true)} className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-black shadow-lg shadow-primary/20 -mt-8 border-4 border-[#050505]">
-            <Plus size={24} strokeWidth={3} />
-          </button>
-        )}
-        {currentUser.permissions?.view_daily_reports === true && (
-          <button onClick={() => setActiveTab('daily_reports')} className={cn("flex flex-col items-center gap-1", activeTab === 'daily_reports' ? "text-primary" : "text-zinc-500")}>
-            <Calendar size={20} />
-            <span className="text-[8px] font-black uppercase">Relat</span>
-          </button>
-        )}
-        {currentUser.permissions?.manage_settings === true && (
-          <button onClick={() => setActiveTab('settings')} className={cn("flex flex-col items-center gap-1", activeTab === 'settings' ? "text-primary" : "text-zinc-500")}>
-            <SettingsIcon size={20} />
-            <span className="text-[8px] font-black uppercase">Config</span>
-          </button>
-        )}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 glass no-print flex items-center justify-between px-6 z-50 safe-bottom">
+        <button 
+          onClick={() => setActiveTab('dashboard')} 
+          className={cn(
+            "flex flex-col items-center gap-1 transition-all duration-300", 
+            activeTab === 'dashboard' ? "text-primary scale-110" : "text-zinc-600"
+          )}
+        >
+          <Activity size={20} weight={activeTab === 'dashboard' ? 'fill' : 'regular'} />
+          <span className="text-[7px] font-black uppercase tracking-widest">Dash</span>
+        </button>
+
+        <button 
+          onClick={() => setActiveTab('reports')} 
+          className={cn(
+            "flex flex-col items-center gap-1 transition-all duration-300", 
+            activeTab === 'reports' ? "text-primary scale-110" : "text-zinc-600"
+          )}
+        >
+          <FileText size={20} />
+          <span className="text-[7px] font-black uppercase tracking-widest">Logs</span>
+        </button>
+
+        <motion.button 
+          whileTap={{ scale: 0.85 }}
+          onClick={() => setIsNewReportModalOpen(true)} 
+          className="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-black shadow-lg shadow-primary/30 -mt-10 border-4 border-[var(--bg-main)] glow-amber"
+        >
+          <Plus size={24} strokeWidth={4} />
+        </motion.button>
+
+        <button 
+          onClick={() => setActiveTab('daily_reports')} 
+          className={cn(
+            "flex flex-col items-center gap-1 transition-all duration-300", 
+            activeTab === 'daily_reports' ? "text-primary scale-110" : "text-zinc-600"
+          )}
+        >
+          <Calendar size={20} />
+          <span className="text-[7px] font-black uppercase tracking-widest">Relat</span>
+        </button>
+
+        <button 
+          onClick={() => setIsMobileMenuOpen(true)} 
+          className={cn(
+            "flex flex-col items-center gap-1 transition-all duration-300 text-zinc-600"
+          )}
+        >
+          <MoreVertical size={20} />
+          <span className="text-[7px] font-black uppercase tracking-widest">Mais</span>
+        </button>
       </nav>
+
+      {/* Mobile Drawer (Mais) */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <>
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[90] md:hidden"
+            />
+            <motion.div 
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="fixed bottom-0 left-0 right-0 glass rounded-t-[2rem] z-[100] md:hidden pb-12 pt-8 px-6"
+            >
+              <div className="w-12 h-1 bg-zinc-800 rounded-full mx-auto mb-8 opacity-20" />
+              <div className="grid grid-cols-2 gap-4">
+                <SidebarItem icon={FileText} label="Meus Relatos" active={activeTab === 'personal_reports'} onClick={() => { setActiveTab('personal_reports'); setIsMobileMenuOpen(false); }} />
+                <SidebarItem icon={Calendar} label="Meu Dia" active={activeTab === 'daily_report_personal'} onClick={() => { setActiveTab('daily_report_personal'); setIsMobileMenuOpen(false); }} />
+                {currentUser.permissions?.view_team_daily && (
+                  <SidebarItem icon={Users} label="Equipe" active={activeTab === 'daily_report_team'} onClick={() => { setActiveTab('daily_report_team'); setIsMobileMenuOpen(false); }} />
+                )}
+                <SidebarItem icon={AlertTriangle} label="Alertas" active={activeTab === 'alerts'} onClick={() => { setActiveTab('alerts'); setIsMobileMenuOpen(false); }} />
+                {currentUser.permissions?.manage_users === true && (
+                  <SidebarItem icon={Users} label="Pessoal" active={activeTab === 'users'} onClick={() => { setActiveTab('users'); setIsMobileMenuOpen(false); }} />
+                )}
+                {currentUser.permissions?.manage_permissions === true && (
+                  <SidebarItem icon={Lock} label="Permissões" active={activeTab === 'permissions'} onClick={() => { setActiveTab('permissions'); setIsMobileMenuOpen(false); }} />
+                )}
+                {currentUser.permissions?.manage_settings === true && (
+                  <SidebarItem icon={SettingsIcon} label="Config" active={activeTab === 'settings'} onClick={() => { setActiveTab('settings'); setIsMobileMenuOpen(false); }} />
+                )}
+                <motion.button 
+                  whileTap={{ scale: 0.96 }}
+                  onClick={async () => {
+                    if (deferredPrompt) {
+                      await handleInstallClick();
+                    } else {
+                      setIsMobileMenuOpen(false);
+                      setShowInstallGuide(true);
+                    }
+                  }}
+                  className="col-span-2 w-full flex items-center justify-center gap-3 p-3 rounded-xl text-xs font-black uppercase bg-primary text-black border border-primary/30 shadow-lg shadow-primary/20"
+                >
+                  <Download size={16} strokeWidth={3} />
+                  Instalar como App
+                </motion.button>
+              </div>
+              <div className="mt-8 pt-8 border-t border-zinc-800 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                   <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-black font-black">
+                     {currentUser.nome.charAt(0)}
+                   </div>
+                   <div>
+                     <p className="text-xs font-black uppercase">{currentUser.nome}</p>
+                     <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">{currentUser.nivel_hierarquico}</p>
+                   </div>
+                </div>
+                <button onClick={handleLogout} className="p-3 bg-red-500/10 text-red-500 rounded-xl">
+                  <LogOut size={20} />
+                </button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Install Guide Modal */}
+      <AnimatePresence>
+        {showInstallGuide && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowInstallGuide(false)}
+              className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[200]"
+            />
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 28, stiffness: 220 }}
+              className="fixed bottom-0 left-0 right-0 z-[201] bg-zinc-950 border-t border-zinc-800 rounded-t-[2rem] p-8 pb-12 shadow-2xl"
+            >
+              <div className="w-12 h-1 bg-zinc-800 rounded-full mx-auto mb-6" />
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20">
+                  <Shield size={24} className="text-black" strokeWidth={3} />
+                </div>
+                <div>
+                  <h3 className="text-base font-black uppercase tracking-tight text-white">Instalar MineGuard</h3>
+                  <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Como App no seu Telemóvel</p>
+                </div>
+              </div>
+              <div className="space-y-4">
+                <div className="flex items-start gap-4">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-black text-xs shrink-0 mt-0.5">1</div>
+                  <div>
+                    <p className="text-sm font-black text-white">Abra o menu do Chrome</p>
+                    <p className="text-xs text-zinc-500 mt-0.5">Toque nos <strong className="text-zinc-300">3 pontos ⋮</strong> no canto superior direito do Chrome</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-black text-xs shrink-0 mt-0.5">2</div>
+                  <div>
+                    <p className="text-sm font-black text-white">Seleccione "Adicionar ao ecrã inicial"</p>
+                    <p className="text-xs text-zinc-500 mt-0.5">Pode também aparecer como <strong className="text-zinc-300">"Instalar aplicação"</strong> ou <strong className="text-zinc-300">"Adicionar ao início"</strong></p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-black text-xs shrink-0 mt-0.5">3</div>
+                  <div>
+                    <p className="text-sm font-black text-white">Confirme e pronto!</p>
+                    <p className="text-xs text-zinc-500 mt-0.5">O MineGuard aparecerá no seu ecrã inicial como uma app nativa.</p>
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowInstallGuide(false)}
+                className="mt-8 w-full py-4 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 text-xs font-black uppercase tracking-widest"
+              >
+                Fechar
+              </button>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       <style>{`
         .custom-scrollbar::-webkit-scrollbar {

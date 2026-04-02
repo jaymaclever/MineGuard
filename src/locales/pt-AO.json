@@ -1,0 +1,113 @@
+{
+  "header": {
+    "dashboard": "Dashboard",
+    "reports": "Relatórios",
+    "users": "Usuários",
+    "settings": "Configurações",
+    "logout": "Sair"
+  },
+  "sidebar": {
+    "dashboard": "Dashboard",
+    "operationalReports": "Relatórios Operacionais",
+    "dailyReports": "Relatórios Diários",
+    "management": "Gerenciamento",
+    "users": "Usuários",
+    "permissions": "Permissões",
+    "audit": "Auditoria",
+    "settings": "Configurações"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "totalReports": "Total de Relatórios",
+    "totalUsers": "Total de Usuários",
+    "recentIncidents": "Incidentes Recentes",
+    "reportsByCategory": "Relatórios por Categoria",
+    "reportsBySeverity": "Relatórios por Gravidade",
+    "last7Days": "Últimos 7 dias"
+  },
+  "reports": {
+    "title": "Relatórios",
+    "newReport": "Novo Relatório",
+    "allReports": "Todos os Relatórios",
+    "myReports": "Meus Relatórios",
+    "teamReports": "Relatórios do Time",
+    "dailyReports": "Relatórios Diários",
+    "viewDetails": "Ver Detalhes",
+    "downloadPDF": "Baixar PDF",
+    "print": "Imprimir"
+  },
+  "forms": {
+    "reportTitle": "Título do Relatório",
+    "category": "Categoria",
+    "severity": "Gravidade",
+    "description": "Descrição",
+    "location": "Localização",
+    "coordinates": "Coordenadas",
+    "photos": "Fotos",
+    "witnesses": "Testemunhas",
+    "riskPotential": "Potencial de Risco",
+    "immediateAction": "Ação Imediata",
+    "submit": "Enviar",
+    "cancel": "Cancelar"
+  },
+  "filters": {
+    "filterBy": "Filtrar por",
+    "searchBy": "Buscar por",
+    "dateRange": "Intervalo de Datas",
+    "fromDate": "Data Inicial",
+    "toDate": "Data Final",
+    "category": "Categoria",
+    "severity": "Gravidade",
+    "status": "Status",
+    "agent": "Agente",
+    "apply": "Aplicar",
+    "clear": "Limpar"
+  },
+  "pagination": {
+    "page": "Página",
+    "of": "de",
+    "itemsPerPage": "Itens por página",
+    "previous": "Anterior",
+    "next": "Próximo"
+  },
+  "status": {
+    "open": "Aberto",
+    "closed": "Concluído",
+    "pending": "Pendente",
+    "inProgress": "Em Progresso"
+  },
+  "severity": {
+    "G1": "G1 - Crítico",
+    "G2": "G2 - Alto",
+    "G3": "G3 - Médio",
+    "G4": "G4 - Baixo"
+  },
+  "categories": {
+    "valores": "Valores",
+    "perimetro": "Perímetro",
+    "logistica": "Logística",
+    "safety": "Segurança",
+    "manutencao": "Manutenção",
+    "informativo": "Informativo",
+    "operativo": "Operativo"
+  },
+  "settings": {
+    "title": "Configurações",
+    "appName": "Nome da Aplicação",
+    "appSlogan": "Slogan",
+    "theme": "Tema",
+    "color": "Cor",
+    "language": "Idioma",
+    "backup": "Backup",
+    "backupNow": "Fazer Backup Agora",
+    "restoreBackup": "Restaurar Backup",
+    "githubUrl": "URL do GitHub",
+    "checkUpdates": "Verificar Atualizações"
+  },
+  "messages": {
+    "success": "Operação realizada com sucesso",
+    "error": "Erro ao processar operação",
+    "loading": "Carregando...",
+    "noData": "Nenhum dado disponível"
+  }
+}

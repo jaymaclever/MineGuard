@@ -1,33 +1,4 @@
-import Database from "better-sqlite3";
-import fs from "fs";
-import path from "path";
 
-const db = new Database("mina_seguranca.db");
-
-export function generateDailyReport() {
-  const now = new Date();
-  const last24h = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
-  
-  // Fetch reports from last 24 hours
-  const reports = db.prepare(`
-    SELECT r.*, u.nome as agente_nome, u.numero_mecanografico as agente_mecanografico
-    FROM reports r
-    JOIN users u ON r.agente_id = u.id
-    WHERE r.timestamp >= datetime('now', '-1 day')
-    ORDER BY r.categoria, r.timestamp DESC
-  `).all() as any[];
-
-  const categories = ['Valores', 'Perímetro', 'Logística', 'Safety', 'Manutenção', 'Informativo', 'Operativo'];
-  const groupedReports: Record<string, any[]> = {};
-  categories.forEach(cat => groupedReports[cat] = []);
-  
-  reports.forEach(r => {
-    if (groupedReports[r.categoria]) {
-      groupedReports[r.categoria].push(r);
-    }
-  });
-
-  const htmlContent = `
     <!DOCTYPE html>
     <html lang="pt-BR">
     <head>
@@ -59,30 +30,93 @@ export function generateDailyReport() {
       <div class="header">
         <div>
           <h1>Resumo Diário de Atividades</h1>
-          <p>Período: ${new Date(last24h).toLocaleString()} até ${now.toLocaleString()}</p>
+          <p>Período: 01/04/2026, 01:04:02 até 02/04/2026, 01:04:02</p>
         </div>
         <div style="text-align: right">
           <p><b>MINEGUARD</b> - Sistema de Segurança</p>
-          <p>ID Relatório: ${now.getTime()}</p>
+          <p>ID Relatório: 1775088242271</p>
         </div>
       </div>
 
-      ${categories.map(cat => `
+      
         <div class="category-section">
-          <div class="category-title">${cat} (${groupedReports[cat].length})</div>
-          ${groupedReports[cat].length === 0 ? '<p style="font-size: 12px; color: #999; padding-left: 12px;">Nenhuma ocorrência registrada.</p>' : ''}
-          ${groupedReports[cat].map(r => `
-            <div class="report-item ${r.gravidade === 'G4' ? 'highlight-g4' : ''}">
+          <div class="category-title">Valores (4)</div>
+          
+          
+            <div class="report-item ">
               <div class="report-meta">
-                <span class="gravidade ${r.gravidade.toLowerCase()}">${r.gravidade}</span>
-                <b>Agente:</b> ${r.agente_nome} (${r.agente_mecanografico}) | <b>Hora:</b> ${new Date(r.timestamp).toLocaleTimeString()}
+                <span class="gravidade g1">G1</span>
+                <b>Agente:</b> Superadmin (superadmin) | <b>Hora:</b> 00:03:23
               </div>
-              <div class="report-desc">${r.descricao}</div>
-              ${r.fotos_path ? `<p style="font-size: 10px; color: #666; font-style: italic;">Anexo: ${r.fotos_path}</p>` : ''}
+              <div class="report-desc">alguma coisa</div>
+              
             </div>
-          `).join('')}
+          
+            <div class="report-item ">
+              <div class="report-meta">
+                <span class="gravidade g1">G1</span>
+                <b>Agente:</b> Superadmin (superadmin) | <b>Hora:</b> 23:50:26
+              </div>
+              <div class="report-desc">oioi</div>
+              
+            </div>
+          
+            <div class="report-item ">
+              <div class="report-meta">
+                <span class="gravidade g1">G1</span>
+                <b>Agente:</b> Superadmin (superadmin) | <b>Hora:</b> 23:37:09
+              </div>
+              <div class="report-desc">erer</div>
+              
+            </div>
+          
+            <div class="report-item ">
+              <div class="report-meta">
+                <span class="gravidade g1">G1</span>
+                <b>Agente:</b> Superadmin (superadmin) | <b>Hora:</b> 23:12:33
+              </div>
+              <div class="report-desc">Isto </div>
+              
+            </div>
+          
         </div>
-      `).join('')}
+      
+        <div class="category-section">
+          <div class="category-title">Perímetro (0)</div>
+          <p style="font-size: 12px; color: #999; padding-left: 12px;">Nenhuma ocorrência registrada.</p>
+          
+        </div>
+      
+        <div class="category-section">
+          <div class="category-title">Logística (0)</div>
+          <p style="font-size: 12px; color: #999; padding-left: 12px;">Nenhuma ocorrência registrada.</p>
+          
+        </div>
+      
+        <div class="category-section">
+          <div class="category-title">Safety (0)</div>
+          <p style="font-size: 12px; color: #999; padding-left: 12px;">Nenhuma ocorrência registrada.</p>
+          
+        </div>
+      
+        <div class="category-section">
+          <div class="category-title">Manutenção (0)</div>
+          <p style="font-size: 12px; color: #999; padding-left: 12px;">Nenhuma ocorrência registrada.</p>
+          
+        </div>
+      
+        <div class="category-section">
+          <div class="category-title">Informativo (0)</div>
+          <p style="font-size: 12px; color: #999; padding-left: 12px;">Nenhuma ocorrência registrada.</p>
+          
+        </div>
+      
+        <div class="category-section">
+          <div class="category-title">Operativo (0)</div>
+          <p style="font-size: 12px; color: #999; padding-left: 12px;">Nenhuma ocorrência registrada.</p>
+          
+        </div>
+      
 
       <div style="display: flex; justify-content: space-between; align-items: flex-end;">
         <div class="signature-section">
@@ -100,17 +134,4 @@ export function generateDailyReport() {
       </div>
     </body>
     </html>
-  `;
-
-  const reportsDir = path.join(process.cwd(), "daily_reports");
-  if (!fs.existsSync(reportsDir)) {
-    fs.mkdirSync(reportsDir);
-  }
-
-  const fileName = `relatorio_${now.toISOString().split('T')[0]}.html`;
-  const filePath = path.join(reportsDir, fileName);
-  fs.writeFileSync(filePath, htmlContent);
   
-  console.log(`Relatório diário gerado: ${filePath}`);
-  return filePath;
-}
