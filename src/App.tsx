@@ -26,7 +26,11 @@ import {
   LogOut,
   Bell,
   Download,
-  Printer
+  Printer,
+  WifiOff,
+  CloudUpload,
+  RefreshCcw,
+  AlertCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -390,6 +394,10 @@ export default function App() {
   
   // UI State
   const [isLoading, setIsLoading] = useState(true);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [showSyncModal, setShowSyncModal] = useState(false);
+  const [offlineDraft, setOfflineDraft] = useState<any>(null);
+  const [serverVersion, setServerVersion] = useState<any>(null); // For conflict comparison
   const [isNewReportModalOpen, setIsNewReportModalOpen] = useState(false);
   const [isNewUserModalOpen, setIsNewUserModalOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
@@ -415,13 +423,72 @@ export default function App() {
       setDeferredPrompt(e);
       setShowInstallBtn(true);
     };
-
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    };
+    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
   }, []);
+
+  // Offline/Online Detection & Sync
+  useEffect(() => {
+    const handleOnline = async () => {
+      setIsOnline(true);
+      fetchData(); // Basic refresh
+
+      if (!currentUser) return;
+      
+      const pendingKey = `mg_pending_sync_${currentUser.id}`;
+      const raw = localStorage.getItem(pendingKey);
+      
+      if (raw) {
+        try {
+          const draft = JSON.parse(raw);
+          setOfflineDraft(draft);
+          
+          // If it's an EDIT, fetch the current server version for comparison
+          if (draft.reportId) {
+            const res = await fetch(`/api/reports/${draft.reportId}`, { credentials: 'include' });
+            if (res.ok) {
+              const data = await res.json();
+              if (data.report) setServerVersion(data.report);
+            }
+          }
+          
+          setShowSyncModal(true);
+        } catch {}
+      } else {
+        toast.success('Ligação restabelecida — dados sincronizados', { icon: '✅' });
+      }
+    };
+
+    const handleOffline = () => {
+      setIsOnline(false);
+      toast.warning('Sem ligação ao servidor — Modo Offline activo', { icon: '⚠️' });
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [currentUser]);
+
+  const savePendingSync = (data: any, type: 'NEW' | 'EDIT') => {
+    if (!currentUser) return;
+    const pendingKey = `mg_pending_sync_${currentUser.id}`;
+    localStorage.setItem(pendingKey, JSON.stringify({ 
+      ...data, 
+      syncType: type, 
+      savedAt: new Date().toISOString() 
+    }));
+  };
+
+  const clearOfflineDraft = () => {
+    if (!currentUser) return;
+    localStorage.removeItem(`mg_pending_sync_${currentUser.id}`);
+    setOfflineDraft(null);
+    setServerVersion(null);
+    setShowSyncModal(false);
+  };;
 
   const handleInstallClick = async () => {
     if (!deferredPrompt) return;
@@ -531,6 +598,11 @@ export default function App() {
     socket.on('alert_deleted', ({ id }: { id: number }) => {
       setAlerts(prev => prev.filter(a => a.id !== id));
       toast.info("Alerta removido");
+    });
+
+    // On socket reconnect, refresh all data (covers multi-device scenario)
+    socket.on('connect', () => {
+      if (currentUser) fetchData();
     });
 
     return () => { socket.disconnect(); };
@@ -801,6 +873,14 @@ export default function App() {
     const toastId = toast.loading("Capturando localização e preparando transmissão...");
     
     try {
+      // If offline, save draft and notify user
+      if (!isOnline) {
+        savePendingSync(newReport, 'NEW');
+        toast.warning('Sem ligação — Rascunho guardado localmente. Será enviado ao reconectar.', { duration: 5000 });
+        setIsNewReportModalOpen(false);
+        return;
+      }
+
       // Capture Geolocation
       let lat = newReport.coords_lat;
       let lng = newReport.coords_lng;
@@ -885,6 +965,44 @@ export default function App() {
       }
     } catch (err) {
       toast.error("Erro de conexão com o servidor", { id: toastId });
+    }
+  };
+
+  const handleSyncDraft = async () => {
+    if (!offlineDraft || !isOnline) return;
+    
+    const toastId = toast.loading("Sincronizando rascunho offline...");
+    
+    try {
+      const isEdit = !!offlineDraft.reportId;
+      const url = isEdit ? `/api/reports/${offlineDraft.reportId}` : '/api/reports';
+      const method = isEdit ? 'PATCH' : 'POST';
+
+      const formData = new FormData();
+      Object.keys(offlineDraft).forEach(key => {
+        if (key === 'fotos') {
+          // Blobs not handled in localStorage rascunho yet
+        } else if (key !== 'savedAt' && key !== 'reportId') {
+          formData.append(key, typeof offlineDraft[key] === 'boolean' ? (offlineDraft[key] ? '1' : '0') : offlineDraft[key]);
+        }
+      });
+      
+      const res = await fetch(url, {
+        method,
+        body: formData,
+        credentials: 'include'
+      });
+      
+      if (res.ok) {
+        toast.success(isEdit ? "Edição sincronizada!" : "Novo relatório sincronizado!", { id: toastId });
+        clearOfflineDraft();
+        fetchData();
+      } else {
+        const data = await res.json();
+        toast.error(data.message || "Erro na sincronização", { id: toastId });
+      }
+    } catch (err) {
+      toast.error("Erro ao conectar", { id: toastId });
     }
   };
 
@@ -1010,6 +1128,18 @@ export default function App() {
 
   const handleSaveReportEdits = async () => {
     if (!selectedReport) return;
+
+    if (!isOnline) {
+      savePendingSync({
+        reportId: selectedReport.id,
+        titulo: selectedReport.titulo, // Keep title for identifying in sync modal
+        descricao: editingReportData.descricao,
+      }, 'EDIT');
+      toast.warning('Editado Offline — Alteração guardada localmente.');
+      setIsEditingReport(false);
+      return;
+    }
+
     try {
       const formData = new FormData();
       if (editingReportData.descricao !== selectedReport.descricao) {
@@ -1134,6 +1264,105 @@ export default function App() {
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[50vh] bg-gradient-to-b from-primary/10 to-transparent opacity-30 pointer-events-none" />
       
       <Toaster position="top-right" theme="dark" richColors />
+
+      {/* Offline Banner */}
+      <AnimatePresence>
+        {!isOnline && (
+          <motion.div 
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="fixed top-0 left-0 right-0 z-[200] bg-orange-600/90 backdrop-blur-md overflow-hidden no-print"
+          >
+            <div className="flex items-center justify-center gap-3 py-2 px-6">
+              <WifiOff size={14} className="text-white animate-pulse" />
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white">
+                Modo Offline Activo • Ligação ao servidor perdida
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Sync Conflict Modal */}
+      <AnimatePresence>
+        {showSyncModal && offlineDraft && (
+          <div key="sync-modal" className="fixed inset-0 z-[250] flex items-center justify-center p-4 bg-black/95 backdrop-blur-xl">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              className="bg-[#0a0a0a] border border-orange-500/30 rounded-[2rem] w-full max-w-md overflow-hidden shadow-2xl shadow-orange-500/10"
+            >
+              <div className="p-8 text-center space-y-6">
+                <div className="w-20 h-20 bg-orange-500/10 rounded-3xl flex items-center justify-center mx-auto border border-orange-500/20">
+                  <CloudUpload size={40} className="text-orange-500" strokeWidth={1.5} />
+                </div>
+                
+                <div className="space-y-2">
+                  <h3 className="text-2xl font-black tracking-tighter uppercase text-white">Sincronização Pendente</h3>
+                  <p className="text-xs text-zinc-500 font-medium leading-relaxed">
+                    Detectámos um rascunho guardado enquanto estavas sem rede. <br/>
+                    Desejas enviar este relatório ou manter os dados do servidor?
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4">
+                  {/* Local Version */}
+                  <div className="bg-zinc-900/50 rounded-2xl p-4 border border-orange-500/30 text-left relative overflow-hidden ring-1 ring-orange-500/20 shadow-inner shadow-orange-500/5">
+                    <div className="absolute top-0 right-0 p-2 bg-orange-500/20 rounded-bl-xl border-l border-b border-orange-500/30 backdrop-blur-sm z-10">
+                      <span className="text-[9px] font-black uppercase text-orange-400 tracking-widest">A minha versão</span>
+                    </div>
+                    <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Relatório offline</p>
+                    <p className="text-sm font-bold text-zinc-100 leading-tight">"{offlineDraft.titulo || 'Sem Título'}"</p>
+                    {offlineDraft.descricao && (
+                      <p className="text-[11px] text-zinc-400 mt-2 line-clamp-3 bg-zinc-950/50 p-2 rounded-lg border border-zinc-800/50 italic leading-relaxed">
+                        {offlineDraft.descricao}
+                      </p>
+                    )}
+                    <div className="flex items-center gap-2 mt-3">
+                      <Clock size={10} className="text-orange-500/50" />
+                      <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">
+                        Salvo às: {new Date(offlineDraft.savedAt).toLocaleTimeString()}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Server Version (Conflict) */}
+                  {offlineDraft.syncType === 'EDIT' && serverVersion && (
+                    <div className="bg-blue-500/5 rounded-2xl p-4 border border-blue-500/20 text-left relative overflow-hidden transition-all hover:bg-blue-500/10">
+                      <div className="absolute top-0 right-0 p-2 bg-blue-500/20 rounded-bl-xl border-l border-b border-blue-500/30 backdrop-blur-sm z-10">
+                        <span className="text-[9px] font-black uppercase text-blue-400 tracking-widest">No Servidor</span>
+                      </div>
+                      <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Versão actual (Outro dispositivo?)</p>
+                      <p className="text-sm font-bold text-zinc-400 italic">No sistema já existe esta informação:</p>
+                      <p className="text-[11px] text-zinc-500 mt-2 line-clamp-3 bg-blue-900/10 p-2 rounded-lg border border-blue-900/20 leading-relaxed">
+                        {serverVersion.descricao}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 gap-3 pt-2">
+                  <motion.button 
+                    whileTap={{ scale: 0.97 }}
+                    onClick={handleSyncDraft}
+                    className="w-full bg-orange-500 hover:bg-orange-400 text-black font-black text-xs py-4 rounded-xl uppercase tracking-widest shadow-lg shadow-orange-500/20 transition-all flex items-center justify-center gap-2 border border-orange-400/30"
+                  >
+                    <RefreshCcw size={16} strokeWidth={3} className="animate-[spin_4s_linear_infinite]" />
+                    {offlineDraft.syncType === 'EDIT' ? 'Substituir Versão do Servidor' : 'Sincronizar Relatório Agora'}
+                  </motion.button>
+                  <button 
+                    onClick={clearOfflineDraft}
+                    className="w-full bg-zinc-900/50 hover:bg-zinc-800 text-zinc-500 hover:text-white font-black text-[10px] py-4 rounded-xl uppercase tracking-widest transition-all border border-zinc-800"
+                  >
+                    {offlineDraft.syncType === 'EDIT' ? 'Manter Versão do Servidor' : 'Descartar Rascunho'}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
       
       {/* Sidebar */}
       <aside className={cn(
