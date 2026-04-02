@@ -43,9 +43,9 @@ export default defineConfig(({mode}) => {
     },
     server: {
       host: '127.0.0.1',
-      port: 3000,
+      port: 2026,
       allowedHosts: true,
-      hmr: { host: 'localhost', port: 3000 },
+      hmr: { host: 'localhost', port: 2026 },
       watch: {
         ignored: ['**/.local/**', '**/node_modules/**', '**/*.db', '**/*.db-wal', '**/*.db-shm'],
       },

@@ -408,7 +408,7 @@ async function startServer() {
     next();
   });
 
-  const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000;
+  const PORT = process.env.PORT ? parseInt(process.env.PORT) : 2026;
 
   // --- Auth API ---
   app.post("/api/login", (req, res) => {

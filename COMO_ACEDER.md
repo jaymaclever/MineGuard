@@ -2,7 +2,7 @@
 
 ## ✅ SERVIDOR ESTÁ FUNCIONANDO!
 
-O servidor MineGuard está agora a correr na **porta 3000** (anteriormente 5000 estava em conflito).
+O servidor MineGuard está agora a correr na **porta 2026**.
 
 ---
 
@@ -16,13 +16,13 @@ npm run dev
 
 Deve ver a mensagem:
 ```
-Server running on http://localhost:3000
+Server running on http://localhost:2026
 ```
 
 ### 2. **Abra no navegador:**
 
 ```
-http://localhost:3000
+http://localhost:2026
 ```
 
 ### 3. **Você verá a tela de login**
@@ -45,8 +45,8 @@ Use uma destas contas para fazer login (o servidor as cria automaticamente):
 ## 🔧 CONFIGURAÇÕES
 
 - **Host**: `localhost` (ou `127.0.0.1`)
-- **Porta**: `3000`
-- **URL Completa**: `http://localhost:3000`
+- **Porta**: `2026`
+- **URL Completa**: `http://localhost:2026`
 - **Base de Dados**: `mina_seguranca.db` (SQLite)
 
 ---
@@ -57,14 +57,14 @@ Use uma destas contas para fazer login (o servidor as cria automaticamente):
 ```typescript
 server: {
   host: '127.0.0.1',
-  port: 8080,  // Mude para a porta desejada
+  port: 2026,  // Mude para a porta desejada
   ...
 }
 ```
 
 ### Editar `server.ts`:
 ```typescript
-const PORT = process.env.PORT ? parseInt(process.env.PORT) : 8080;  // Mude aqui também
+const PORT = process.env.PORT ? parseInt(process.env.PORT) : 2026;  // Mude aqui também
 ```
 
 ### Reinicie o servidor:
@@ -78,12 +78,12 @@ npm run dev
 
 ### "Connection refused" / "localhost recusou estabelecer ligação"
 
-**Causa**: Porta 3000 está em uso ou servidor não iniciou.
+**Causa**: Porta 2026 está em uso ou servidor não iniciou.
 
 **Solução**:
 ```bash
-# Verifique se há processo em porto 3000
-netstat -ano | find ":3000"
+# Verifique se há processo em porto 2026
+netstat -ano | find ":2026"
 
 # Se houver, termine o processo ou mude a porta (veja acima)
 ```
@@ -131,7 +131,7 @@ npm run dev
 
 Se o servidor não funciona:
 1. ✅ Verifique se `npm install` foi executado
-2. ✅ Verifique a porta (deve ser 3000)
+2. ✅ Verifique a porta (deve ser 2026)
 3. ✅ Verifique se a base de dados existe: `mina_seguranca.db`
 4. ✅ Veja os logs do servidor (procure por erros)
 
