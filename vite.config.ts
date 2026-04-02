@@ -42,10 +42,10 @@ export default defineConfig(({mode}) => {
       },
     },
     server: {
-      host: '0.0.0.0',
-      port: 5000,
+      host: '127.0.0.1',
+      port: 3000,
       allowedHosts: true,
-      hmr: process.env.DISABLE_HMR !== 'true',
+      hmr: { host: 'localhost', port: 3000 },
       watch: {
         ignored: ['**/.local/**', '**/node_modules/**', '**/*.db', '**/*.db-wal', '**/*.db-shm'],
       },
