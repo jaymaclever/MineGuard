@@ -92,7 +92,7 @@
                 android:id="@+id/et_port"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
-                android:hint="5000"
+                android:hint="2026"
                 android:textColor="#FAFAFA"
                 android:textColorHint="#52525B"
                 android:background="@drawable/bg_input"

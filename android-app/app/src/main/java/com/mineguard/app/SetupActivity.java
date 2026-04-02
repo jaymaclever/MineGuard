@@ -37,7 +37,7 @@ public class SetupActivity extends AppCompatActivity {
 
         // Pre-fill with saved values or defaults
         etIp.setText(prefs.getString(KEY_IP, "192.168.6.69"));
-        etPort.setText(prefs.getString(KEY_PORT, "5000"));
+         etPort.setText(prefs.getString(KEY_PORT, "2026"));
 
         btnConnect.setOnClickListener(v -> {
             String ip = etIp.getText().toString().trim();
@@ -47,7 +47,7 @@ public class SetupActivity extends AppCompatActivity {
                 etIp.setError("Introduza o endereço IP do servidor");
                 return;
             }
-            if (TextUtils.isEmpty(port)) port = "5000";
+            if (TextUtils.isEmpty(port)) port = "2026";
 
             prefs.edit()
                 .putString(KEY_IP, ip)

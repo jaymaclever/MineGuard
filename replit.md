@@ -26,7 +26,7 @@ This is a monolithic full-stack app where:
 
 ## Running the App
 
-The app runs on **port 5000** via a single workflow:
+The app runs on **port 2026** via a single workflow:
 ```
 npm run dev
 ```

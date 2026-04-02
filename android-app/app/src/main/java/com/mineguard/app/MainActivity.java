@@ -96,7 +96,7 @@ public class MainActivity extends AppCompatActivity {
     private void loadServerUrl() {
         SharedPreferences p = getSharedPreferences(SetupActivity.PREFS_NAME, MODE_PRIVATE);
         String ip = p.getString(SetupActivity.KEY_IP, "192.168.6.69");
-        String port = p.getString(SetupActivity.KEY_PORT, "5000");
+        String port = p.getString(SetupActivity.KEY_PORT, "2026");
         webView.loadUrl("http://" + ip + ":" + port);
     }
 
@@ -135,8 +135,8 @@ public class MainActivity extends AppCompatActivity {
         etIp.setText(prefs.getString(SetupActivity.KEY_IP, ""));
 
         EditText etPort = new EditText(this);
-        etPort.setHint("Porta (padrão: 5000)");
-        etPort.setText(prefs.getString(SetupActivity.KEY_PORT, "5000"));
+        etPort.setHint("Porta (padrão: 2026)");
+        etPort.setText(prefs.getString(SetupActivity.KEY_PORT, "2026"));
 
         layout.addView(etIp);
         layout.addView(etPort);
@@ -150,7 +150,7 @@ public class MainActivity extends AppCompatActivity {
                 if (!ip.isEmpty()) {
                     prefs.edit()
                         .putString(SetupActivity.KEY_IP, ip)
-                        .putString(SetupActivity.KEY_PORT, port.isEmpty() ? "5000" : port)
+                         .putString(SetupActivity.KEY_PORT, port.isEmpty() ? "2026" : port)
                         .apply();
                     loadServerUrl();
                 }

@@ -22,10 +22,10 @@ git checkout 3392cdd -- src/App.tsx
 - Corrigiu erros de sintaxe
 - Restaurou imports corretos
 
-#### ✅ 2. Mudança de Porta (5000 → 3000)
+#### ✅ 2. Mudança de Porta (5000 → 2026)
 **Ficheiros alterados:**
-- `server.ts`: `const PORT = 3000`
-- `vite.config.ts`: `port: 3000`
+- `server.ts`: `const PORT = 2026`
+- `vite.config.ts`: `port: 2026`
 
 **Porquê:** Porta 5000 estava em TimeWait pelo SO
 
@@ -47,12 +47,12 @@ npm run dev
 
 Deve ver:
 ```
-Server running on http://localhost:3000
+Server running on http://localhost:2026
 ```
 
 ### Passo 2: Abrir no Navegador
 ```
-http://localhost:3000
+http://localhost:2026
 ```
 
 ### Passo 3: Fazer Login
@@ -66,7 +66,7 @@ Use as credenciais padrão:
 
 | Componente | Status |
 |-----------|--------|
-| Servidor | ✅ **Rodando na porta 3000** |
+| Servidor | ✅ **Rodando na porta 2026** |
 | App React | ✅ **Compilado e funcional** |
 | Base de Dados | ✅ **SQLite operacional** |
 | APIs | ✅ **Todas respondendo** |
@@ -79,8 +79,8 @@ Use as credenciais padrão:
 ## 📁 Ficheiros Modificados
 
 ```
-✏️  vite.config.ts       - Porta 3000, HMR configurado
-✏️  server.ts            - PORT = 3000
+✏️  vite.config.ts       - Porta 2026, HMR configurado
+✏️  server.ts            - PORT = 2026
 ✏️  src/App.tsx          - Restaurado (estável)
 ➕  COMO_ACEDER.md       - Guia de uso
 ➕  TROUBLESHOOTING.md   - Resolução de problemas
