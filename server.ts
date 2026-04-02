@@ -132,6 +132,9 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_reports_categoria ON reports(categoria);
   CREATE INDEX IF NOT EXISTS idx_reports_gravidade ON reports(gravidade);
   CREATE INDEX IF NOT EXISTS idx_reports_timestamp ON reports(timestamp);
+  CREATE INDEX IF NOT EXISTS idx_reports_agente_timestamp ON reports(agente_id, timestamp);
+  CREATE INDEX IF NOT EXISTS idx_audit_logs_timestamp ON audit_logs(timestamp);
+  CREATE INDEX IF NOT EXISTS idx_alerts_timestamp ON alerts(timestamp);
 
   -- Seed default system settings if empty
   INSERT OR IGNORE INTO system_settings (key, value, description) VALUES ('app_name', 'MINEGUARD', 'Nome da aplicação');
@@ -432,7 +435,12 @@ async function startServer() {
           permissions: permissions.reduce((acc, p) => ({ ...acc, [p.permissao_nome]: !!p.is_enabled }), {})
         }, JWT_SECRET, { expiresIn: "24h" });
         
-        res.cookie("token", token, { httpOnly: true, sameSite: "none", secure: true });
+        const isSecure = req.secure || req.headers['x-forwarded-proto'] === 'https';
+        res.cookie("token", token, { 
+          httpOnly: true, 
+          sameSite: isSecure ? "none" : "lax", 
+          secure: isSecure 
+        });
         res.json({ 
           status: "success", 
           user: { 
