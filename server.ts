@@ -1453,6 +1453,201 @@ async function startServer() {
 
       db.prepare("DELETE FROM alerts WHERE id = ?").run(id);
       db.prepare("DELETE FROM alert_reads WHERE alert_id = ?").run(id);
+    } catch (err: any) {
+      res.status(500).json({ status: "error", message: err.message });
+    }
+  });
+
+  app.post("/api/reports", authenticate, checkPermission('create_reports'), upload.array("fotos", 20), async (req: any, res) => {
+    try {
+      const { titulo, categoria, gravidade, descricao, coords_lat, coords_lng, metadata, captions, setor, pessoas_envolvidas, equipamento, acao_imediata, requer_investigacao, testemunhas, potencial_risco } = req.body;
+      const agente_id = req.user.id;
+      const fotos_path = req.files && req.files.length > 0 ? `/uploads/${req.files[0].filename}` : null;
+      
+      if (!categoria || !gravidade || !descricao) {
+        return res.status(400).json({ status: "error", message: "Missing required fields" });
+      }
+
+      if (categoria === 'Safety') {
+        let metadataObj: any = {};
+        try {
+          metadataObj = metadata ? JSON.parse(metadata) : {};
+        } catch(e) {}
+        if (!metadataObj.incidentType || !metadataObj.ppeUsage) {
+          return res.status(400).json({ status: "error", message: "Safety reports require Incident Type and PPE Usage" });
+        }
+      }
+
+      const stmt = db.prepare(`
+        INSERT INTO reports (agente_id, titulo, categoria, gravidade, descricao, metadata, fotos_path, coords_lat, coords_lng, setor, pessoas_envolvidas, equipamento, acao_imediata, requer_investigacao, testemunhas, potencial_risco, timestamp)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+      `);
+      
+      const result = stmt.run(agente_id, titulo || null, categoria, gravidade, descricao, metadata || null, fotos_path, coords_lat || null, coords_lng || null, setor || null, pessoas_envolvidas || null, equipamento || null, acao_imediata || null, requer_investigacao ? 1 : 0, testemunhas || null, potencial_risco || null);
+      
+      // Add photos to report_photos table
+      if (req.files && req.files.length > 0) {
+        const photoCaptions = Array.isArray(captions) ? captions : (captions ? [captions] : []);
+        const insertPhoto = db.prepare("INSERT INTO report_photos (report_id, photo_path, caption) VALUES (?, ?, ?)");
+        
+        req.files.forEach((file: any, index: number) => {
+          const photoPath = `/uploads/${file.filename}`;
+          const caption = photoCaptions[index] || '';
+          insertPhoto.run(result.lastInsertRowid, photoPath, caption);
+        });
+      }
+      
+      const newReport = {
+        id: result.lastInsertRowid,
+        agente_id,
+        agente_nome: req.user.nome,
+        titulo,
+        categoria,
+        gravidade,
+        descricao,
+        metadata: metadata ? JSON.parse(metadata) : null,
+        fotos_path,
+        coords_lat,
+        coords_lng,
+        status: 'Aberto',
+        timestamp: new Date().toISOString()
+      };
+
+      // Notify via Socket.io
+      io.emit("new_report", newReport);
+
+      // Telegram Alert Queueing for G3/G4
+      if (gravidade === 'G3' || gravidade === 'G4') {
+        try {
+          db.prepare(`
+            INSERT INTO telegram_queue (report_id, gravidade, titulo, categoria, agente_nome, descricao, coords_lat, coords_lng)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+          `).run(result.lastInsertRowid, gravidade, titulo || null, categoria, req.user.nome, descricao, coords_lat || null, coords_lng || null);
+        } catch (queueErr) {
+          console.error("Erro ao inserir na fila do Telegram:", queueErr);
+        }
+      }
+
+      res.json({ status: "success", id: result.lastInsertRowid });
+    } catch (err: any) {
+      res.status(500).json({ status: "error", message: err.message });
+    }
+  });
+
+  // Alerts endpoints
+  app.get("/api/alerts", authenticate, (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const alerts = db.prepare(`
+        SELECT a.*, u.nome as creator_name, 
+          COALESCE(ar.read, 0) as read
+        FROM alerts a
+        LEFT JOIN alert_reads ar ON a.id = ar.alert_id AND ar.user_id = ?
+        LEFT JOIN users u ON a.created_by = u.id
+        ORDER BY a.timestamp DESC
+        LIMIT 100
+      `).all(userId) as any[];
+
+      res.json({ status: "success", alerts });
+    } catch (err: any) {
+      res.status(500).json({ status: "error", message: err.message });
+    }
+  });
+
+  app.post("/api/alerts", authenticate, checkPermission('create_alerts'), (req: any, res) => {
+    try {
+      const userId = req.user.id;
+
+      const { titulo, mensagem, tipo } = req.body;
+      if (!titulo || !mensagem) {
+        return res.status(400).json({ status: "error", message: "Título e mensagem são obrigatórios" });
+      }
+
+      const stmt = db.prepare(`
+        INSERT INTO alerts (created_by, titulo, mensagem, tipo, timestamp)
+        VALUES (?, ?, ?, ?, datetime('now'))
+      `);
+      
+      const result = stmt.run(userId, titulo, mensagem, tipo || 'aviso');
+      const alertId = result.lastInsertRowid as number;
+
+      // Insert into alert_reads for all users except creator
+      const allUsers = db.prepare("SELECT id FROM users WHERE id != ?").all(userId) as any[];
+      const insertRead = db.prepare("INSERT OR IGNORE INTO alert_reads (alert_id, user_id, read) VALUES (?, ?, 0)");
+      allUsers.forEach(u => insertRead.run(alertId, u.id));
+
+      const alert = db.prepare(`
+        SELECT a.*, u.nome as creator_name, 0 as read
+        FROM alerts a
+        LEFT JOIN users u ON a.created_by = u.id
+        WHERE a.id = ?
+      `).get(alertId) as any;
+
+      // Broadcast via Socket.io
+      io.emit("new_alert", alert);
+
+      res.json({ status: "success", alert });
+    } catch (err: any) {
+      res.status(500).json({ status: "error", message: err.message });
+    }
+  });
+
+  app.patch("/api/alerts/:id/read", authenticate, (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user.id;
+
+      db.prepare("INSERT OR REPLACE INTO alert_reads (alert_id, user_id, read) VALUES (?, ?, 1)").run(id, userId);
+
+      res.json({ status: "success" });
+    } catch (err: any) {
+      res.status(500).json({ status: "error", message: err.message });
+    }
+  });
+
+  app.patch("/api/alerts/:id", authenticate, checkPermission('edit_own_alerts'), (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user.id;
+      const { titulo, mensagem, tipo } = req.body;
+
+      const alert = db.prepare("SELECT created_by FROM alerts WHERE id = ?").get(id) as any;
+      if (!alert) {
+        return res.status(404).json({ status: "error", message: "Alerta não encontrado" });
+      }
+
+      if (alert.created_by !== userId) {
+        return res.status(403).json({ status: "error", message: "Apenas o criador pode editar este alerta" });
+      }
+
+      db.prepare("UPDATE alerts SET titulo = ?, mensagem = ?, tipo = ? WHERE id = ?").run(titulo, mensagem, tipo, id);
+
+      const updated = db.prepare("SELECT a.*, u.nome as creator_name, COALESCE(ar.read, 0) as read FROM alerts a LEFT JOIN users u ON a.created_by = u.id LEFT JOIN alert_reads ar ON a.id = ar.alert_id AND ar.user_id = ? WHERE a.id = ?").get(userId, id) as any;
+
+      io.emit("alert_updated", updated);
+
+      res.json({ status: "success", alert: updated });
+    } catch (err: any) {
+      res.status(500).json({ status: "error", message: err.message });
+    }
+  });
+
+  app.delete("/api/alerts/:id", authenticate, checkPermission('edit_own_alerts'), (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user.id;
+
+      const alert = db.prepare("SELECT created_by FROM alerts WHERE id = ?").get(id) as any;
+      if (!alert) {
+        return res.status(404).json({ status: "error", message: "Alerta não encontrado" });
+      }
+
+      if (alert.created_by !== userId) {
+        return res.status(403).json({ status: "error", message: "Apenas o criador pode deletar este alerta" });
+      }
+
+      db.prepare("DELETE FROM alerts WHERE id = ?").run(id);
+      db.prepare("DELETE FROM alert_reads WHERE alert_id = ?").run(id);
 
       io.emit("alert_deleted", { id });
 
@@ -1469,11 +1664,16 @@ async function startServer() {
 
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: "spa",
-    });
-    app.use(vite.middlewares);
+    try {
+      const vite = await createViteServer({
+        server: { middlewareMode: true },
+        appType: "spa",
+      });
+      app.use(vite.middlewares);
+      console.log("Vite development middleware loaded.");
+    } catch (err) {
+      console.error("Vite initialization error:", err);
+    }
   } else {
     const distPath = path.join(process.cwd(), "dist");
     app.use(express.static(distPath));
