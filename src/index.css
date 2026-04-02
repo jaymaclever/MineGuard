@@ -2,7 +2,7 @@
 @import "leaflet/dist/leaflet.css";
 
 :root {
-  --primary: #f97316; /* Amber-500 */
+  --primary: #f97316; /* Amber-500 default */
   --primary-rgb: 249, 115, 22;
   --primary-glow: rgba(249, 115, 22, 0.15);
   --primary-foreground: #000000;
@@ -12,6 +12,52 @@
   --border: rgba(39, 39, 42, 0.4);
   --text-main: #fafafa;
   --text-muted: #a1a1aa;
+}
+
+@theme {
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-bg-main: var(--bg-main);
+  --color-bg-sidebar: var(--bg-sidebar);
+  --color-bg-card: var(--bg-card);
+  --color-border: var(--border);
+  --color-text-main: var(--text-main);
+  --color-text-muted: var(--text-muted);
+}
+
+.theme-orange {
+  --primary: #f97316;
+  --primary-rgb: 249, 115, 22;
+  --primary-glow: rgba(249, 115, 22, 0.15);
+  --primary-foreground: #000000;
+}
+
+.theme-blue {
+  --primary: #3b82f6;
+  --primary-rgb: 59, 130, 246;
+  --primary-glow: rgba(59, 130, 246, 0.15);
+  --primary-foreground: #ffffff;
+}
+
+.theme-green {
+  --primary: #22c55e;
+  --primary-rgb: 34, 197, 94;
+  --primary-glow: rgba(34, 197, 94, 0.15);
+  --primary-foreground: #000000;
+}
+
+.theme-red {
+  --primary: #ef4444;
+  --primary-rgb: 239, 68, 68;
+  --primary-glow: rgba(239, 68, 68, 0.15);
+  --primary-foreground: #ffffff;
+}
+
+.theme-purple {
+  --primary: #a855f7;
+  --primary-rgb: 168, 85, 247;
+  --primary-glow: rgba(168, 85, 247, 0.15);
+  --primary-foreground: #ffffff;
 }
 
 .light {
