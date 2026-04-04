@@ -3493,7 +3493,7 @@ export default function App() {
                     <XCircle size={24} />
                   </button>
                 </div>
-                <div className="flex-1 p-6 space-y-5 overflow-y-auto custom-scrollbar">
+                <div className="flex-1 min-h-0 md:max-h-[70vh] p-6 space-y-5 overflow-y-auto custom-scrollbar">
                   <div className="space-y-2">
                     <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Título da Ocorrência</label>
                     <input 
@@ -3586,14 +3586,39 @@ export default function App() {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Setor/Local</label>
-                      <input 
-                        type="text"
-                        placeholder="Ex: Setor Norte, Poço Principal"
-                        value={newReport.setor}
-                        onChange={(e) => setNewReport({...newReport, setor: e.target.value})}
-                        className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
-                      />
+                      <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-2">Setor/Local</label>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {(systemSettings.find((s: any) => s.key === 'form_sectors')?.value || '').split(',').map((s: string) => s.trim()).filter(Boolean).map((sec: string) => {
+                          const selectedSectors = newReport.setor ? newReport.setor.split(', ') : [];
+                          const isSelected = selectedSectors.includes(sec);
+                          return (
+                            <button
+                              key={sec}
+                              type="button"
+                              onClick={() => {
+                                let updated;
+                                if (isSelected) {
+                                  updated = selectedSectors.filter(s => s !== sec);
+                                } else {
+                                  updated = [...selectedSectors, sec];
+                                }
+                                setNewReport({...newReport, setor: updated.join(', ')});
+                              }}
+                              className={cn(
+                                "px-3 py-1.5 text-[10px] font-bold rounded-lg border transition-all uppercase tracking-widest outline-none",
+                                isSelected 
+                                  ? "bg-primary/20 border-primary/50 text-primary glow-amber-sm" 
+                                  : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200"
+                              )}
+                            >
+                              {sec}
+                            </button>
+                          );
+                        })}
+                        {!(systemSettings.find((s: any) => s.key === 'form_sectors')?.value || '').trim() && (
+                          <p className="text-[10px] text-zinc-600 italic">Nenhum setor parametrizado.</p>
+                        )}
+                      </div>
                     </div>
                     <div className="space-y-2">
                       <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Pessoas Envolvidas</label>
@@ -3964,7 +3989,7 @@ export default function App() {
                 </div>
               </div>
               
-              <div className="flex-1 p-8 space-y-8 overflow-y-auto custom-scrollbar">
+              <div className="flex-1 min-h-0 md:max-h-[80vh] p-8 space-y-8 overflow-y-auto custom-scrollbar">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                   <div className="space-y-6">
                     <div>
@@ -3999,12 +4024,38 @@ export default function App() {
                       <div>
                         <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-2">Setor / Local</label>
                         {isEditingReport ? (
-                          <input 
-                            type="text" 
-                            value={editingReportData.setor || ''} 
-                            onChange={e => setEditingReportData({...editingReportData, setor: e.target.value})}
-                            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2 px-4 text-sm focus:outline-none focus:border-primary"
-                          />
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {(systemSettings.find((s: any) => s.key === 'form_sectors')?.value || '').split(',').map((s: string) => s.trim()).filter(Boolean).map((sec: string) => {
+                              const selectedSectors = editingReportData.setor ? editingReportData.setor.split(', ') : [];
+                              const isSelected = selectedSectors.includes(sec);
+                              return (
+                                <button
+                                  key={sec}
+                                  type="button"
+                                  onClick={() => {
+                                    let updated;
+                                    if (isSelected) {
+                                      updated = selectedSectors.filter(s => s !== sec);
+                                    } else {
+                                      updated = [...selectedSectors, sec];
+                                    }
+                                    setEditingReportData({...editingReportData, setor: updated.join(', ')});
+                                  }}
+                                  className={cn(
+                                    "px-3 py-1.5 text-[9px] font-bold rounded-md border transition-all uppercase tracking-widest outline-none",
+                                    isSelected 
+                                      ? "bg-primary/20 border-primary/50 text-primary" 
+                                      : "bg-zinc-900/50 border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200"
+                                  )}
+                                >
+                                  {sec}
+                                </button>
+                              );
+                            })}
+                            {!(systemSettings.find((s: any) => s.key === 'form_sectors')?.value || '').trim() && (
+                              <p className="text-[10px] text-zinc-600 italic">Nenhum setor parametrizado.</p>
+                            )}
+                          </div>
                         ) : (
                           <p className="text-sm font-bold text-zinc-300 bg-zinc-900/50 p-3 rounded-lg border border-zinc-800/50">{selectedReport.setor || 'N/A'}</p>
                         )}
