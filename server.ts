@@ -2,6 +2,9 @@ import express from "express";
 import { createServer as createViteServer } from "vite";
 import path from "path";
 import fs from "fs";
+import dotenv from "dotenv";
+
+dotenv.config();
 import Database from "better-sqlite3";
 import crypto from "crypto";
 import axios from "axios";
@@ -11,6 +14,7 @@ import jwt from "jsonwebtoken";
 import cookieParser from "cookie-parser";
 import { Server } from "socket.io";
 import http from "http";
+import https from "https";
 import bcrypt from "bcryptjs";
 import { Parser } from "json2csv";
 import { generateDailyReport } from "./report_generator";
@@ -353,7 +357,23 @@ function decrypt(text: string) {
 async function startServer() {
   const app = express();
   app.set('trust proxy', 1);
-  const server = http.createServer(app);
+  
+  const SSL_KEY_PATH = process.env.SSL_KEY_PATH || path.join(process.cwd(), "certs", "key.pem");
+  const SSL_CERT_PATH = process.env.SSL_CERT_PATH || path.join(process.cwd(), "certs", "cert.pem");
+  
+  let server;
+  if (fs.existsSync(SSL_KEY_PATH) && fs.existsSync(SSL_CERT_PATH)) {
+    const options = {
+      key: fs.readFileSync(SSL_KEY_PATH),
+      cert: fs.readFileSync(SSL_CERT_PATH)
+    };
+    server = https.createServer(options, app);
+    console.log(`[SSL] Servidor configurado com HTTPS.`);
+  } else {
+    server = http.createServer(app);
+    console.warn(`[SSL] Certificados não encontrados. Usando HTTP.`);
+  }
+
   const io = new Server(server);
 
   // Multer for file uploads
@@ -1715,11 +1735,17 @@ async function startServer() {
   if (process.env.NODE_ENV !== "production") {
     try {
       const vite = await createViteServer({
-        server: { middlewareMode: true },
+        server: { 
+          middlewareMode: true,
+          hmr: {
+            protocol: 'wss',
+            server: server
+          }
+        },
         appType: "spa",
       });
       app.use(vite.middlewares);
-      console.log("Vite development middleware loaded.");
+      console.log("[VITE] Middleware de desenvolvimento carregado (HMR em WSS).");
     } catch (err) {
       console.error("Vite initialization error:", err);
     }
@@ -1774,8 +1800,15 @@ ${alert.coords_lat ? `<b>Local:</b> <a href="https://www.google.com/maps?q=${ale
     }
   }, 15000);
 
+  const protocol = server instanceof https.Server ? "https" : "http";
   server.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    console.log("-----------------------------------------");
+    console.log(`🚀 MINEGUARD RODANDO EM: ${protocol}://localhost:${PORT}`);
+    if (protocol === "https") {
+      console.log(`🔒 MODO SEGURO ATIVADO`);
+      console.log(`⚠️  NOTA: Como o certificado é autoassinado, aceite o aviso de segurança no navegador.`);
+    }
+    console.log("-----------------------------------------");
   });
 }
 

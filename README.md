@@ -69,7 +69,7 @@ sudo bash install.sh
 
 ### Pronto! Acesse:
 ```
-http://localhost:3000
+https://localhost:2026
 
 👤 Usuário: superadmin
 🔑 Senha: secret
@@ -110,7 +110,7 @@ nano /path/to/mineguard/.env
 Chaves disponíveis:
 ```env
 NODE_ENV=production
-PORT=3000
+PORT=2026
 JWT_SECRET=b6f8a2c4e9d1f3a5b7c9d0e2f4a6b8c0d2e4f6a8b0c2d4e6f8a0c2d4e6f8a0c2
 ENCRYPTION_KEY=Lulo-CSI-Safe-Admin-Secret-Key-2026-Security-First!
 

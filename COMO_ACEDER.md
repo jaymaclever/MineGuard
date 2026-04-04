@@ -16,16 +16,18 @@ npm run dev
 
 Deve ver a mensagem:
 ```
-Server running on http://localhost:2026
+Server running on https://localhost:2026
 ```
 
 ### 2. **Abra no navegador:**
 
 ```
-http://localhost:2026
+https://localhost:2026
 ```
 
 ### 3. **Você verá a tela de login**
+> [!IMPORTANT]
+> Como o certificado é autoassinado, o navegador exibirá um aviso de segurança. Clique em **Avançado** e **Prosseguir/Continuar**.
 
 ---
 
@@ -46,7 +48,7 @@ Use uma destas contas para fazer login (o servidor as cria automaticamente):
 
 - **Host**: `localhost` (ou `127.0.0.1`)
 - **Porta**: `2026`
-- **URL Completa**: `http://localhost:2026`
+- **URL Completa**: `https://localhost:2026`
 - **Base de Dados**: `mina_seguranca.db` (SQLite)
 
 ---
