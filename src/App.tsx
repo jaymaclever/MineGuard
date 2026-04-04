@@ -152,11 +152,90 @@ const Badge = ({ gravidade }: { gravidade: Gravidade }) => {
   };
   return (
     <span className={cn(
-      "px-3 py-1 rounded-full text-[9px] font-black border uppercase tracking-widest shadow-sm", 
+      "px-2 md:px-3 py-1 rounded-full text-[8px] md:text-[9px] font-black border uppercase tracking-widest shadow-sm shrink-0 whitespace-nowrap", 
       colors[gravidade]
     )}>
       {gravidade}
     </span>
+  );
+};
+
+const StatCard = ({ title, value, icon: Icon, trend, color, onClick }: { title: string, value: string | number, icon: any, trend?: string, color: string, onClick?: () => void }) => (
+  <div onClick={onClick} className={cn("glass-card rounded-2xl overflow-hidden group p-6 relative", onClick && "cursor-pointer hover:bg-zinc-900/40 active:scale-[0.99]")}>
+    <div className={cn("absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-[0.08] transition-all transform group-hover:scale-150 rotate-12", color)}>
+      <Icon size={120} strokeWidth={1} />
+    </div>
+    
+    <div className="flex items-start justify-between relative z-10">
+      <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg transform group-hover:rotate-6 transition-transform", color.replace('text-', 'bg-').replace('500', '500/20'), color)}>
+        <Icon size={24} strokeWidth={2.5} />
+      </div>
+      {trend && (
+        <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 text-[10px] font-black">
+          <Activity size={10} /> {trend}
+        </div>
+      )}
+    </div>
+
+    <div className="mt-6 relative z-10">
+      <div className="text-3xl font-black tracking-tighter text-white mb-1 group-hover:translate-x-1 transition-transform">{value}</div>
+      <div className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">{title}</div>
+    </div>
+    
+    <div className={cn("absolute bottom-0 left-0 h-1 transition-all duration-500 opacity-30 group-hover:opacity-100", color.replace('text-', 'bg-'))} style={{ width: '0%' }} id={`progress-${title.toLowerCase().replace(/\s/g, '-')}`} />
+  </div>
+);
+
+const PdfConfigPanel = () => {
+  const [pdfConfig, setPdfConfig] = useState({
+    showLogo: true,
+    logoUrl: 'https://cdn-icons-png.flaticon.com/512/8796/8796919.png',
+    titleFormat: 'Relatório Oficial MineGuard',
+    showSignature: true,
+    signatureName: 'Sierra 1 de Serviço'
+  });
+
+  useEffect(() => {
+    const saved = localStorage.getItem('mineguard_pdf_config');
+    if (saved) setPdfConfig(JSON.parse(saved));
+  }, []);
+
+  const handleSave = () => {
+    localStorage.setItem('mineguard_pdf_config', JSON.stringify(pdfConfig));
+    toast.success("Configurações de PDF salvas com sucesso!");
+    window.dispatchEvent(new Event('storage'));
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Logo URL</label>
+          <input type="text" value={pdfConfig.logoUrl} onChange={e => setPdfConfig({...pdfConfig, logoUrl: e.target.value})} className="w-full bg-zinc-800 border border-zinc-700 rounded py-2 px-3 text-sm focus:outline-none focus:border-primary" />
+        </div>
+        <div className="space-y-2">
+          <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Título do Relatório</label>
+          <input type="text" value={pdfConfig.titleFormat} onChange={e => setPdfConfig({...pdfConfig, titleFormat: e.target.value})} className="w-full bg-zinc-800 border border-zinc-700 rounded py-2 px-3 text-sm focus:outline-none focus:border-primary" />
+        </div>
+        <div className="space-y-2">
+          <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Assinatura Padrão</label>
+          <input type="text" value={pdfConfig.signatureName} onChange={e => setPdfConfig({...pdfConfig, signatureName: e.target.value})} className="w-full bg-zinc-800 border border-zinc-700 rounded py-2 px-3 text-sm focus:outline-none focus:border-primary" />
+        </div>
+        <div className="flex items-center gap-6 h-full pt-4">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" checked={pdfConfig.showLogo} onChange={e => setPdfConfig({...pdfConfig, showLogo: e.target.checked})} className="accent-primary" />
+            <span className="text-[10px] font-bold text-zinc-400 uppercase">Mostrar Logo</span>
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" checked={pdfConfig.showSignature} onChange={e => setPdfConfig({...pdfConfig, showSignature: e.target.checked})} className="accent-primary" />
+            <span className="text-[10px] font-bold text-zinc-400 uppercase">Mostrar Assinatura</span>
+          </label>
+        </div>
+      </div>
+      <button onClick={handleSave} className="w-full py-3 bg-primary text-black rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-primary/90 transition-all flex items-center justify-center gap-2">
+        <Printer size={16} /> Salvar Configuração do Relatório
+      </button>
+    </div>
   );
 };
 
@@ -351,7 +430,7 @@ const Login = ({ onLogin, publicSettings }: { onLogin: (user: any) => void, publ
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'reports' | 'users' | 'permissions' | 'daily_reports' | 'personal_reports' | 'daily_report_personal' | 'daily_report_team' | 'alerts' | 'settings'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'reports' | 'users' | 'permissions' | 'daily_reports' | 'personal_reports' | 'daily_report_personal' | 'daily_report_team' | 'alerts' | 'parametrization'>('dashboard');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
   const [filterSeverity, setFilterSeverity] = useState('');
@@ -359,6 +438,8 @@ export default function App() {
   const [filterDateTo, setFilterDateTo] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [filterAgent, setFilterAgent] = useState('');
+  const [dashboardRange, setDashboardRange] = useState('today');
+  const [showHeatmap, setShowHeatmap] = useState(false);
   
   // Data State
   const [reports, setReports] = useState<Report[]>([]);
@@ -634,7 +715,7 @@ export default function App() {
         keys.push('roles');
       }
       if (perms.view_dashboard === true) {
-        promises.push(fetch('/api/stats', { credentials: 'include' }));
+        promises.push(fetch(`/api/stats?range=${dashboardRange}`, { credentials: 'include' }));
         keys.push('stats');
       }
       if (perms.view_daily_reports === true) {
@@ -702,7 +783,7 @@ export default function App() {
 
   useEffect(() => {
     fetchData();
-  }, [activeTab, searchQuery, filterCategory, filterSeverity, filterDateFrom, filterDateTo, filterStatus, filterAgent, currentPage, currentUser]);
+  }, [activeTab, searchQuery, filterCategory, filterSeverity, filterDateFrom, filterDateTo, filterStatus, filterAgent, currentPage, currentUser, dashboardRange]);
 
   // Fetch Personal Reports
   const fetchPersonalReports = async () => {
@@ -787,7 +868,13 @@ export default function App() {
   useEffect(() => {
     if (selectedReport) {
       setEditingReportData({
-        descricao: selectedReport.descricao,
+        titulo: selectedReport.titulo || '',
+        descricao: selectedReport.descricao || '',
+        setor: (selectedReport as any).setor || '',
+        equipamento: (selectedReport as any).equipamento || '',
+        acao_imediata: (selectedReport as any).acao_imediata || '',
+        testemunhas: (selectedReport as any).testemunhas || '',
+        potencial_risco: (selectedReport as any).potencial_risco || '',
         fotos: []
       });
       setIsEditingReport(false);
@@ -1000,7 +1087,7 @@ export default function App() {
         toast.success(editingUser ? "Usuário atualizado!" : "Usuário criado!");
         setIsNewUserModalOpen(false);
         setEditingUser(null);
-        setNewUser({ nome: '', funcao: '', numero_mecanografico: '', nivel_hierarquico: 'Agente' });
+        setNewUser({ nome: '', funcao: '', numero_mecanografico: '', nivel_hierarquico: 'Agente', password: '' });
         fetchData();
       }
     } catch (err) {
@@ -1008,13 +1095,63 @@ export default function App() {
     }
   };
 
+  const handleDeleteUser = async (id: number) => {
+    if (!confirm("Deseja realmente excluir este usuário?")) return;
+    try {
+      const res = await fetch(`/api/users/${id}`, { method: 'DELETE', credentials: 'include' });
+      if (res.ok) {
+        toast.success("Usuário removido!");
+        fetchData();
+      }
+    } catch (err) {
+      toast.error("Erro ao remover usuário");
+    }
+  };
+
+  const handleDeleteReport = async (id: number) => {
+    if (!confirm("Tem certeza que deseja DELETAR esta ocorrência? Esta ação é irreversível.")) return;
+    try {
+      const res = await fetch(`/api/reports/${id}`, { method: 'DELETE', credentials: 'include' });
+      const data = await res.json();
+      if (data.status === 'success') {
+        toast.success("Relatório removido com sucesso!");
+        fetchData();
+      } else {
+        toast.error(data.message || "Erro ao remover relatório");
+      }
+    } catch (err) {
+      toast.error("Erro na comunicação com o servidor");
+    }
+  };
+
+  const handleUpdateReport = async (id: number, data: any) => {
+    try {
+      const res = await fetch(`/api/reports/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+        credentials: 'include'
+      });
+      if (res.ok) {
+        toast.success("Relatório atualizado!");
+        fetchData();
+      }
+    } catch (err) {
+      toast.error("Erro ao atualizar relatório");
+    }
+  };
+
   const handleSaveReportEdits = async () => {
     if (!selectedReport) return;
     try {
       const formData = new FormData();
-      if (editingReportData.descricao !== selectedReport.descricao) {
-        formData.append('descricao', editingReportData.descricao);
-      }
+      formData.append('titulo', editingReportData.titulo);
+      formData.append('descricao', editingReportData.descricao);
+      formData.append('setor', editingReportData.setor);
+      formData.append('equipamento', editingReportData.equipamento);
+      formData.append('acao_imediata', editingReportData.acao_imediata);
+      formData.append('testemunhas', editingReportData.testemunhas);
+      formData.append('potencial_risco', editingReportData.potencial_risco);
       
       // Add multiple photos with captions & compression
       for (const foto of editingReportData.fotos) {
@@ -1075,19 +1212,6 @@ export default function App() {
       }
     } catch (err) {
       toast.error("Erro ao atualizar status do relatório");
-    }
-  };
-
-  const handleDeleteUser = async (id: number) => {
-    if (!confirm("Deseja realmente excluir este usuário?")) return;
-    try {
-      const res = await fetch(`/api/users/${id}`, { method: 'DELETE', credentials: 'include' });
-      if (res.ok) {
-        toast.success("Usuário removido");
-        fetchData();
-      }
-    } catch (err) {
-      toast.error("Erro ao remover usuário");
     }
   };
 
@@ -1377,81 +1501,24 @@ export default function App() {
                     <p className="text-[10px] md:text-sm text-zinc-500 mt-1 uppercase font-bold tracking-widest md:normal-case md:font-normal">Visão geral em tempo real</p>
                   </div>
                   <div className="flex items-center gap-2 bg-zinc-900/50 p-1 rounded-xl border border-zinc-800/50 self-start md:self-auto">
-                    <button className="px-3 py-1.5 text-[10px] font-bold bg-zinc-800 rounded-lg text-zinc-100 transition-all">HOJE</button>
-                    <button className="px-3 py-1.5 text-[10px] font-bold text-zinc-500 hover:text-zinc-300">7 DIAS</button>
-                    <button className="px-3 py-1.5 text-[10px] font-bold text-zinc-500 hover:text-zinc-300">30 DIAS</button>
+                    <button onClick={() => setDashboardRange('today')} className={cn("px-3 py-1.5 text-[10px] font-bold rounded-lg transition-all", dashboardRange === 'today' ? "bg-zinc-800 text-zinc-100" : "text-zinc-500 hover:text-zinc-300")}>HOJE</button>
+                    <button onClick={() => setDashboardRange('7days')} className={cn("px-3 py-1.5 text-[10px] font-bold rounded-lg transition-all", dashboardRange === '7days' ? "bg-zinc-800 text-zinc-100" : "text-zinc-500 hover:text-zinc-300")}>7 DIAS</button>
+                    <button onClick={() => setDashboardRange('30days')} className={cn("px-3 py-1.5 text-[10px] font-bold rounded-lg transition-all", dashboardRange === '30days' ? "bg-zinc-800 text-zinc-100" : "text-zinc-500 hover:text-zinc-300")}>30 DIAS</button>
                   </div>
                 </div>
 
                 {/* Stats Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6">
-                  <Card 
-                    className="border-t-2 border-t-blue-500/50 relative group overflow-hidden"
-                    onClick={() => setActiveTab('reports')}
-                  >
-                    <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-[0.07] group-hover:scale-125 transition-all">
-                      <FileText size={80} />
-                    </div>
-                    <div className="flex items-center justify-between mb-6">
-                      <div className="w-12 h-12 bg-blue-500/10 rounded-2xl flex items-center justify-center text-blue-500 border border-blue-500/20"><FileText size={24} /></div>
-                      <div className="text-right">
-                        <span className="text-[10px] text-zinc-500 font-black uppercase tracking-[0.2em]">Total</span>
-                      </div>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-4xl font-black tracking-tighter text-white">{stats?.totalReports || 0}</p>
-                      <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Ocorrências</p>
-                    </div>
-                  </Card>
-
-                  <Card 
-                    className="border-t-2 border-t-red-500/50 relative group overflow-hidden"
-                    onClick={() => setActiveTab('reports')}
-                  >
-                    <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-[0.07] group-hover:scale-125 transition-all">
-                      <AlertTriangle size={80} />
-                    </div>
-                    <div className="flex items-center justify-between mb-6">
-                      <div className="w-12 h-12 bg-red-500/10 rounded-2xl flex items-center justify-center text-red-500 border border-red-500/20"><AlertTriangle size={24} /></div>
-                      <div className="text-right">
-                        <span className="text-[10px] text-zinc-500 font-black uppercase tracking-[0.2em]">Crítico</span>
-                      </div>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-4xl font-black tracking-tighter text-white">
-                        {stats?.reportsBySeverity.find(s => s.name === 'G4')?.value || 0}
-                      </p>
-                      <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Nível G4</p>
-                    </div>
-                  </Card>
-                  <Card 
-                    className="border-l-4 border-l-green-500"
-                    onClick={() => setActiveTab('users')}
-                  >
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="p-2 bg-green-500/10 rounded-lg text-green-500"><Users size={20} /></div>
-                      <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Equipe</span>
-                    </div>
-                    <p className="text-2xl md:text-4xl font-black tracking-tighter">{stats?.totalUsers || 0}</p>
-                    <p className="text-[8px] md:text-[10px] text-zinc-500 font-bold uppercase mt-1 tracking-widest">Agentes em Sistema</p>
-                  </Card>
-                  <Card 
-                    className="border-l-4 border-l-primary"
-                    onClick={() => setActiveTab('settings')}
-                  >
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="p-2 bg-primary/10 rounded-lg text-primary"><Activity size={20} /></div>
-                      <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Status</span>
-                    </div>
-                    <p className="text-2xl md:text-4xl font-black tracking-tighter">100%</p>
-                    <p className="text-[8px] md:text-[10px] text-zinc-500 font-bold uppercase mt-1 tracking-widest">Operacionalidade</p>
-                  </Card>
+                  <StatCard title="Total Ocorrências" value={stats?.totalReports || 0} icon={FileText} color="text-blue-500" onClick={() => setActiveTab('reports')} />
+                  <StatCard title="Nível G4 (Crítico)" value={stats?.reportsBySeverity.find(s => s.name === 'G4')?.value || 0} icon={AlertTriangle} color="text-red-500" onClick={() => setActiveTab('reports')} />
+                  <StatCard title="Agentes em Sistema" value={stats?.totalUsers || 0} icon={Users} color="text-green-500" onClick={() => setActiveTab('users')} />
+                  <StatCard title="Operacionalidade" value="100%" icon={Activity} color="text-primary" onClick={() => setActiveTab('settings')} />
                 </div>
 
                 {/* Charts Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  <Card title="Volume de Ocorrências (7 Dias)" className="lg:col-span-2">
-                    <div className="h-[300px] w-full mt-4">
+                  <Card title="Volume de Ocorrências" className="lg:col-span-2">
+                    <div className="h-[250px] md:h-[300px] w-full mt-4">
                       <ResponsiveContainer width="100%" height="100%">
                         <AreaChart data={stats?.reportsLast7Days || []}>
                           <defs>
@@ -1479,31 +1546,33 @@ export default function App() {
                   </Card>
 
                   <Card title="Distribuição por Categoria">
-                    <div className="h-[300px] w-full mt-4">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                          <Pie
-                            data={stats?.reportsByCategory || []}
-                            innerRadius={60}
-                            outerRadius={80}
-                            paddingAngle={5}
-                            dataKey="value"
-                          >
-                            {(stats?.reportsByCategory || []).map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                            ))}
-                          </Pie>
-                          <Tooltip 
-                            contentStyle={{ backgroundColor: '#09090b', border: '1px solid #27272a', borderRadius: '8px' }}
-                            itemStyle={{ fontSize: '12px', fontWeight: 'bold' }}
-                          />
-                        </PieChart>
-                      </ResponsiveContainer>
-                      <div className="grid grid-cols-2 gap-2 mt-4">
+                    <div className="flex flex-col h-[350px] mt-4">
+                      <div className="flex-1 min-h-0">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie
+                              data={stats?.reportsByCategory || []}
+                              innerRadius={60}
+                              outerRadius={80}
+                              paddingAngle={5}
+                              dataKey="value"
+                            >
+                              {(stats?.reportsByCategory || []).map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                              ))}
+                            </Pie>
+                            <Tooltip 
+                              contentStyle={{ backgroundColor: '#09090b', border: '1px solid #27272a', borderRadius: '8px' }}
+                              itemStyle={{ fontSize: '12px', fontWeight: 'bold' }}
+                            />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
+                      <div className="flex flex-wrap gap-2 mt-4 justify-center pb-4">
                         {(stats?.reportsByCategory || []).map((entry, index) => (
-                          <div key={entry.name} className="flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
-                            <span className="text-[10px] text-zinc-400 font-bold truncate uppercase">{entry.name}</span>
+                          <div key={entry.name} className="flex items-center gap-1.5 bg-zinc-900/60 px-2.5 py-1.5 rounded-lg border border-zinc-800/50 shadow-sm transition-all hover:border-zinc-700">
+                            <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
+                            <span className="text-[10px] text-zinc-100 font-bold truncate uppercase tracking-tight">{entry.name}</span>
                           </div>
                         ))}
                       </div>
@@ -1524,20 +1593,33 @@ export default function App() {
                         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                         url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
                       />
+                      
+                      {/* Heatmap Layer Placeholder - Logic for gravity-based heat */}
+                      {showHeatmap && reports.map(r => (
+                        <Marker 
+                          key={`heat-${r.id}`} 
+                          position={[r.coords_lat, r.coords_lng]}
+                          icon={L.divIcon({
+                            className: 'custom-heat-pin',
+                            html: `<div style="background: ${r.gravidade === 'G4' ? '#ef4444' : r.gravidade === 'G3' ? '#f97316' : '#3b82f6'}; width: 40px; height: 40px; border-radius: 50%; opacity: 0.2; filter: blur(8px); animation: pulse 2s infinite;"></div>`
+                          })}
+                        />
+                      ))}
+
                       {reports.filter(r => r.coords_lat && r.coords_lng).map((r) => (
                         <Marker key={r.id} position={[r.coords_lat, r.coords_lng]}>
                           <Popup className="custom-popup">
-                            <div className="p-1 min-w-[150px]">
-                              <p className="text-[10px] font-black text-orange-500 uppercase tracking-widest">{r.categoria}</p>
-                              <p className="text-sm font-bold text-zinc-900 mt-1">{r.agente_nome}</p>
-                              <p className="text-[10px] text-zinc-600 mt-1 line-clamp-2">{r.descricao}</p>
-                              <div className="mt-3 flex items-center justify-between">
-                                <span className="text-[9px] font-bold text-zinc-400">{new Date(r.timestamp).toLocaleDateString()}</span>
+                            <div className="p-2 min-w-[180px] bg-zinc-950 text-zinc-100">
+                              <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-1">{r.categoria}</p>
+                              <p className="text-sm font-bold text-white mb-2">{r.agente_nome}</p>
+                              <p className="text-[10px] text-zinc-400 line-clamp-3 leading-relaxed mb-3 italic">"{r.descricao}"</p>
+                              <div className="pt-2 border-t border-zinc-800 flex items-center justify-between">
+                                <span className="text-[9px] font-bold text-zinc-500">{new Date(r.timestamp).toLocaleDateString()}</span>
                                 <button 
                                   onClick={() => setSelectedReport(r)}
-                                  className="text-[10px] font-black text-orange-500 hover:underline uppercase tracking-tighter"
+                                  className="text-[10px] font-black text-primary hover:text-white transition-colors uppercase tracking-widest"
                                 >
-                                  Ver Detalhes
+                                  Ver Ficha
                                 </button>
                               </div>
                             </div>
@@ -1545,6 +1627,19 @@ export default function App() {
                         </Marker>
                       ))}
                     </MapContainer>
+
+                    <button 
+                      onClick={() => setShowHeatmap(!showHeatmap)}
+                      className={cn(
+                        "absolute top-4 right-4 z-[1000] px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 border shadow-2xl",
+                        showHeatmap 
+                          ? "bg-primary text-black border-primary shadow-primary/20" 
+                          : "bg-zinc-900 text-zinc-400 border-zinc-800 hover:bg-zinc-800"
+                      )}
+                    >
+                      <Activity size={14} className={showHeatmap ? "animate-pulse" : ""} />
+                      {showHeatmap ? 'Heatmap On' : 'Heatmap Off'}
+                    </button>
                     
                     <div className="absolute bottom-4 right-4 bg-zinc-900/80 backdrop-blur-md border border-zinc-800 p-3 rounded-lg text-[10px] font-bold text-zinc-400 z-[1000] pointer-events-none">
                       <div className="flex items-center gap-2 mb-1">
@@ -1995,19 +2090,17 @@ export default function App() {
                         <th className="hidden lg:table-cell px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">Categoria</th>
                         <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">Gravidade</th>
                         <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">Status</th>
-                        <th className="hidden md:table-cell px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">Data/Hora</th>
-                        <th className="px-6 py-4"></th>
+                        <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] text-right">Ação</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-zinc-800/50">
                       {personalReports.map((report) => (
                         <tr 
                           key={report.id} 
-                          onClick={() => setSelectedReport(report)}
                           className="hover:bg-zinc-800/20 transition-colors group cursor-pointer"
                         >
-                          <td className="hidden md:table-cell px-6 py-4 font-mono text-xs text-zinc-500">#{report.id}</td>
-                          <td className="px-6 py-4">
+                          <td className="hidden md:table-cell px-6 py-4 font-mono text-xs text-zinc-500" onClick={() => setSelectedReport(report)}>#{report.id}</td>
+                          <td className="px-6 py-4" onClick={() => setSelectedReport(report)}>
                             <div className="flex items-center gap-3">
                               {report.fotos_path && (
                                 <div className="w-10 h-10 rounded-lg overflow-hidden border border-zinc-800 shrink-0">
@@ -2015,31 +2108,61 @@ export default function App() {
                                 </div>
                               )}
                               <div>
-                                <p className="font-bold text-zinc-100 text-sm">{report.titulo || 'Sem título'}</p>
+                                <p className="font-bold text-zinc-100 text-sm line-clamp-1">{report.agente_nome}</p>
                                 <p className="text-xs text-zinc-500 line-clamp-1">{report.descricao}</p>
                               </div>
                             </div>
                           </td>
-                          <td className="hidden lg:table-cell px-6 py-4 text-sm text-zinc-400">{report.categoria}</td>
-                          <td className="px-6 py-4">
+                          <td className="hidden lg:table-cell px-6 py-4 text-sm text-zinc-400" onClick={() => setSelectedReport(report)}>{report.categoria}</td>
+                          <td className="px-6 py-4" onClick={() => setSelectedReport(report)}>
                             <Badge gravidade={report.gravidade} />
                           </td>
-                          <td className="px-6 py-4">
+                          <td className="px-6 py-4" onClick={() => setSelectedReport(report)}>
                             <span className={cn("text-xs font-bold px-2 py-1 rounded uppercase", 
-                              report.status === 'Concluído' 
-                                ? 'bg-green-500/10 text-green-400' 
-                                : 'bg-amber-500/10 text-amber-400'
+                              report.status === 'Concluído' ? 'bg-green-500/10 text-green-400' : 
+                              report.status === 'Aprovado' ? 'bg-blue-500/10 text-blue-400' :
+                              'bg-amber-500/10 text-amber-400'
                             )}>
                               {report.status || 'Aberto'}
                             </span>
                           </td>
-                          <td className="hidden md:table-cell px-6 py-4 text-xs text-zinc-500">
-                            {new Date(report.timestamp).toLocaleDateString('pt-BR')} {new Date(report.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                          </td>
                           <td className="px-6 py-4 text-right">
-                            <button className="text-zinc-600 hover:text-primary transition-colors group-hover:opacity-100 opacity-0">
-                              <ChevronRight size={18} />
-                            </button>
+                            <div className="flex items-center justify-end gap-1">
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedReport(report);
+                                  setIsEditingReport(true);
+                                  setEditingReportData({
+                                    titulo: report.titulo || '',
+                                    descricao: report.descricao,
+                                    setor: report.setor || '',
+                                    equipamento: report.equipamento || '',
+                                    acao_imediata: report.acao_imediata || '',
+                                    testemunhas: report.testemunhas || '',
+                                    potencial_risco: report.potencial_risco || '',
+                                    fotos: []
+                                  });
+                                }}
+                                className="p-2 text-zinc-600 hover:text-blue-400 transition-colors"
+                                title="Editar Relatório"
+                              >
+                                <Edit2 size={14} />
+                              </button>
+                               <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteReport(report.id);
+                                }}
+                                className="p-2 text-zinc-600 hover:text-red-400 transition-colors"
+                                title="Deletar Relatório"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                              <button className="text-zinc-600 hover:text-primary transition-colors ml-2" onClick={() => setSelectedReport(report)}>
+                                <ChevronRight size={18} />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -2100,7 +2223,9 @@ export default function App() {
                       </Card>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-20 md:pb-0">
                       <Card title="Distribuição por Categoria">
                         <div className="space-y-3">
                           {Object.entries(dailyReportPersonal.byCategory).map(([cat, count]: [string, any]) => (
@@ -2414,6 +2539,143 @@ export default function App() {
                       ))}
                     </div>
                   )}
+                </Card>
+              </motion.div>
+            )}
+
+            {activeTab === 'parametrization' && (
+              <motion.div 
+                key="parametrization"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="space-y-6 pb-20 md:pb-0"
+              >
+                <div>
+                  <h2 className="text-2xl font-black tracking-tighter">PARAMETRIZAÇÃO</h2>
+                  <p className="text-sm text-zinc-500">Configurações globais do sistema e relatórios PDF.</p>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Branding & PDF Config */}
+                  <Card title="Identidade Visual & PDF" subtitle="Logotipo e assinaturas dos relatórios">
+                    <form onSubmit={async (e) => {
+                      e.preventDefault();
+                      const formData = new FormData(e.currentTarget);
+                      try {
+                        const settingsToSave = [
+                          { key: 'pdf_logo_url', value: formData.get('pdf_logo_url'), description: 'URL do Logotipo no PDF' },
+                          { key: 'pdf_footer_text', value: formData.get('pdf_footer_text'), description: 'Rodapé do PDF' },
+                          { key: 'pdf_default_signature', value: formData.get('pdf_default_signature'), description: 'Assinatura Padrão' },
+                        ];
+                        await fetch('/api/settings', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ settings: settingsToSave }),
+                          credentials: 'include'
+                        });
+                        toast.success("Identidade visual salva!");
+                        fetchData();
+                      } catch (err) { toast.error("Erro ao salvar identidade"); }
+                    }} className="space-y-4 mt-4">
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">URL do Logotipo (PNG/JPG)</label>
+                        <input 
+                          name="pdf_logo_url" 
+                          type="url"
+                          defaultValue={systemSettings.find(s => s.key === 'pdf_logo_url')?.value || ''} 
+                          placeholder="https://exemplo.com/logo.png"
+                          className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2 px-3 text-sm focus:outline-none focus:border-primary" 
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Assinatura Padrão (Texto)</label>
+                        <input 
+                          name="pdf_default_signature" 
+                          type="text"
+                          defaultValue={systemSettings.find(s => s.key === 'pdf_default_signature')?.value || ''} 
+                          placeholder="Ex: Responsável pela Segurança"
+                          className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2 px-3 text-sm focus:outline-none focus:border-primary" 
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Texto de Rodapé</label>
+                        <input 
+                          name="pdf_footer_text" 
+                          type="text"
+                          defaultValue={systemSettings.find(s => s.key === 'pdf_footer_text')?.value || ''} 
+                          className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2 px-3 text-sm focus:outline-none focus:border-primary" 
+                        />
+                      </div>
+                      <button type="submit" className="w-full py-3 bg-primary text-black rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-primary/90 transition-all shadow-lg shadow-primary/20">
+                        Salvar Identidade
+                      </button>
+                    </form>
+                  </Card>
+
+                  {/* Operational Settings */}
+                  <Card title="Funcionamento de Ocorrências" subtitle="Campos e comportamentos dinâmicos">
+                    <form onSubmit={async (e) => {
+                      e.preventDefault();
+                      const formData = new FormData(e.currentTarget);
+                      try {
+                        const settingsToSave = [
+                          { key: 'form_sectors', value: formData.get('form_sectors'), description: 'Setores Disponíveis' },
+                          { key: 'enable_witnesses', value: formData.get('enable_witnesses') === 'on' ? 'true' : 'false', description: 'Habilitar Testemunhas' },
+                          { key: 'enable_equipment', value: formData.get('enable_equipment') === 'on' ? 'true' : 'false', description: 'Habilitar Equipamentos' }
+                        ];
+                        await fetch('/api/settings', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ settings: settingsToSave }),
+                          credentials: 'include'
+                        });
+                        toast.success("Parâmetros operacionais salvos!");
+                        fetchData();
+                      } catch (err) { toast.error("Erro ao salvar parâmetros"); }
+                    }} className="space-y-6 mt-4">
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Setores Disponíveis (Separados por vírgula)</label>
+                        <textarea 
+                          name="form_sectors" 
+                          defaultValue={systemSettings.find(s => s.key === 'form_sectors')?.value || ''} 
+                          placeholder="Setor A, Setor B, Mina Norte..."
+                          className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2 px-3 text-sm focus:outline-none focus:border-primary min-h-[100px]" 
+                        />
+                      </div>
+                      
+                      <div className="space-y-4">
+                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block">Visibilidade de Campos</label>
+                        <div className="flex items-center justify-between p-3 bg-zinc-900/50 border border-zinc-800 rounded-xl">
+                          <span className="text-xs font-bold text-zinc-300">Campo de Testemunhas</span>
+                          <input 
+                            name="enable_witnesses" 
+                            type="checkbox" 
+                            defaultChecked={systemSettings.find(s => s.key === 'enable_witnesses')?.value === 'true'} 
+                            className="w-4 h-4 accent-primary" 
+                          />
+                        </div>
+                        <div className="flex items-center justify-between p-3 bg-zinc-900/50 border border-zinc-800 rounded-xl">
+                          <span className="text-xs font-bold text-zinc-300">Campo de Equipamentos</span>
+                          <input 
+                            name="enable_equipment" 
+                            type="checkbox" 
+                            defaultChecked={systemSettings.find(s => s.key === 'enable_equipment')?.value === 'true'} 
+                            className="w-4 h-4 accent-primary" 
+                          />
+                        </div>
+                      </div>
+
+                      <button type="submit" className="w-full py-3 bg-zinc-100 text-black rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-white transition-all">
+                        Salvar Parâmetros Ativos
+                      </button>
+                    </form>
+                  </Card>
+                </div>
+
+                {/* System Style (Original) */}
+                <Card title="Aparência do PDF" subtitle="Ajustes técnicos de layout">
+                   <PdfConfigPanel />
                 </Card>
               </motion.div>
             )}
@@ -3302,16 +3564,54 @@ export default function App() {
                     </div>
                   </div>
 
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Equipamento</label>
+                      <input 
+                        type="text"
+                        placeholder="Ex: Escavadora 01"
+                        value={newReport.equipamento}
+                        onChange={(e) => setNewReport({...newReport, equipamento: e.target.value})}
+                        className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                       <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Potencial de Risco</label>
+                       <select 
+                         className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
+                         value={newReport.potencial_risco}
+                         onChange={(e) => setNewReport({...newReport, potencial_risco: e.target.value})}
+                       >
+                         <option value="">Selecione...</option>
+                         <option value="Baixo">Baixo</option>
+                         <option value="Médio">Médio</option>
+                         <option value="Alto">Alto</option>
+                         <option value="Crítico">Crítico</option>
+                       </select>
+                    </div>
+                  </div>
+
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Equipamento Envolvido</label>
+                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Testemunhas</label>
                     <input 
                       type="text"
-                      placeholder="Ex: Escavadeira XYZ-100, Caminhão basculante"
-                      value={newReport.equipamento}
-                      onChange={(e) => setNewReport({...newReport, equipamento: e.target.value})}
+                      placeholder="Nomes separados por vírgula"
+                      value={newReport.testemunhas}
+                      onChange={(e) => setNewReport({...newReport, testemunhas: e.target.value})}
                       className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
                     />
                   </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Ação Imediata Tomada</label>
+                    <textarea 
+                      className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary min-h-[60px] resize-none"
+                      placeholder="O que foi feito no momento?"
+                      value={newReport.acao_imediata}
+                      onChange={(e) => setNewReport({...newReport, acao_imediata: e.target.value})}
+                    />
+                  </div>
+
 
                   <div className="space-y-2">
                     <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Ação Imediata Tomada</label>
@@ -3443,7 +3743,7 @@ export default function App() {
         )}
 
         {showReportPreview && (
-          <div key="preview-modal" className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+          <div key="preview-modal" className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
             <motion.div 
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -3550,7 +3850,7 @@ export default function App() {
         )}
 
         {editingAlert && (
-          <div key="edit-alert-modal" className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+          <div key="edit-alert-modal" className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
             <motion.div 
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -3620,12 +3920,12 @@ export default function App() {
         )}
 
         {selectedReport && (
-          <div key="report-details-modal" className="fixed inset-0 z-[100] flex items-center justify-center p-0 md:p-4 bg-black/90 backdrop-blur-md no-print">
+          <div key="report-details-modal" className="fixed inset-0 z-[200] flex items-center justify-center p-0 md:p-4 bg-black/95 backdrop-blur-xl no-print">
             <motion.div 
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-[#0a0a0a] border border-zinc-800 w-full max-w-2xl h-full md:h-auto md:max-h-[90vh] md:rounded-2xl overflow-hidden shadow-2xl flex flex-col relative"
+              initial={{ opacity: 0, y: 50, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 50, scale: 0.98 }}
+              className="bg-[#0a0a0a] border-zinc-800 md:border md:rounded-3xl w-full max-w-5xl h-full md:h-[90vh] overflow-hidden flex flex-col shadow-2xl relative"
             >
               <div className="p-6 border-b border-zinc-800 flex items-center justify-between bg-zinc-900/20">
                 <div className="flex items-center gap-3">
@@ -3637,24 +3937,41 @@ export default function App() {
                     <p className="text-[10px] text-zinc-500 font-bold tracking-widest uppercase">ID #{selectedReport.id} • {new Date(selectedReport.timestamp).toLocaleString()}</p>
                   </div>
                 </div>
-                <button onClick={() => setSelectedReport(null)} className="text-zinc-500 hover:text-white transition-colors">
-                  <XCircle size={24} />
-                </button>
+                <div className="flex items-center gap-2">
+                  {selectedReport.status === 'Concluído' && (
+                    <div className="hidden md:flex items-center gap-2 px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-full">
+                      <CheckCircle2 size={12} className="text-green-500" />
+                      <span className="text-[9px] font-black text-green-500 uppercase tracking-widest">Relatório Selado</span>
+                    </div>
+                  )}
+                  <button onClick={() => setSelectedReport(null)} className="text-zinc-500 hover:text-white transition-colors">
+                    <XCircle size={24} />
+                  </button>
+                </div>
               </div>
               
               <div className="p-8 space-y-8 max-h-[80vh] overflow-y-auto custom-scrollbar">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                   <div className="space-y-6">
                     <div>
                       <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-2">Título</label>
-                      <p className="text-lg font-black text-white uppercase tracking-tight">{selectedReport.titulo || 'Sem Título'}</p>
+                      {isEditingReport ? (
+                        <input 
+                          type="text" 
+                          value={editingReportData.titulo} 
+                          onChange={e => setEditingReportData({...editingReportData, titulo: e.target.value})}
+                          className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
+                        />
+                      ) : (
+                        <p className="text-lg font-black text-white uppercase tracking-tight">{selectedReport.titulo || 'Sem Título'}</p>
+                      )}
                     </div>
 
-                    <div className="flex gap-4">
+                    <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-2">Categoria</label>
-                        <div className="flex items-center gap-2 bg-zinc-900 px-3 py-1.5 rounded-lg border border-zinc-800">
-                          <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                        <div className="flex items-center gap-2 bg-zinc-900 px-3 py-2 rounded-lg border border-zinc-800">
+                          <div className="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_8px_rgba(249,115,22,0.5)]" />
                           <span className="text-xs font-bold text-zinc-300 uppercase">{selectedReport.categoria}</span>
                         </div>
                       </div>
@@ -3662,29 +3979,102 @@ export default function App() {
                         <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-2">Gravidade</label>
                         <Badge gravidade={selectedReport.gravidade} />
                       </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-2">Status</label>
-                        <div className={cn(
-                          "flex items-center gap-2 px-3 py-1.5 rounded-lg border font-bold text-xs uppercase",
-                          selectedReport.status === 'Concluído'
-                            ? "bg-green-500/10 text-green-400 border-green-500/20"
-                            : "bg-zinc-900 text-zinc-500 border-zinc-800"
-                        )}>
-                          {selectedReport.status === 'Concluído' ? <CheckCircle2 size={14} /> : <Clock size={14} />}
-                          {selectedReport.status || 'Aberto'}
+                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-2">Setor / Local</label>
+                        {isEditingReport ? (
+                          <input 
+                            type="text" 
+                            value={editingReportData.setor || ''} 
+                            onChange={e => setEditingReportData({...editingReportData, setor: e.target.value})}
+                            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2 px-4 text-sm focus:outline-none focus:border-primary"
+                          />
+                        ) : (
+                          <p className="text-sm font-bold text-zinc-300 bg-zinc-900/50 p-3 rounded-lg border border-zinc-800/50">{selectedReport.setor || 'N/A'}</p>
+                        )}
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-2">Equipamento</label>
+                        {isEditingReport ? (
+                          <input 
+                            type="text" 
+                            value={editingReportData.equipamento || ''} 
+                            onChange={e => setEditingReportData({...editingReportData, equipamento: e.target.value})}
+                            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2 px-4 text-sm focus:outline-none focus:border-primary"
+                          />
+                        ) : (
+                          <p className="text-sm font-bold text-zinc-300 bg-zinc-900/50 p-3 rounded-lg border border-zinc-800/50">{selectedReport.equipamento || 'N/A'}</p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-2">Ação Imediata Tomada</label>
+                      {isEditingReport ? (
+                        <textarea
+                          value={editingReportData.acao_imediata || ''}
+                          onChange={e => setEditingReportData({...editingReportData, acao_imediata: e.target.value})}
+                          className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-3 text-sm text-zinc-300 focus:outline-none focus:border-primary min-h-[60px]"
+                        />
+                      ) : (
+                        <div className="bg-amber-500/5 border border-amber-500/20 p-4 rounded-xl">
+                           <p className="text-sm text-zinc-300 leading-relaxed italic">"{selectedReport.acao_imediata || 'Nenhuma ação registrada'}"</p>
                         </div>
+                      )}
+                    </div>
+
+                    <div className="space-y-4">
+                      <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-1">Informações Adicionais</label>
+                      <div className="grid grid-cols-1 gap-3">
+                         <div className="bg-zinc-900/30 p-3 rounded-lg border border-zinc-900 flex items-center justify-between">
+                            <span className="text-[10px] font-bold text-zinc-500 uppercase">Testemunhas</span>
+                            {isEditingReport ? (
+                              <input 
+                                type="text" 
+                                value={editingReportData.testemunhas || ''} 
+                                onChange={e => setEditingReportData({...editingReportData, testemunhas: e.target.value})}
+                                className="bg-transparent text-right text-xs font-bold text-zinc-200 focus:outline-none"
+                                placeholder="Nomes..."
+                              />
+                            ) : (
+                              <span className="text-[10px] font-black text-zinc-300 uppercase">{selectedReport.testemunhas || 'Nenhuma'}</span>
+                            )}
+                         </div>
+                         <div className="bg-zinc-900/30 p-3 rounded-lg border border-zinc-900 flex items-center justify-between">
+                            <span className="text-[10px] font-bold text-zinc-500 uppercase">Potencial de Risco</span>
+                            {isEditingReport ? (
+                              <select 
+                                value={editingReportData.potencial_risco || ''} 
+                                onChange={e => setEditingReportData({...editingReportData, potencial_risco: e.target.value})}
+                                className="bg-transparent text-right text-xs font-bold text-zinc-200 focus:outline-none"
+                              >
+                                <option value="">Selecione...</option>
+                                <option value="Baixo">Baixo</option>
+                                <option value="Médio">Médio</option>
+                                <option value="Alto">Alto</option>
+                                <option value="Crítico">Crítico</option>
+                              </select>
+                            ) : (
+                              <span className={cn(
+                                "text-[10px] font-black uppercase",
+                                selectedReport.potencial_risco === 'Crítico' ? "text-red-500" : "text-zinc-300"
+                              )}>{selectedReport.potencial_risco || 'Não Avaliado'}</span>
+                            )}
+                         </div>
                       </div>
                     </div>
 
                     <div>
                       <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-2">Agente Responsável</label>
-                      <div className="flex items-center gap-3 bg-zinc-900 p-3 rounded-xl border border-zinc-800">
-                        <div className="w-8 h-8 rounded bg-primary flex items-center justify-center text-xs font-black text-black">
+                      <div className="flex items-center gap-3 bg-zinc-900/50 p-3 rounded-xl border border-zinc-800 shadow-inner">
+                        <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-sm font-black text-black shadow-lg shadow-primary/20">
                           {selectedReport.agente_nome.charAt(0)}
                         </div>
                         <div>
-                          <p className="text-xs font-bold text-zinc-200">{selectedReport.agente_nome}</p>
-                          <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">{selectedReport.agente_nivel}</p>
+                          <p className="text-xs font-black text-zinc-200 uppercase tracking-tight">{selectedReport.agente_nome}</p>
+                          <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest leading-none mt-1">{selectedReport.agente_nivel}</p>
                         </div>
                       </div>
                     </div>
@@ -3894,7 +4284,6 @@ export default function App() {
                               const data = await res.json();
                               if (data.status === 'success') {
                                 toast.success("Relatório aprovado e selado com sucesso!");
-                                // Update via state hook directly avoids missing updates
                                 setReports(reports.map(r => r.id === selectedReport.id ? { ...r, status: 'Aprovado' as any } : r));
                                 setSelectedReport({ ...selectedReport, status: 'Aprovado' as any });
                               } else {
@@ -3932,7 +4321,7 @@ export default function App() {
         )}
 
         {isNewUserModalOpen && (
-          <div key="new-user-modal" className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+          <div key="new-user-modal" className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
             <motion.div 
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -4116,7 +4505,7 @@ export default function App() {
                   <SidebarItem icon={Lock} label="Permissões" active={activeTab === 'permissions'} onClick={() => { setActiveTab('permissions'); setIsMobileMenuOpen(false); }} />
                 )}
                 {currentUser.permissions?.manage_settings === true && (
-                  <SidebarItem icon={SettingsIcon} label="Config" active={activeTab === 'settings'} onClick={() => { setActiveTab('settings'); setIsMobileMenuOpen(false); }} />
+                  <SidebarItem icon={Settings2} label="Parametrização" active={activeTab === 'parametrization'} onClick={() => { setActiveTab('parametrization'); setIsMobileMenuOpen(false); }} />
                 )}
                 <motion.button 
                   whileTap={{ scale: 0.96 }}

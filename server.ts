@@ -638,31 +638,41 @@ async function startServer() {
     try {
       const userRole = req.user.nivel_hierarquico;
       const userId = req.user.id;
+      const range = req.query.range as string || '7days';
       const userWeight = (db.prepare("SELECT peso FROM role_weights WHERE nivel_hierarquico = ?").get(userRole) as any)?.peso || 0;
+
+      let dateFilter = "AND timestamp >= date('now', '-7 days')";
+      let chartRange = "-7 days";
+      
+      if (range === 'today') {
+        dateFilter = "AND date(timestamp) = date('now')";
+        chartRange = "0 days"; // Just today
+      } else if (range === '30days') {
+        dateFilter = "AND timestamp >= date('now', '-30 days')";
+        chartRange = "-30 days";
+      }
 
       let totalReports, totalUsers, reportsByCategory, reportsBySeverity, reportsLast7Days;
 
       if (userWeight < 60) {
-        // Apenas as suas próprias estatísticas
-        totalReports = (db.prepare("SELECT COUNT(*) as count FROM reports WHERE agente_id = ?").get(userId) as any).count;
+        totalReports = (db.prepare(`SELECT COUNT(*) as count FROM reports WHERE agente_id = ? ${dateFilter}`).get(userId) as any).count;
         totalUsers = 1; 
-        reportsByCategory = db.prepare("SELECT categoria as name, COUNT(*) as value FROM reports WHERE agente_id = ? GROUP BY categoria").all(userId);
-        reportsBySeverity = db.prepare("SELECT gravidade as name, COUNT(*) as value FROM reports WHERE agente_id = ? GROUP BY gravidade").all(userId);
+        reportsByCategory = db.prepare(`SELECT categoria as name, COUNT(*) as value FROM reports WHERE agente_id = ? ${dateFilter} GROUP BY categoria`).all(userId);
+        reportsBySeverity = db.prepare(`SELECT gravidade as name, COUNT(*) as value FROM reports WHERE agente_id = ? ${dateFilter} GROUP BY gravidade`).all(userId);
         reportsLast7Days = db.prepare(`
           SELECT date(timestamp) as date, COUNT(*) as count 
           FROM reports 
-          WHERE agente_id = ? AND timestamp >= date('now', '-7 days') 
+          WHERE agente_id = ? AND timestamp >= date('now', ?) 
           GROUP BY date(timestamp)
           ORDER BY date ASC
-        `).all(userId);
+        `).all(userId, chartRange);
       } else {
-        // Hierarquia (Oficial e acima)
         totalReports = (db.prepare(`
           SELECT COUNT(*) as count 
           FROM reports r
           JOIN users u ON r.agente_id = u.id
           JOIN role_weights rw ON u.nivel_hierarquico = rw.nivel_hierarquico
-          WHERE rw.peso <= ?
+          WHERE rw.peso <= ? ${dateFilter.replace('timestamp', 'r.timestamp')}
         `).get(userWeight) as any).count;
         
         totalUsers = (db.prepare(`
@@ -677,7 +687,7 @@ async function startServer() {
           FROM reports r
           JOIN users u ON r.agente_id = u.id
           JOIN role_weights rw ON u.nivel_hierarquico = rw.nivel_hierarquico
-          WHERE rw.peso <= ?
+          WHERE rw.peso <= ? ${dateFilter.replace('timestamp', 'r.timestamp')}
           GROUP BY r.categoria
         `).all(userWeight);
 
@@ -686,7 +696,7 @@ async function startServer() {
           FROM reports r
           JOIN users u ON r.agente_id = u.id
           JOIN role_weights rw ON u.nivel_hierarquico = rw.nivel_hierarquico
-          WHERE rw.peso <= ?
+          WHERE rw.peso <= ? ${dateFilter.replace('timestamp', 'r.timestamp')}
           GROUP BY r.gravidade
         `).all(userWeight);
 
@@ -695,10 +705,10 @@ async function startServer() {
           FROM reports r
           JOIN users u ON r.agente_id = u.id
           JOIN role_weights rw ON u.nivel_hierarquico = rw.nivel_hierarquico
-          WHERE rw.peso <= ? AND r.timestamp >= date('now', '-7 days') 
+          WHERE rw.peso <= ? AND r.timestamp >= date('now', ?) 
           GROUP BY date(r.timestamp)
           ORDER BY date ASC
-        `).all(userWeight);
+        `).all(userWeight, chartRange);
       }
 
       res.json({
@@ -991,6 +1001,30 @@ async function startServer() {
       res.json({ status: 'success', message: 'Relatório atualizado com sucesso', report: updatedReport });
     } catch (err: any) {
       console.error("Erro ao atualizar relatório:", err);
+      res.status(500).json({ status: 'error', message: err.message });
+    }
+  });
+
+  app.delete("/api/reports/:id", authenticate, checkPermission('conclude_reports'), (req: any, res) => {
+    try {
+      const { id } = req.params;
+      
+      // Check if report exists
+      const report = db.prepare("SELECT id FROM reports WHERE id = ?").get(id) as any;
+      if (!report) {
+        return res.status(404).json({ status: 'error', message: 'Relatório não encontrado' });
+      }
+
+      const transaction = db.transaction(() => {
+        db.prepare("DELETE FROM reports WHERE id = ?").run(id);
+        db.prepare("DELETE FROM report_photos WHERE report_id = ?").run(id);
+        db.prepare("DELETE FROM telegram_queue WHERE report_id = ?").run(id);
+      });
+
+      transaction();
+      io.emit('report_deleted', { id: parseInt(id) });
+      res.json({ status: 'success', message: 'Relatório removido com sucesso' });
+    } catch (err: any) {
       res.status(500).json({ status: 'error', message: err.message });
     }
   });
