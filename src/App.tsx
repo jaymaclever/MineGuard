@@ -4343,6 +4343,18 @@ export default function App() {
                           Aprovar (Selar)
                         </button>
                       )}
+                      {(String(currentUser?.nivel_hierarquico).toLowerCase() === 'superadmin' || 
+                        String(currentUser?.nivel_hierarquico).toLowerCase() === 'admin' || 
+                        currentUser?.permissions?.delete_reports ||
+                        currentUser?.id === 1) && (
+                        <button 
+                          onClick={() => handleDeleteReport(selectedReport.id)}
+                          className="bg-red-600 hover:bg-red-500 text-white font-black text-[10px] px-8 py-2.5 rounded-lg transition-all uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-red-900/20"
+                        >
+                          <Trash2 size={14} />
+                          Deletar
+                        </button>
+                      )}
                       <button 
                         onClick={() => window.print()}
                         className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-black text-[10px] px-8 py-2.5 rounded-lg transition-all uppercase tracking-widest flex items-center gap-2"
@@ -4356,15 +4368,6 @@ export default function App() {
                       >
                         Fechar Detalhes
                       </button>
-                      {(currentUser?.permissions?.delete_reports || currentUser?.nivel_hierarquico === 'Superadmin') && (
-                        <button 
-                          onClick={() => handleDeleteReport(selectedReport.id)}
-                          className="bg-red-600 hover:bg-red-500 text-white font-black text-[10px] px-8 py-2.5 rounded-lg transition-all uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-red-900/20"
-                        >
-                          <Trash2 size={14} />
-                          Deletar
-                        </button>
-                      )}
                     </>
                   )}
                 </div>

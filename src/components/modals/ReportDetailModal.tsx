@@ -324,7 +324,10 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
                   <Printer size={14} />
                   Exportar PDF
                 </button>
-                {(currentUser?.permissions?.delete_reports || currentUser?.nivel_hierarquico === 'Superadmin') && (
+                {(String(currentUser?.nivel_hierarquico).toLowerCase() === 'superadmin' || 
+                  String(currentUser?.nivel_hierarquico).toLowerCase() === 'admin' || 
+                  currentUser?.permissions?.delete_reports ||
+                  currentUser?.id === 1) && (
                   <button 
                     onClick={() => {
                       if (window.confirm("Tem certeza que deseja excluir esta ocorrência permanentemente?")) {
