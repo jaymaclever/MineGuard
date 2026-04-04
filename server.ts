@@ -216,13 +216,13 @@ if (permsCount.count === 0) {
   // Define permissions matrix
   const rolePermissions: Record<string, string[]> = {
     'Superadmin': [
-      'view_dashboard', 'view_reports', 'create_reports', 'conclude_reports',
+      'view_dashboard', 'view_reports', 'create_reports', 'conclude_reports', 'delete_reports',
       'view_daily_reports', 'view_team_daily', 'create_alerts', 'edit_own_alerts',
       'manage_users', 'manage_permissions', 'manage_settings', 'view_audit_logs',
       'view_personal_reports', 'view_personal_daily', 'export_reports'
     ],
     'Admin': [
-      'view_dashboard', 'view_reports', 'create_reports', 'conclude_reports',
+      'view_dashboard', 'view_reports', 'create_reports', 'conclude_reports', 'delete_reports',
       'view_daily_reports', 'view_team_daily', 'create_alerts', 'edit_own_alerts',
       'manage_users', 'manage_permissions', 'manage_settings', 'view_audit_logs',
       'view_personal_reports', 'view_personal_daily', 'export_reports'
@@ -259,6 +259,15 @@ if (permsCount.count === 0) {
     perms.forEach(p => insertPerm.run(role, p, 1));
   });
 }
+
+// Migration: Ensure 'delete_reports' permission is present for Superadmin and Admin
+['Superadmin', 'Admin'].forEach(role => {
+  const exists = db.prepare("SELECT 1 FROM permissions WHERE nivel_hierarquico = ? AND permissao_nome = ?").get(role, 'delete_reports');
+  if (!exists) {
+    db.prepare("INSERT INTO permissions (nivel_hierarquico, permissao_nome, is_enabled) VALUES (?, ?, ?)").run(role, 'delete_reports', 1);
+    console.log(`Migration: Added 'delete_reports' permission for ${role}`);
+  }
+});
 
 // Seed mock users if empty
 const usersCount = db.prepare("SELECT COUNT(*) as count FROM users").get() as any;
@@ -393,6 +402,11 @@ async function startServer() {
   // Permission Middleware
   const checkPermission = (permission: string) => {
     return (req: any, res: any, next: any) => {
+      // Superadmin bypass: Always allow access
+      if (req.user?.nivel_hierarquico === 'Superadmin') {
+        return next();
+      }
+
       const userPermissions = req.user.permissions || {};
       if (userPermissions[permission] === true) {
         next();
@@ -1022,6 +1036,7 @@ async function startServer() {
       });
 
       transaction();
+      console.log(`REPORT_DELETED: ID ${id} deleted by ${req.user.nome} (${req.user.nivel_hierarquico})`);
       io.emit('report_deleted', { id: parseInt(id) });
       res.json({ status: 'success', message: 'Relatório removido com sucesso' });
     } catch (err: any) {

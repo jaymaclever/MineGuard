@@ -390,7 +390,6 @@ const Login = ({ onLogin, publicSettings }: { onLogin: (user: any) => void, publ
                 required
                 value={numero}
                 onChange={(e) => setNumero(e.target.value)}
-                placeholder="Ex: superadmin"
                 className="w-full bg-zinc-900/50 border border-zinc-800 rounded-xl py-3 pl-10 pr-4 text-sm focus:outline-none focus:border-primary/50 focus:bg-zinc-900 transition-all"
               />
             </div>
@@ -405,7 +404,6 @@ const Login = ({ onLogin, publicSettings }: { onLogin: (user: any) => void, publ
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
                 className="w-full bg-zinc-900/50 border border-zinc-800 rounded-xl py-3 pl-10 pr-4 text-sm focus:outline-none focus:border-primary/50 focus:bg-zinc-900 transition-all"
               />
             </div>
@@ -612,6 +610,14 @@ export default function App() {
     socket.on('alert_deleted', ({ id }: { id: number }) => {
       setAlerts(prev => prev.filter(a => a.id !== id));
       toast.info("Alerta removido");
+    });
+
+    socket.on('report_deleted', ({ id }: { id: number }) => {
+      setReports(prev => prev.filter(r => r.id !== id));
+      if (selectedReport && selectedReport.id === id) {
+        setSelectedReport(null);
+      }
+      toast.info("Ocorrência removida");
     });
 
     return () => { socket.disconnect(); };
@@ -1115,6 +1121,9 @@ export default function App() {
       const data = await res.json();
       if (data.status === 'success') {
         toast.success("Relatório removido com sucesso!");
+        // Update local state immediately for better UX
+        setReports(prev => prev.filter(r => r.id !== id));
+        setSelectedReport(null);
         fetchData();
       } else {
         toast.error(data.message || "Erro ao remover relatório");
@@ -1594,17 +1603,52 @@ export default function App() {
                         url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
                       />
                       
-                      {/* Heatmap Layer Placeholder - Logic for gravity-based heat */}
-                      {showHeatmap && reports.map(r => (
-                        <Marker 
-                          key={`heat-${r.id}`} 
-                          position={[r.coords_lat, r.coords_lng]}
-                          icon={L.divIcon({
-                            className: 'custom-heat-pin',
-                            html: `<div style="background: ${r.gravidade === 'G4' ? '#ef4444' : r.gravidade === 'G3' ? '#f97316' : '#3b82f6'}; width: 40px; height: 40px; border-radius: 50%; opacity: 0.2; filter: blur(8px); animation: pulse 2s infinite;"></div>`
-                          })}
-                        />
-                      ))}
+                      {/* Heatmap Layer - Dynamic color based on gravity severity */}
+                      {showHeatmap && reports.map(r => {
+                        const gravityColors: Record<string, string> = {
+                          'G4': '#ef4444', 
+                          'G3': '#f97316', 
+                          'G2': '#eab308', 
+                          'G1': '#3b82f6'  
+                        };
+                        const sizes: Record<string, number> = {
+                          'G4': 80,
+                          'G3': 60,
+                          'G2': 40,
+                          'G1': 30
+                        };
+                        const opacities: Record<string, number> = {
+                          'G4': 0.3,
+                          'G3': 0.2,
+                          'G2': 0.15,
+                          'G1': 0.1
+                        };
+                        const color = gravityColors[r.gravidade as string] || '#71717a';
+                        const size = sizes[r.gravidade as string] || 40;
+                        const opacity = opacities[r.gravidade as string] || 0.15;
+                        
+                        return (
+                          <Marker 
+                            key={`heat-${r.id}`} 
+                            position={[r.coords_lat, r.coords_lng]}
+                            icon={L.divIcon({
+                              className: 'custom-heat-pin',
+                              html: `<div style="
+                                background: ${color}; 
+                                width: ${size}px; 
+                                height: ${size}px; 
+                                margin-left: -${size/2}px;
+                                margin-top: -${size/2}px;
+                                border-radius: 50%; 
+                                opacity: ${opacity}; 
+                                filter: blur(${size/4}px); 
+                                box-shadow: 0 0 ${size/2}px ${color};
+                                animation: pulse-heat 3s infinite ease-in-out;
+                              "></div>`
+                            })}
+                          />
+                        );
+                      })}
 
                       {reports.filter(r => r.coords_lat && r.coords_lng).map((r) => (
                         <Marker key={r.id} position={[r.coords_lat, r.coords_lng]}>
@@ -4312,6 +4356,15 @@ export default function App() {
                       >
                         Fechar Detalhes
                       </button>
+                      {(currentUser?.permissions?.delete_reports || currentUser?.nivel_hierarquico === 'Superadmin') && (
+                        <button 
+                          onClick={() => handleDeleteReport(selectedReport.id)}
+                          className="bg-red-600 hover:bg-red-500 text-white font-black text-[10px] px-8 py-2.5 rounded-lg transition-all uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-red-900/20"
+                        >
+                          <Trash2 size={14} />
+                          Deletar
+                        </button>
+                      )}
                     </>
                   )}
                 </div>
@@ -4365,7 +4418,6 @@ export default function App() {
                         required
                         type="text" 
                         className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
-                        placeholder="Ex: M-5022"
                         value={newUser.numero_mecanografico}
                         onChange={(e) => setNewUser({...newUser, numero_mecanografico: e.target.value})}
                       />
@@ -4401,7 +4453,6 @@ export default function App() {
                         type="password" 
                         required={!editingUser}
                         className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
-                        placeholder={editingUser ? "Deixe em branco para manter" : "Senha inicial"}
                         value={newUser.password}
                         onChange={(e) => setNewUser({...newUser, password: e.target.value})}
                       />
@@ -4505,7 +4556,7 @@ export default function App() {
                   <SidebarItem icon={Lock} label="Permissões" active={activeTab === 'permissions'} onClick={() => { setActiveTab('permissions'); setIsMobileMenuOpen(false); }} />
                 )}
                 {currentUser.permissions?.manage_settings === true && (
-                  <SidebarItem icon={Settings2} label="Parametrização" active={activeTab === 'parametrization'} onClick={() => { setActiveTab('parametrization'); setIsMobileMenuOpen(false); }} />
+                  <SidebarItem icon={SettingsIcon} label="Parametrização" active={activeTab === 'parametrization'} onClick={() => { setActiveTab('parametrization'); setIsMobileMenuOpen(false); }} />
                 )}
                 <motion.button 
                   whileTap={{ scale: 0.96 }}

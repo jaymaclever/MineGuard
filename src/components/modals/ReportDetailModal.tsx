@@ -8,7 +8,8 @@ import {
   Camera, 
   MapPin, 
   Shield, 
-  Printer 
+  Printer,
+  Trash2 
 } from 'lucide-react';
 import { Badge } from '../ui/LayoutComponents';
 import { cn } from '../../lib/utils';
@@ -25,6 +26,7 @@ interface ReportDetailModalProps {
   onSaveEdits: () => void;
   onConclude: (id: number, status: string) => void;
   onApprove: (id: number) => void;
+  onDelete: (id: number) => void;
 }
 
 export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
@@ -37,7 +39,8 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
   setEditingData,
   onSaveEdits,
   onConclude,
-  onApprove
+  onApprove,
+  onDelete
 }) => {
   if (!report) return null;
 
@@ -321,6 +324,19 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
                   <Printer size={14} />
                   Exportar PDF
                 </button>
+                {(currentUser?.permissions?.delete_reports || currentUser?.nivel_hierarquico === 'Superadmin') && (
+                  <button 
+                    onClick={() => {
+                      if (window.confirm("Tem certeza que deseja excluir esta ocorrência permanentemente?")) {
+                        onDelete(report.id);
+                      }
+                    }}
+                    className="bg-red-600 hover:bg-red-500 text-white font-black text-[10px] px-8 py-2.5 rounded-lg transition-all uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-red-900/20"
+                  >
+                    <Trash2 size={14} />
+                    Deletar
+                  </button>
+                )}
                 <button 
                   onClick={onClose}
                   className="bg-zinc-100 hover:bg-white text-black font-black text-[10px] px-8 py-2.5 rounded-lg transition-all uppercase tracking-widest"

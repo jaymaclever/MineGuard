@@ -24,6 +24,7 @@ import {
   Cell 
 } from 'recharts';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import L from 'leaflet';
 import { cn } from '../../lib/utils';
 import { Card, Badge } from '../ui/LayoutComponents';
 import { Stats, Report, User } from '../../types';
@@ -213,6 +214,39 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
             />
+            {/* Severity Heatmap Layer */}
+            {reports.map((r) => {
+              const gravityColors: Record<string, string> = {
+                'G4': '#ef4444', 
+                'G3': '#f97316', 
+                'G2': '#eab308', 
+                'G1': '#3b82f6'  
+              };
+              const sizes: Record<string, number> = {
+                'G4': 80, 'G3': 60, 'G2': 40, 'G1': 30
+              };
+              const color = gravityColors[r.gravidade as string] || '#71717a';
+              const size = sizes[r.gravidade as string] || 40;
+              
+              return (
+                <Marker 
+                  key={`heat-${r.id}`} 
+                  position={[r.coords_lat, r.coords_lng]}
+                  icon={L.divIcon({
+                    className: 'custom-heat-pin',
+                    html: `<div style="
+                      background: ${color}; 
+                      width: ${size}px; height: ${size}px; 
+                      margin-left: -${size/2}px; margin-top: -${size/2}px;
+                      border-radius: 50%; opacity: 0.15; 
+                      filter: blur(${size/4}px); 
+                      box-shadow: 0 0 ${size/2}px ${color};
+                      animation: pulse-heat 3s infinite ease-in-out;
+                    "></div>`
+                  })}
+                />
+              );
+            })}
             {reports.filter(r => r.coords_lat && r.coords_lng).map((r) => (
               <Marker key={r.id} position={[r.coords_lat, r.coords_lng]}>
                 <Popup className="custom-popup">
