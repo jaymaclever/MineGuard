@@ -3486,14 +3486,14 @@ export default function App() {
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               className="bg-[#0a0a0a] border border-zinc-800 w-full max-w-lg h-full md:h-auto md:max-h-[90vh] md:rounded-2xl overflow-hidden shadow-2xl flex flex-col relative"
             >
-              <form onSubmit={handleCreateReport}>
+              <form onSubmit={handleCreateReport} className="flex flex-col h-full">
                 <div className="p-6 border-b border-zinc-800 flex items-center justify-between bg-zinc-900/20">
                   <h3 className="text-xl font-black tracking-tighter uppercase">Registrar Ocorrência</h3>
                   <button type="button" onClick={() => setIsNewReportModalOpen(false)} className="text-zinc-500 hover:text-white transition-colors">
                     <XCircle size={24} />
                   </button>
                 </div>
-                <div className="p-6 space-y-5 max-h-[70vh] overflow-y-auto custom-scrollbar">
+                <div className="flex-1 p-6 space-y-5 overflow-y-auto custom-scrollbar">
                   <div className="space-y-2">
                     <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Título da Ocorrência</label>
                     <input 
@@ -3656,49 +3656,19 @@ export default function App() {
                     />
                   </div>
 
-
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Ação Imediata Tomada</label>
-                    <textarea 
-                      className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary min-h-[70px] resize-none"
-                      placeholder="O que foi feito imediatamente após o ocorrido?"
-                      value={newReport.acao_imediata}
-                      onChange={(e) => setNewReport({...newReport, acao_imediata: e.target.value})}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Testemunhas</label>
-                    <input 
-                      type="text"
-                      placeholder="Nomes das pessoas que presenciaram"
-                      value={newReport.testemunhas}
-                      onChange={(e) => setNewReport({...newReport, testemunhas: e.target.value})}
-                      className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Potencial de Risco</label>
-                    <textarea 
-                      className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary min-h-[70px] resize-none"
-                      placeholder="Se tivesse piorado, qual seria o risco/consequência potencial?"
-                      value={newReport.potencial_risco}
-                      onChange={(e) => setNewReport({...newReport, potencial_risco: e.target.value})}
-                    />
-                  </div>
-
-                  <div className="flex items-center gap-3 bg-zinc-900/50 p-4 rounded-lg border border-zinc-800">
-                    <input 
-                      type="checkbox"
-                      id="investigacao"
-                      checked={newReport.requer_investigacao}
-                      onChange={(e) => setNewReport({...newReport, requer_investigacao: e.target.checked})}
-                      className="w-4 h-4 cursor-pointer"
-                    />
-                    <label htmlFor="investigacao" className="text-sm font-bold text-zinc-300 cursor-pointer flex-1">
-                      ⚠️ Esta ocorrência requer investigação formal
-                    </label>
+                  <div className="space-y-4 pt-2 border-t border-zinc-800/50">
+                    <div className="flex items-center gap-3 bg-zinc-900/50 p-4 rounded-xl border border-zinc-800">
+                      <input 
+                        type="checkbox"
+                        id="investigacao"
+                        checked={newReport.requer_investigacao}
+                        onChange={(e) => setNewReport({...newReport, requer_investigacao: e.target.checked})}
+                        className="w-5 h-5 cursor-pointer rounded border-zinc-700 bg-zinc-900 text-primary focus:ring-primary/20"
+                      />
+                      <label htmlFor="investigacao" className="text-sm font-bold text-zinc-300 cursor-pointer flex-1">
+                        ⚠️ Esta ocorrência requer investigação formal
+                      </label>
+                    </div>
                   </div>
 
                   <div className="space-y-2">
@@ -3776,10 +3746,10 @@ export default function App() {
                     )}
                   </div>
                 </div>
-                <div className="p-6 bg-zinc-900/20 border-t border-zinc-800 flex justify-end gap-3">
-                  <button type="button" onClick={() => setIsNewReportModalOpen(false)} className="px-6 py-2.5 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white transition-colors">Cancelar</button>
-                  <button type="button" onClick={() => setShowReportPreview(true)} className="bg-zinc-700 hover:bg-zinc-600 text-white font-black text-[10px] px-8 py-2.5 rounded-lg transition-all uppercase tracking-widest">Visualizar</button>
-                  <button type="submit" className="bg-primary hover:bg-primary/90 text-black font-black text-[10px] px-8 py-2.5 rounded-lg transition-all uppercase tracking-widest shadow-lg shadow-primary/20">Transmitir Relatório</button>
+                <div className="p-4 md:p-6 bg-zinc-900/40 border-t border-zinc-800 flex flex-col-reverse sm:flex-row justify-end gap-3 no-print">
+                  <button type="button" onClick={() => setIsNewReportModalOpen(false)} className="w-full sm:w-auto px-6 py-2.5 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white transition-all bg-zinc-900/50 sm:bg-transparent rounded-lg border border-zinc-800 sm:border-none">Cancelar</button>
+                  <button type="button" onClick={() => setShowReportPreview(true)} className="w-full sm:w-auto bg-zinc-800 hover:bg-zinc-700 text-white font-black text-[10px] px-8 py-2.5 rounded-lg transition-all uppercase tracking-widest border border-zinc-700">Visualizar</button>
+                  <button type="submit" className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-black font-black text-[10px] px-8 py-3 rounded-lg transition-all uppercase tracking-widest shadow-lg shadow-primary/20">Transmitir Relatório</button>
                 </div>
               </form>
             </motion.div>
@@ -3994,7 +3964,7 @@ export default function App() {
                 </div>
               </div>
               
-              <div className="p-8 space-y-8 max-h-[80vh] overflow-y-auto custom-scrollbar">
+              <div className="flex-1 p-8 space-y-8 overflow-y-auto custom-scrollbar">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                   <div className="space-y-6">
                     <div>
@@ -4260,116 +4230,123 @@ export default function App() {
                 </div>
               </div>
               
-              <div className="p-6 bg-zinc-900/20 border-t border-zinc-800 flex justify-between items-center no-print">
-                <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest">Sistema de Segurança MineGuard • Auditoria Ativa</p>
-                <div className="flex gap-3">
-                  {isEditingReport && selectedReport.status === 'Aberto' ? (
-                    <>
-                      <button 
-                        type="button"
-                        onClick={() => setIsEditingReport(false)}
-                        className="font-black text-[10px] px-8 py-2.5 rounded-lg transition-all uppercase tracking-widest bg-zinc-800 hover:bg-zinc-700 text-zinc-300"
-                      >
-                        Cancelar
-                      </button>
-                      <button 
-                        type="button"
-                        onClick={handleSaveReportEdits}
-                        className="bg-blue-600 hover:bg-blue-500 text-white font-black text-[10px] px-8 py-2.5 rounded-lg transition-all uppercase tracking-widest shadow-lg shadow-blue-900/20"
-                      >
-                        Salvar Alterações
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      {selectedReport.status === 'Aberto' && (
-                        <button 
-                          type="button"
-                          onClick={() => setIsEditingReport(true)}
-                          className="bg-primary hover:bg-primary/90 text-black font-black text-[10px] px-8 py-2.5 rounded-lg transition-all uppercase tracking-widest shadow-lg shadow-primary/20 flex items-center gap-2"
-                        >
-                          Editar
-                        </button>
-                      )}
-                      {selectedReport.status !== 'Aprovado' && (selectedReport.status !== 'Concluído' || currentUser?.permissions?.conclude_reports) && (
-                        <button 
-                          onClick={() => handleConcludeReport(selectedReport.id, selectedReport.status || 'Aberto')}
-                          className={cn(
-                            "font-black text-[10px] px-8 py-2.5 rounded-lg transition-all uppercase tracking-widest flex items-center gap-2",
-                            selectedReport.status === 'Concluído'
-                              ? "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
-                              : "bg-green-600 hover:bg-green-500 text-white shadow-lg shadow-green-900/20"
-                          )}
-                        >
-                          {selectedReport.status === 'Concluído' ? (
-                            <>
-                              <Clock size={14} />
-                              Reabrir Relatório
-                            </>
-                          ) : (
-                            <>
-                              <CheckCircle2 size={14} />
-                              Concluir Relatório
-                            </>
-                          )}
-                        </button>
-                      )}
-
-                      {selectedReport.status !== 'Aprovado' && selectedReport.status === 'Concluído' && currentUser?.permissions?.approve_reports && (
-                        <button 
-                          onClick={async () => {
-                            try {
-                              const res = await fetch(`/api/reports/${selectedReport.id}/status`, {
-                                method: 'PATCH',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ status: 'Aprovado' }),
-                                credentials: 'include'
-                              });
-                              const data = await res.json();
-                              if (data.status === 'success') {
-                                toast.success("Relatório aprovado e selado com sucesso!");
-                                setReports(reports.map(r => r.id === selectedReport.id ? { ...r, status: 'Aprovado' as any } : r));
-                                setSelectedReport({ ...selectedReport, status: 'Aprovado' as any });
-                              } else {
-                                toast.error(data.message);
-                              }
-                            } catch (err) {
-                              toast.error("Erro ao aprovar relatório");
-                            }
-                          }}
-                          className="bg-indigo-600 hover:bg-indigo-500 text-white font-black text-[10px] px-8 py-2.5 rounded-lg transition-all uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-indigo-900/20"
-                        >
-                          <Shield size={14} />
-                          Aprovar (Selar)
-                        </button>
-                      )}
-                      {(String(currentUser?.nivel_hierarquico).toLowerCase() === 'superadmin' || 
-                        String(currentUser?.nivel_hierarquico).toLowerCase() === 'admin' || 
-                        currentUser?.permissions?.delete_reports ||
-                        currentUser?.id === 1) && (
-                        <button 
-                          onClick={() => handleDeleteReport(selectedReport.id)}
-                          className="bg-red-600 hover:bg-red-500 text-white font-black text-[10px] px-8 py-2.5 rounded-lg transition-all uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-red-900/20"
-                        >
-                          <Trash2 size={14} />
-                          Deletar
-                        </button>
-                      )}
-                      <button 
+              <div className="p-4 md:p-6 bg-zinc-900/40 border-t border-zinc-800 no-print">
+                <div className="flex flex-col gap-4">
+                  <div className="flex flex-col sm:flex-row justify-between items-center bg-zinc-900/50 p-3 rounded-xl border border-zinc-800/50 gap-4 sm:gap-2">
+                    <p className="text-[9px] md:text-[10px] text-zinc-600 font-bold uppercase tracking-widest text-center sm:text-left">Sistema de Segurança MineGuard • Auditoria Ativa</p>
+                    <div className="flex items-center gap-2">
+                       <button 
                         onClick={() => window.print()}
-                        className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-black text-[10px] px-8 py-2.5 rounded-lg transition-all uppercase tracking-widest flex items-center gap-2"
+                        className="p-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg transition-all border border-zinc-700"
+                        title="Exportar PDF"
                       >
-                        <Printer size={14} />
-                        Exportar PDF
+                        <Printer size={16} />
                       </button>
                       <button 
                         onClick={() => setSelectedReport(null)}
-                        className="bg-zinc-100 hover:bg-white text-black font-black text-[10px] px-8 py-2.5 rounded-lg transition-all uppercase tracking-widest"
+                        className="bg-zinc-100 hover:bg-white text-black font-black text-[10px] px-6 py-2.5 rounded-lg transition-all uppercase tracking-widest"
                       >
-                        Fechar Detalhes
+                        Fechar
                       </button>
-                    </>
-                  )}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2 justify-center sm:justify-end">
+                    {isEditingReport && selectedReport.status === 'Aberto' ? (
+                      <>
+                        <button 
+                          type="button"
+                          onClick={() => setIsEditingReport(false)}
+                          className="flex-1 sm:flex-none font-black text-[10px] px-8 py-2.5 rounded-lg transition-all uppercase tracking-widest bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700"
+                        >
+                          Cancelar
+                        </button>
+                        <button 
+                          type="button"
+                          onClick={handleSaveReportEdits}
+                          className="flex-1 sm:flex-none bg-blue-600 hover:bg-blue-500 text-white font-black text-[10px] px-8 py-2.5 rounded-lg transition-all uppercase tracking-widest shadow-lg shadow-blue-900/20"
+                        >
+                          Salvar Alterações
+                        </button>
+                      </>
+                    ) : (
+                      <div className="grid grid-cols-2 xs:flex xs:flex-wrap gap-2 w-full sm:w-auto">
+                        {selectedReport.status === 'Aberto' && (
+                          <button 
+                            type="button"
+                            onClick={() => setIsEditingReport(true)}
+                            className="bg-primary hover:bg-primary/90 text-black font-black text-[10px] px-6 py-2.5 rounded-lg transition-all uppercase tracking-widest shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
+                          >
+                            Editar
+                          </button>
+                        )}
+                        {selectedReport.status !== 'Aprovado' && (selectedReport.status !== 'Concluído' || currentUser?.permissions?.conclude_reports) && (
+                          <button 
+                            onClick={() => handleConcludeReport(selectedReport.id, selectedReport.status || 'Aberto')}
+                            className={cn(
+                              "font-black text-[10px] px-6 py-2.5 rounded-lg transition-all uppercase tracking-widest flex items-center justify-center gap-2 min-w-[120px]",
+                              selectedReport.status === 'Concluído'
+                                ? "bg-zinc-800 text-zinc-400 hover:bg-zinc-700 border border-zinc-700"
+                                : "bg-green-600 hover:bg-green-500 text-white shadow-lg shadow-green-900/20"
+                            )}
+                          >
+                            {selectedReport.status === 'Concluído' ? (
+                              <>
+                                <Clock size={14} />
+                                Reabrir
+                              </>
+                            ) : (
+                              <>
+                                <CheckCircle2 size={14} />
+                                Concluir
+                              </>
+                            )}
+                          </button>
+                        )}
+
+                        {selectedReport.status !== 'Aprovado' && selectedReport.status === 'Concluído' && currentUser?.permissions?.approve_reports && (
+                          <button 
+                            onClick={async () => {
+                              try {
+                                const res = await fetch(`/api/reports/${selectedReport.id}/status`, {
+                                  method: 'PATCH',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ status: 'Aprovado' }),
+                                  credentials: 'include'
+                                });
+                                const data = await res.json();
+                                if (data.status === 'success') {
+                                  toast.success("Relatório aprovado e selado com sucesso!");
+                                  setReports(reports.map(r => r.id === selectedReport.id ? { ...r, status: 'Aprovado' as any } : r));
+                                  setSelectedReport({ ...selectedReport, status: 'Aprovado' as any });
+                                } else {
+                                  toast.error(data.message);
+                                }
+                              } catch (err) {
+                                toast.error("Erro ao aprovar relatório");
+                              }
+                            }}
+                            className="bg-indigo-600 hover:bg-indigo-500 text-white font-black text-[10px] px-6 py-2.5 rounded-lg transition-all uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg shadow-indigo-900/20 col-span-2 xs:col-auto"
+                          >
+                            <Shield size={14} />
+                            Aprovar
+                          </button>
+                        )}
+                        {(String(currentUser?.nivel_hierarquico).toLowerCase() === 'superadmin' || 
+                          String(currentUser?.nivel_hierarquico).toLowerCase() === 'admin' || 
+                          currentUser?.permissions?.delete_reports ||
+                          currentUser?.id === 1) && (
+                          <button 
+                            onClick={() => handleDeleteReport(selectedReport.id)}
+                            className="bg-red-600/10 hover:bg-red-600 text-red-500 hover:text-white border border-red-500/20 font-black text-[10px] px-6 py-2.5 rounded-lg transition-all uppercase tracking-widest flex items-center justify-center gap-2"
+                          >
+                            <Trash2 size={14} />
+                            Deletar
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </motion.div>
