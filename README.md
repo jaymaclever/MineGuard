@@ -229,6 +229,12 @@ Para problemas:
 
 ---
 
+## 📱 Android Local
+
+Para preparar e gerar a APK local do cliente Android, siga o guia em [ANDROID_BUILD_LOCAL.md](C:\Users\admin\Vodoo\MineGuard\ANDROID_BUILD_LOCAL.md).
+
+---
+
 ## 📄 Licença
 
 Projeto confidencial para operações de segurança. Acesso restrito.

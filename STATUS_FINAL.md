@@ -47,13 +47,15 @@ npm run dev
 
 Deve ver:
 ```
-Server running on http://localhost:2026
+MINEGUARD RODANDO EM: https://localhost:2026
 ```
 
 ### Passo 2: Abrir no Navegador
 ```
-http://localhost:2026
+https://localhost:2026
 ```
+
+Aceite o aviso de segurança do navegador uma vez, porque o certificado local é autoassinado.
 
 ### Passo 3: Fazer Login
 Use as credenciais padrão:

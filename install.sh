@@ -21,7 +21,7 @@ apt-get upgrade -y >/dev/null 2>&1
 
 echo -e "${YELLOW}[2/6] Installing Node.js v20...${NC}"
 curl -fsSL https://deb.nodesource.com/setup_20.x | bash - >/dev/null 2>&1
-apt-get install -y nodejs >/dev/null 2>&1
+apt-get install -y nodejs openssl >/dev/null 2>&1
 
 echo -e "${YELLOW}[3/6] Installing npm dependencies...${NC}"
 npm install --legacy-peer-deps >/dev/null 2>&1
@@ -36,12 +36,34 @@ NODE_ENV=production
 PORT=2026
 JWT_SECRET=b6f8a2c4e9d1f3a5b7c9d0e2f4a6b8c0d2e4f6a8b0c2d4e6f8a0c2d4e6f8a0c2
 ENCRYPTION_KEY=Lulo-CSI-Safe-Admin-Secret-Key-2026-Security-First!
+SSL_KEY_PATH=certs/key.pem
+SSL_CERT_PATH=certs/cert.pem
 EOF
+fi
+
+if ! grep -q '^SSL_KEY_PATH=' .env; then
+    echo "SSL_KEY_PATH=certs/key.pem" >> .env
+fi
+
+if ! grep -q '^SSL_CERT_PATH=' .env; then
+    echo "SSL_CERT_PATH=certs/cert.pem" >> .env
+fi
+
+if [ ! -d certs ]; then
+    mkdir -p certs
+fi
+
+if [ ! -f certs/key.pem ] || [ ! -f certs/cert.pem ]; then
+    echo -e "${YELLOW}Generating self-signed SSL certificate...${NC}"
+    openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \
+        -keyout certs/key.pem \
+        -out certs/cert.pem \
+        -subj "/CN=$(hostname)" >/dev/null 2>&1
 fi
 
 echo -e "${YELLOW}[6/6] Starting MineGuard service...${NC}"
 APP_PATH=$(pwd)
-SERVICE_USER=$(whoami)
+SERVICE_USER=${SUDO_USER:-root}
 
 cat > /etc/systemd/system/mineguard.service <<EOF
 [Unit]
@@ -52,7 +74,7 @@ After=network.target
 Type=simple
 User=$SERVICE_USER
 WorkingDirectory=$APP_PATH
-ExecStart=$(which npm) start
+ExecStart=$(which npm) run start
 Restart=always
 RestartSec=10
 Environment=NODE_ENV=production
@@ -71,7 +93,9 @@ echo -e "\n${GREEN}════════════════════�
 echo -e "${GREEN}   ✓ Installation Complete!${NC}"
 echo -e "${GREEN}════════════════════════════════════════${NC}"
 echo -e "\n${GREEN}🚀 Access MineGuard:${NC}"
-echo -e "   http://localhost:2026"
+echo -e "   https://localhost:2026"
+echo -e "\n${YELLOW}Note:${NC}"
+echo -e "   Accept the browser warning once because the certificate is self-signed."
 echo -e "\n${GREEN}📝 Login:${NC}"
 echo -e "   User: superadmin"
 echo -e "   Pass: secret"

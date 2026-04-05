@@ -131,7 +131,7 @@ const SidebarItem = ({ icon: Icon, label, active, onClick }: { icon: any, label:
   <button 
     onClick={onClick}
     className={cn(
-      "w-full flex items-center gap-3 px-6 py-4 text-sm font-bold uppercase tracking-widest transition-all duration-300 relative group",
+      "w-full flex items-center gap-2.5 px-5 py-3.5 text-[12px] font-bold uppercase tracking-[0.14em] transition-all duration-300 relative group",
       active 
         ? "text-primary bg-primary/5" 
         : "text-zinc-500 hover:text-zinc-200 hover:bg-white/5"
@@ -139,7 +139,7 @@ const SidebarItem = ({ icon: Icon, label, active, onClick }: { icon: any, label:
   >
     {active && <motion.div layoutId="active-nav" className="absolute left-0 w-1 h-2/3 bg-primary rounded-r-full" />}
     <Icon size={18} className={cn("transition-transform group-hover:scale-110", active ? "text-primary glow-amber" : "text-zinc-600")} />
-    <span className="truncate">{label}</span>
+    <span className="truncate text-left leading-tight">{label}</span>
   </button>
 );
 
@@ -428,7 +428,8 @@ const Login = ({ onLogin, publicSettings }: { onLogin: (user: any) => void, publ
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'reports' | 'users' | 'permissions' | 'daily_reports' | 'personal_reports' | 'daily_report_personal' | 'daily_report_team' | 'alerts' | 'parametrization'>('dashboard');
+  const activeTabStorageKey = 'mineguard_active_tab';
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'reports' | 'users' | 'permissions' | 'daily_reports' | 'personal_reports' | 'daily_report_personal' | 'daily_report_team' | 'alerts' | 'settings' | 'parametrization'>(() => (localStorage.getItem(activeTabStorageKey) as 'dashboard' | 'reports' | 'users' | 'permissions' | 'daily_reports' | 'personal_reports' | 'daily_report_personal' | 'daily_report_team' | 'alerts' | 'settings' | 'parametrization') || 'dashboard');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
   const [filterSeverity, setFilterSeverity] = useState('');
@@ -436,7 +437,9 @@ export default function App() {
   const [filterDateTo, setFilterDateTo] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [filterAgent, setFilterAgent] = useState('');
-  const [dashboardRange, setDashboardRange] = useState('today');
+  const [dashboardRange, setDashboardRange] = useState('7days');
+  const [isDashboardRangeModalOpen, setIsDashboardRangeModalOpen] = useState(false);
+  const [dashboardCustomRange, setDashboardCustomRange] = useState({ from: '', to: '' });
   const [showHeatmap, setShowHeatmap] = useState(false);
   
   // Data State
@@ -481,6 +484,9 @@ export default function App() {
   const [editingAlert, setEditingAlert] = useState<any>(null);
   const [editAlertForm, setEditAlertForm] = useState({ titulo: '', mensagem: '', tipo: 'aviso' });
   const [mapCenter, setMapCenter] = useState<[number, number]>([-8.8383, 13.2344]); // Angola/Luanda default
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [focusMode, setFocusMode] = useState(false);
+  const [newReportStep, setNewReportStep] = useState(1);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isEditingReport, setIsEditingReport] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -489,6 +495,11 @@ export default function App() {
 
   // PWA Logic
   useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
     const handleBeforeInstallPrompt = (e: any) => {
       e.preventDefault();
       setDeferredPrompt(e);
@@ -498,9 +509,15 @@ export default function App() {
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
     return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     };
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem(activeTabStorageKey, activeTab);
+  }, [activeTab]);
 
   const handleInstallClick = async () => {
     if (!deferredPrompt) return;
@@ -512,7 +529,25 @@ export default function App() {
     }
   };
 
-  const [editingReportData, setEditingReportData] = useState<{ descricao: string; fotos: Array<{ file: File; caption: string }> }>({ descricao: '', fotos: [] });
+  const [editingReportData, setEditingReportData] = useState<{
+    titulo: string;
+    descricao: string;
+    setor: string;
+    equipamento: string;
+    acao_imediata: string;
+    testemunhas: string;
+    potencial_risco: string;
+    fotos: Array<{ file: File; caption: string }>;
+  }>({
+    titulo: '',
+    descricao: '',
+    setor: '',
+    equipamento: '',
+    acao_imediata: '',
+    testemunhas: '',
+    potencial_risco: '',
+    fotos: []
+  });
   
   // Form States
   const [newReport, setNewReport] = useState({
@@ -721,7 +756,12 @@ export default function App() {
         keys.push('roles');
       }
       if (perms.view_dashboard === true) {
-        promises.push(fetch(`/api/stats?range=${dashboardRange}`, { credentials: 'include' }));
+        const statsParams = new URLSearchParams({ range: dashboardRange });
+        if (dashboardRange === 'custom') {
+          if (dashboardCustomRange.from) statsParams.append('from', dashboardCustomRange.from);
+          if (dashboardCustomRange.to) statsParams.append('to', dashboardCustomRange.to);
+        }
+        promises.push(fetch(`/api/stats?${statsParams.toString()}`, { credentials: 'include' }));
         keys.push('stats');
       }
       if (perms.view_daily_reports === true) {
@@ -789,7 +829,27 @@ export default function App() {
 
   useEffect(() => {
     fetchData();
-  }, [activeTab, searchQuery, filterCategory, filterSeverity, filterDateFrom, filterDateTo, filterStatus, filterAgent, currentPage, currentUser, dashboardRange]);
+  }, [activeTab, searchQuery, filterCategory, filterSeverity, filterDateFrom, filterDateTo, filterStatus, filterAgent, currentPage, currentUser, dashboardRange, dashboardCustomRange.from, dashboardCustomRange.to]);
+
+  const applyDashboardCustomRange = () => {
+    if (!dashboardCustomRange.from || !dashboardCustomRange.to) {
+      toast.error("Selecione as duas datas do intervalo");
+      return;
+    }
+
+    if (dashboardCustomRange.from > dashboardCustomRange.to) {
+      toast.error("A data inicial não pode ser maior que a data final");
+      return;
+    }
+
+    setDashboardRange('custom');
+    setIsDashboardRangeModalOpen(false);
+  };
+
+  const dashboardCustomRangeLabel =
+    dashboardCustomRange.from && dashboardCustomRange.to
+      ? `${new Date(`${dashboardCustomRange.from}T00:00:00`).toLocaleDateString('pt-BR')} -> ${new Date(`${dashboardCustomRange.to}T00:00:00`).toLocaleDateString('pt-BR')}`
+      : 'INTERVALO';
 
   // Fetch Personal Reports
   const fetchPersonalReports = async () => {
@@ -1262,7 +1322,7 @@ export default function App() {
   }
 
   return (
-    <div className="flex h-screen bg-[var(--bg-main)] text-[var(--text-main)] font-sans selection:bg-primary/30 relative overflow-hidden">
+    <div className={cn("flex h-screen bg-[var(--bg-main)] text-[var(--text-main)] font-sans selection:bg-primary/30 relative overflow-hidden transition-all duration-700", focusMode && "brightness-50 sepia-[.4] hue-rotate-[-10deg] saturate-[1.5] contrast-125")}>
       <div className="absolute inset-0 industrial-grid opacity-[0.03] pointer-events-none" />
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[50vh] bg-gradient-to-b from-primary/10 to-transparent opacity-30 pointer-events-none" />
       
@@ -1271,7 +1331,8 @@ export default function App() {
       {/* Sidebar */}
       <aside className={cn(
         "hidden md:flex flex-col bg-[var(--bg-sidebar)] no-print border-r border-[var(--border)] transition-all duration-300",
-        publicSettings.app_layout === 'compact' ? "w-20" : "w-64"
+        publicSettings.app_layout === 'compact' ? "w-20" : "w-72",
+        focusMode && "!hidden"
       )}>
         <div className={cn(
           "p-6 flex items-center gap-3 border-b border-[var(--border)]",
@@ -1298,7 +1359,8 @@ export default function App() {
           <SidebarItem icon={AlertTriangle} label={publicSettings.app_layout === 'compact' ? "" : "Alertas"} active={activeTab === 'alerts'} onClick={() => setActiveTab('alerts')} />
           {currentUser.permissions?.manage_users === true && <SidebarItem icon={Users} label={publicSettings.app_layout === 'compact' ? "" : "Gestão de Pessoal"} active={activeTab === 'users'} onClick={() => setActiveTab('users')} />}
           {currentUser.permissions?.manage_permissions === true && <SidebarItem icon={Lock} label={publicSettings.app_layout === 'compact' ? "" : "Permissões & Roles"} active={activeTab === 'permissions'} onClick={() => setActiveTab('permissions')} />}
-          {currentUser.permissions?.manage_settings === true && <SidebarItem icon={SettingsIcon} label={publicSettings.app_layout === 'compact' ? "" : "Configurações"} active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} />}
+          {currentUser.permissions?.manage_settings === true && <SidebarItem icon={SettingsIcon} label={publicSettings.app_layout === 'compact' ? '' : 'Defini\u00e7\u00f5es'} active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} />}
+          {currentUser.permissions?.manage_settings === true && <SidebarItem icon={SettingsIcon} label={publicSettings.app_layout === 'compact' ? '' : 'Parametriza\u00e7\u00e3o'} active={activeTab === 'parametrization'} onClick={() => setActiveTab('parametrization')} />}
         </nav>
 
         <div className="p-4 mt-auto border-t border-[var(--border)]">
@@ -1350,6 +1412,24 @@ export default function App() {
           </div>
           
           <div className="flex items-center gap-2 md:gap-4">
+            {/* Network Status Indicator */}
+            <div className="hidden sm:flex items-center gap-2 px-2 py-1 rounded-lg bg-zinc-900/50 border border-zinc-800/50" title={isOnline ? "Conexão Segura e Sincronizada" : "Modo Offline (Gravando Localmente)"}>
+              <div className={cn("w-2 h-2 rounded-full", isOnline ? "bg-green-500 animate-pulse" : "bg-orange-500")} />
+              <span className={cn("text-[10px] font-bold uppercase tracking-widest", isOnline ? "text-green-500" : "text-orange-500")}>
+                {isOnline ? "Online" : "Offline / L"}
+              </span>
+            </div>
+
+            {/* Focus Mode Toggle */}
+            <button 
+              onClick={() => setFocusMode(!focusMode)}
+              className={cn("hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all shadow-sm", focusMode ? "bg-red-500/10 border-red-500/30 text-red-500" : "bg-zinc-900/50 border-zinc-800/50 text-zinc-500 hover:text-zinc-300")}
+              title="Modo Operação Noturna"
+            >
+              <Activity size={12} className={focusMode ? "animate-pulse" : ""} />
+              <span className="text-[10px] font-bold uppercase tracking-widest">{focusMode ? "Foco Ativo" : "Modo Foco"}</span>
+            </button>
+
             <button 
               onClick={handleLogout}
               className="md:hidden p-2 text-zinc-500 hover:text-red-400 transition-colors"
@@ -1513,6 +1593,7 @@ export default function App() {
                     <button onClick={() => setDashboardRange('today')} className={cn("px-3 py-1.5 text-[10px] font-bold rounded-lg transition-all", dashboardRange === 'today' ? "bg-zinc-800 text-zinc-100" : "text-zinc-500 hover:text-zinc-300")}>HOJE</button>
                     <button onClick={() => setDashboardRange('7days')} className={cn("px-3 py-1.5 text-[10px] font-bold rounded-lg transition-all", dashboardRange === '7days' ? "bg-zinc-800 text-zinc-100" : "text-zinc-500 hover:text-zinc-300")}>7 DIAS</button>
                     <button onClick={() => setDashboardRange('30days')} className={cn("px-3 py-1.5 text-[10px] font-bold rounded-lg transition-all", dashboardRange === '30days' ? "bg-zinc-800 text-zinc-100" : "text-zinc-500 hover:text-zinc-300")}>30 DIAS</button>
+                    <button onClick={() => setIsDashboardRangeModalOpen(true)} className={cn("px-3 py-1.5 text-[10px] font-bold rounded-lg transition-all", dashboardRange === 'custom' ? "bg-zinc-800 text-zinc-100" : "text-zinc-500 hover:text-zinc-300")}>{dashboardRange === 'custom' ? dashboardCustomRangeLabel : 'INTERVALO'}</button>
                   </div>
                 </div>
 
@@ -1567,7 +1648,15 @@ export default function App() {
                               dataKey="value"
                             >
                               {(stats?.reportsByCategory || []).map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                <Cell 
+                                  key={`cell-${index}`} 
+                                  fill={COLORS[index % COLORS.length]} 
+                                  onClick={() => {
+                                    setFilterCategory(entry.name);
+                                    setActiveTab('reports');
+                                  }}
+                                  className="cursor-pointer hover:opacity-80 transition-opacity"
+                                />
                               ))}
                             </Pie>
                             <Tooltip 
@@ -1579,9 +1668,16 @@ export default function App() {
                       </div>
                       <div className="flex flex-wrap gap-2 mt-4 justify-center pb-4">
                         {(stats?.reportsByCategory || []).map((entry, index) => (
-                          <div key={entry.name} className="flex items-center gap-1.5 bg-zinc-900/60 px-2.5 py-1.5 rounded-lg border border-zinc-800/50 shadow-sm transition-all hover:border-zinc-700">
-                            <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
-                            <span className="text-[10px] text-zinc-100 font-bold truncate uppercase tracking-tight">{entry.name}</span>
+                          <div 
+                            key={entry.name} 
+                            onClick={() => {
+                              setFilterCategory(entry.name);
+                              setActiveTab('reports');
+                            }}
+                            className="flex items-center gap-1.5 bg-zinc-900/60 px-2.5 py-1.5 rounded-lg border border-zinc-800/50 shadow-sm transition-all hover:border-primary/50 hover:bg-zinc-800 cursor-pointer group"
+                          >
+                            <div className="w-1.5 h-1.5 rounded-full group-hover:scale-125 transition-transform" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
+                            <span className="text-[10px] text-zinc-100 font-bold truncate uppercase tracking-tight group-hover:text-primary transition-colors">{entry.name}</span>
                           </div>
                         ))}
                       </div>
@@ -1941,7 +2037,7 @@ export default function App() {
                               animate={{ opacity: 1, x: 0 }}
                               transition={{ delay: index * 0.03 }}
                               onClick={() => setSelectedReport(report)}
-                              className="hover:bg-white/[0.02] transition-colors group cursor-pointer border-zinc-800/40"
+                              className="hover:bg-primary/5 hover:border-primary/20 transition-all group cursor-pointer active:scale-[0.99] border-zinc-800/40"
                             >
                             <td className="hidden md:table-cell px-6 py-4 font-mono text-xs text-zinc-500">#{report.id}</td>
                             <td className="px-6 py-4">
@@ -3494,7 +3590,22 @@ export default function App() {
                   </button>
                 </div>
                 <div className="flex-1 min-h-0 md:max-h-[70vh] p-6 space-y-5 overflow-y-auto custom-scrollbar">
-                  <div className="space-y-2">
+                  {/* Wizard Header */}
+                  <div className="flex flex-col gap-2 pb-4 border-b border-zinc-800">
+                    <div className="flex justify-between text-[10px] uppercase font-bold text-zinc-500">
+                      <span className={newReportStep === 1 ? "text-primary" : ""}>P1. O Que e Onde</span>
+                      <span className={newReportStep === 2 ? "text-primary" : ""}>P2. Detalhes</span>
+                      <span className={newReportStep === 3 ? "text-primary" : ""}>P3. Anexos</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <div className={cn("h-1 flex-1 rounded-full", newReportStep >= 1 ? "bg-primary" : "bg-zinc-800")} />
+                      <div className={cn("h-1 flex-1 rounded-full", newReportStep >= 2 ? "bg-primary" : "bg-zinc-800")} />
+                      <div className={cn("h-1 flex-1 rounded-full", newReportStep === 3 ? "bg-primary" : "bg-zinc-800")} />
+                    </div>
+                  </div>
+
+                  <div className={cn("space-y-5", newReportStep !== 1 && "hidden")}>
+                    <div className="space-y-2">
                     <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Título da Ocorrência</label>
                     <input 
                       type="text"
@@ -3549,7 +3660,9 @@ export default function App() {
                       onChange={(e) => setNewReport({...newReport, descricao: e.target.value})}
                     />
                   </div>
+                  </div>
 
+                  <div className={cn("space-y-5", newReportStep !== 2 && "hidden")}>
                   {newReport.categoria === 'Safety' && (
                     <div className="grid grid-cols-2 gap-4 mb-4 p-4 border border-orange-500/30 bg-orange-500/5 rounded-lg">
                       <div className="space-y-2">
@@ -3670,7 +3783,9 @@ export default function App() {
                       className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
                     />
                   </div>
+                  </div>
 
+                  <div className={cn("space-y-5", newReportStep !== 3 && "hidden")}>
                   <div className="space-y-2">
                     <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Ação Imediata Tomada</label>
                     <textarea 
@@ -3770,8 +3885,15 @@ export default function App() {
                       </div>
                     )}
                   </div>
+                  </div>
                 </div>
                 <div className="p-4 md:p-6 bg-zinc-900/40 border-t border-zinc-800 flex flex-col-reverse sm:flex-row justify-end gap-3 no-print">
+                  {newReportStep > 1 && (
+                    <button type="button" onClick={() => setNewReportStep(s => s - 1)} className="w-full sm:w-auto px-6 py-2.5 text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-white transition-all bg-zinc-800 rounded-lg">VOLTAR</button>
+                  )}
+                  {newReportStep < 3 && (
+                    <button type="button" onClick={() => setNewReportStep(s => s + 1)} className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-black font-black text-[10px] px-8 py-2.5 rounded-lg transition-all uppercase tracking-widest">PRÓXIMO</button>
+                  )}
                   <button type="button" onClick={() => setIsNewReportModalOpen(false)} className="w-full sm:w-auto px-6 py-2.5 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white transition-all bg-zinc-900/50 sm:bg-transparent rounded-lg border border-zinc-800 sm:border-none">Cancelar</button>
                   <button type="button" onClick={() => setShowReportPreview(true)} className="w-full sm:w-auto bg-zinc-800 hover:bg-zinc-700 text-white font-black text-[10px] px-8 py-2.5 rounded-lg transition-all uppercase tracking-widest border border-zinc-700">Visualizar</button>
                   <button type="submit" className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-black font-black text-[10px] px-8 py-3 rounded-lg transition-all uppercase tracking-widest shadow-lg shadow-primary/20">Transmitir Relatório</button>
@@ -3954,6 +4076,63 @@ export default function App() {
                   </button>
                 </div>
               </form>
+            </motion.div>
+          </div>
+        )}
+
+        {isDashboardRangeModalOpen && (
+          <div key="dashboard-range-modal" className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md no-print">
+            <motion.div
+              initial={{ opacity: 0, y: 20, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.96 }}
+              className="bg-[#0a0a0a] border border-zinc-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl"
+            >
+              <div className="p-6 border-b border-zinc-800 flex items-center justify-between bg-zinc-900/20">
+                <div>
+                  <h3 className="text-lg font-black tracking-tighter uppercase">Intervalo da Dashboard</h3>
+                  <p className="text-[10px] text-zinc-500 font-bold tracking-widest uppercase">Defina o período da análise</p>
+                </div>
+                <button onClick={() => setIsDashboardRangeModalOpen(false)} className="text-zinc-500 hover:text-white transition-colors">
+                  <XCircle size={22} />
+                </button>
+              </div>
+              <div className="p-6 space-y-4">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">De</label>
+                  <input
+                    type="date"
+                    value={dashboardCustomRange.from}
+                    onChange={(e) => setDashboardCustomRange(prev => ({ ...prev, from: e.target.value }))}
+                    className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-primary"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Até</label>
+                  <input
+                    type="date"
+                    value={dashboardCustomRange.to}
+                    onChange={(e) => setDashboardCustomRange(prev => ({ ...prev, to: e.target.value }))}
+                    className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-primary"
+                  />
+                </div>
+              </div>
+              <div className="p-6 bg-zinc-900/20 border-t border-zinc-800 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsDashboardRangeModalOpen(false)}
+                  className="px-6 py-2.5 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={applyDashboardCustomRange}
+                  className="bg-primary hover:bg-primary/90 text-black font-black text-[10px] px-8 py-2.5 rounded-lg transition-all uppercase tracking-widest shadow-lg shadow-primary/20"
+                >
+                  Aplicar Intervalo
+                </button>
+              </div>
             </motion.div>
           </div>
         )}
@@ -4587,7 +4766,10 @@ export default function App() {
                   <SidebarItem icon={Lock} label="Permissões" active={activeTab === 'permissions'} onClick={() => { setActiveTab('permissions'); setIsMobileMenuOpen(false); }} />
                 )}
                 {currentUser.permissions?.manage_settings === true && (
-                  <SidebarItem icon={SettingsIcon} label="Parametrização" active={activeTab === 'parametrization'} onClick={() => { setActiveTab('parametrization'); setIsMobileMenuOpen(false); }} />
+                  <>
+                    <SidebarItem icon={SettingsIcon} label='Defini\u00e7\u00f5es' active={activeTab === 'settings'} onClick={() => { setActiveTab('settings'); setIsMobileMenuOpen(false); }} />
+                    <SidebarItem icon={SettingsIcon} label='Parametriza\u00e7\u00e3o' active={activeTab === 'parametrization'} onClick={() => { setActiveTab('parametrization'); setIsMobileMenuOpen(false); }} />
+                  </>
                 )}
                 <motion.button 
                   whileTap={{ scale: 0.96 }}
@@ -4704,3 +4886,4 @@ export default function App() {
     </div>
   );
 }
+

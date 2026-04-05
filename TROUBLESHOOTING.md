@@ -1,7 +1,7 @@
 # 🔧 Solução: Problema de Página em Branco (Blank Page)
 
 ## ❌ Problema
-A aplicação MineGuard estava exibindo uma página em branco quando acedida via navegador em `http://localhost:2026`.
+A aplicação MineGuard estava exibindo uma página em branco quando acedida via navegador em `https://localhost:2026`.
 
 ## 🔍 Análise da Causa
 O problema era resultado de mudanças incompletas no `App.tsx` durante a refatoração de modularização. O arquivo tinha:
@@ -28,7 +28,7 @@ Confirmou que todos os arquivos necessários existem:
 ### 3. **Build e Deploy**
 ```bash
 npm run build  # Passou com sucesso
-npm run dev    # Servidor iniciado em http://localhost:2026
+npm run dev    # Servidor iniciado em https://localhost:2026
 ```
 
 ## 📊 Resultados
@@ -50,9 +50,11 @@ npm run dev
 ```
 
 ### Aceder à Aplicação
-- **URL**: `http://localhost:2026`
+- **URL**: `https://localhost:2026`
 - **Porta**: `2026` (conforme `vite.config.ts`)
 - **Servidor**: Express com Vite middleware
+
+Como o certificado é autoassinado no ambiente local, aceite o aviso de segurança do navegador na primeira abertura.
 
 ## 📝 Credenciais de Login Padrão
 Consulte o banco de dados `mina_seguranca.db` ou crie um utilizador através do endpoint `/api/auth/register`.

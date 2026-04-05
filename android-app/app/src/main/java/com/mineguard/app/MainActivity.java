@@ -6,6 +6,8 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.net.http.SslError;
+import android.webkit.SslErrorHandler;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
@@ -22,6 +24,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 public class MainActivity extends AppCompatActivity {
+    private static final String SERVER_SCHEME = "https";
 
     private WebView webView;
     private ValueCallback<Uri[]> filePathCallback;
@@ -75,6 +78,12 @@ public class MainActivity extends AppCompatActivity {
             public void onReceivedError(WebView view, WebResourceRequest req, WebResourceError err) {
                 if (req.isForMainFrame()) showErrorPage();
             }
+
+            @Override
+            public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
+                // The development server uses a self-signed certificate on the local network.
+                handler.proceed();
+            }
         });
 
         webView.setWebChromeClient(new WebChromeClient() {
@@ -97,7 +106,12 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences p = getSharedPreferences(SetupActivity.PREFS_NAME, MODE_PRIVATE);
         String ip = p.getString(SetupActivity.KEY_IP, "192.168.6.69");
         String port = p.getString(SetupActivity.KEY_PORT, "2026");
-        webView.loadUrl("http://" + ip + ":" + port);
+        webView.loadUrl(buildServerUrl(ip, port));
+    }
+
+    private String buildServerUrl(String ip, String port) {
+        String resolvedPort = (port == null || port.trim().isEmpty()) ? "2026" : port.trim();
+        return SERVER_SCHEME + "://" + ip.trim() + ":" + resolvedPort;
     }
 
     private void showErrorPage() {

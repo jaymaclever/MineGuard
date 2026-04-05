@@ -1,0 +1,3 @@
+## Copy this file to `android-app/local.properties` and update the path to your Android SDK.
+## Use double backslashes on Windows.
+sdk.dir=C:\\Users\\YOUR_USER\\AppData\\Local\\Android\\Sdk

@@ -360,9 +360,16 @@ async function startServer() {
   
   const SSL_KEY_PATH = process.env.SSL_KEY_PATH || path.join(process.cwd(), "certs", "key.pem");
   const SSL_CERT_PATH = process.env.SSL_CERT_PATH || path.join(process.cwd(), "certs", "cert.pem");
+  const hasSslKey = fs.existsSync(SSL_KEY_PATH);
+  const hasSslCert = fs.existsSync(SSL_CERT_PATH);
   
   let server;
-  if (fs.existsSync(SSL_KEY_PATH) && fs.existsSync(SSL_CERT_PATH)) {
+  console.log(`[SSL] Key path: ${SSL_KEY_PATH}`);
+  console.log(`[SSL] Cert path: ${SSL_CERT_PATH}`);
+  console.log(`[SSL] Key found: ${hasSslKey ? "yes" : "no"}`);
+  console.log(`[SSL] Cert found: ${hasSslCert ? "yes" : "no"}`);
+
+  if (hasSslKey && hasSslCert) {
     const options = {
       key: fs.readFileSync(SSL_KEY_PATH),
       cert: fs.readFileSync(SSL_CERT_PATH)
@@ -370,6 +377,9 @@ async function startServer() {
     server = https.createServer(options, app);
     console.log(`[SSL] Servidor configurado com HTTPS.`);
   } else {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error(`[SSL] Certificados ausentes em produção. Esperado key=${SSL_KEY_PATH} cert=${SSL_CERT_PATH}`);
+    }
     server = http.createServer(app);
     console.warn(`[SSL] Certificados não encontrados. Usando HTTP.`);
   }
@@ -673,10 +683,13 @@ async function startServer() {
       const userRole = req.user.nivel_hierarquico;
       const userId = req.user.id;
       const range = req.query.range as string || '7days';
+      const from = req.query.from as string | undefined;
+      const to = req.query.to as string | undefined;
       const userWeight = (db.prepare("SELECT peso FROM role_weights WHERE nivel_hierarquico = ?").get(userRole) as any)?.peso || 0;
 
       let dateFilter = "AND timestamp >= date('now', '-7 days')";
       let chartRange = "-7 days";
+      let customValues: string[] = [];
       
       if (range === 'today') {
         dateFilter = "AND date(timestamp) = date('now')";
@@ -684,22 +697,39 @@ async function startServer() {
       } else if (range === '30days') {
         dateFilter = "AND timestamp >= date('now', '-30 days')";
         chartRange = "-30 days";
+      } else if (range === 'custom') {
+        if (!from || !to) {
+          return res.status(400).json({ status: "error", message: "Parâmetros 'from' e 'to' são obrigatórios" });
+        }
+        if (from > to) {
+          return res.status(400).json({ status: "error", message: "Intervalo inválido" });
+        }
+        dateFilter = "AND date(timestamp) BETWEEN date(?) AND date(?)";
+        customValues = [from, to];
       }
 
       let totalReports, totalUsers, reportsByCategory, reportsBySeverity, reportsLast7Days;
 
       if (userWeight < 60) {
-        totalReports = (db.prepare(`SELECT COUNT(*) as count FROM reports WHERE agente_id = ? ${dateFilter}`).get(userId) as any).count;
+        totalReports = (db.prepare(`SELECT COUNT(*) as count FROM reports WHERE agente_id = ? ${dateFilter}`).get(userId, ...customValues) as any).count;
         totalUsers = 1; 
-        reportsByCategory = db.prepare(`SELECT categoria as name, COUNT(*) as value FROM reports WHERE agente_id = ? ${dateFilter} GROUP BY categoria`).all(userId);
-        reportsBySeverity = db.prepare(`SELECT gravidade as name, COUNT(*) as value FROM reports WHERE agente_id = ? ${dateFilter} GROUP BY gravidade`).all(userId);
-        reportsLast7Days = db.prepare(`
-          SELECT date(timestamp) as date, COUNT(*) as count 
-          FROM reports 
-          WHERE agente_id = ? AND timestamp >= date('now', ?) 
-          GROUP BY date(timestamp)
-          ORDER BY date ASC
-        `).all(userId, chartRange);
+        reportsByCategory = db.prepare(`SELECT categoria as name, COUNT(*) as value FROM reports WHERE agente_id = ? ${dateFilter} GROUP BY categoria`).all(userId, ...customValues);
+        reportsBySeverity = db.prepare(`SELECT gravidade as name, COUNT(*) as value FROM reports WHERE agente_id = ? ${dateFilter} GROUP BY gravidade`).all(userId, ...customValues);
+        reportsLast7Days = range === 'custom'
+          ? db.prepare(`
+              SELECT date(timestamp) as date, COUNT(*) as count 
+              FROM reports 
+              WHERE agente_id = ? AND date(timestamp) BETWEEN date(?) AND date(?) 
+              GROUP BY date(timestamp)
+              ORDER BY date ASC
+            `).all(userId, ...customValues)
+          : db.prepare(`
+              SELECT date(timestamp) as date, COUNT(*) as count 
+              FROM reports 
+              WHERE agente_id = ? AND timestamp >= date('now', ?) 
+              GROUP BY date(timestamp)
+              ORDER BY date ASC
+            `).all(userId, chartRange);
       } else {
         totalReports = (db.prepare(`
           SELECT COUNT(*) as count 
@@ -707,7 +737,7 @@ async function startServer() {
           JOIN users u ON r.agente_id = u.id
           JOIN role_weights rw ON u.nivel_hierarquico = rw.nivel_hierarquico
           WHERE rw.peso <= ? ${dateFilter.replace('timestamp', 'r.timestamp')}
-        `).get(userWeight) as any).count;
+        `).get(userWeight, ...customValues) as any).count;
         
         totalUsers = (db.prepare(`
           SELECT COUNT(*) as count 
@@ -723,7 +753,7 @@ async function startServer() {
           JOIN role_weights rw ON u.nivel_hierarquico = rw.nivel_hierarquico
           WHERE rw.peso <= ? ${dateFilter.replace('timestamp', 'r.timestamp')}
           GROUP BY r.categoria
-        `).all(userWeight);
+        `).all(userWeight, ...customValues);
 
         reportsBySeverity = db.prepare(`
           SELECT r.gravidade as name, COUNT(*) as value 
@@ -732,17 +762,27 @@ async function startServer() {
           JOIN role_weights rw ON u.nivel_hierarquico = rw.nivel_hierarquico
           WHERE rw.peso <= ? ${dateFilter.replace('timestamp', 'r.timestamp')}
           GROUP BY r.gravidade
-        `).all(userWeight);
+        `).all(userWeight, ...customValues);
 
-        reportsLast7Days = db.prepare(`
-          SELECT date(r.timestamp) as date, COUNT(*) as count 
-          FROM reports r
-          JOIN users u ON r.agente_id = u.id
-          JOIN role_weights rw ON u.nivel_hierarquico = rw.nivel_hierarquico
-          WHERE rw.peso <= ? AND r.timestamp >= date('now', ?) 
-          GROUP BY date(r.timestamp)
-          ORDER BY date ASC
-        `).all(userWeight, chartRange);
+        reportsLast7Days = range === 'custom'
+          ? db.prepare(`
+              SELECT date(r.timestamp) as date, COUNT(*) as count 
+              FROM reports r
+              JOIN users u ON r.agente_id = u.id
+              JOIN role_weights rw ON u.nivel_hierarquico = rw.nivel_hierarquico
+              WHERE rw.peso <= ? AND date(r.timestamp) BETWEEN date(?) AND date(?) 
+              GROUP BY date(r.timestamp)
+              ORDER BY date ASC
+            `).all(userWeight, ...customValues)
+          : db.prepare(`
+              SELECT date(r.timestamp) as date, COUNT(*) as count 
+              FROM reports r
+              JOIN users u ON r.agente_id = u.id
+              JOIN role_weights rw ON u.nivel_hierarquico = rw.nivel_hierarquico
+              WHERE rw.peso <= ? AND r.timestamp >= date('now', ?) 
+              GROUP BY date(r.timestamp)
+              ORDER BY date ASC
+            `).all(userWeight, chartRange);
       }
 
       res.json({
@@ -966,7 +1006,16 @@ async function startServer() {
   // Edit report (update description and/or photo) - only for open reports
   app.patch("/api/reports/:id", authenticate, upload.array("fotos", 20), (req: any, res) => {
     const { id } = req.params;
-    const { descricao, captions } = req.body;
+    const {
+      titulo,
+      descricao,
+      setor,
+      equipamento,
+      acao_imediata,
+      testemunhas,
+      potencial_risco,
+      captions
+    } = req.body;
 
     try {
       // Check if report exists and is open
@@ -987,10 +1036,22 @@ async function startServer() {
       let updateQuery = "UPDATE reports SET ";
       const values: any[] = [];
 
-      if (descricao !== undefined && descricao !== null) {
-        updateQuery += "descricao = ?, ";
-        values.push(descricao);
-      }
+      const editableFields = [
+        { key: "titulo", value: titulo },
+        { key: "descricao", value: descricao },
+        { key: "setor", value: setor },
+        { key: "equipamento", value: equipamento },
+        { key: "acao_imediata", value: acao_imediata },
+        { key: "testemunhas", value: testemunhas },
+        { key: "potencial_risco", value: potencial_risco }
+      ];
+
+      editableFields.forEach(({ key, value }) => {
+        if (value !== undefined && value !== null) {
+          updateQuery += `${key} = ?, `;
+          values.push(value);
+        }
+      });
 
       // Remove trailing comma and space if there are updates
       if (values.length > 0) {

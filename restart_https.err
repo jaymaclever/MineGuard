@@ -1,0 +1,240 @@
+[2m22:26:00[22m [31m[1m[vite][22m[39m [31mInternal server error: EBUSY: resource busy or locked, open 'C:\Users\admin\Vodoo\MineGuard\src\App.tsx'[39m
+      at async open (node:internal/fs/promises:638:25)
+      at async Object.readFile (node:internal/fs/promises:1242:14)
+      at async loadAndTransform (C:\Users\admin\Vodoo\MineGuard\node_modules\vite\dist\node\chunks\dep-D4NMHUTW.js:35681:16)
+      at async viteTransformMiddleware (C:\Users\admin\Vodoo\MineGuard\node_modules\vite\dist\node\chunks\dep-D4NMHUTW.js:37254:24)
+[2m22:27:27[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Users\admin\Vodoo\MineGuard\src\App.tsx: Unexpected token, expected "," (4764:28)
+
+[0m [90m 4762 |[31m                 )}
+ [90m 4763 |[31m                 {currentUser[33m.[31mpermissions[33m?[31m[33m.[31mmanage_settings [33m===[31m [36mtrue[31m [33m&&[31m (
+[31m[1m>[22m[31m[90m 4764 |[31m                 {currentUser[33m.[31mpermissions[33m?[31m[33m.[31mmanage_settings [33m===[31m [36mtrue[31m [33m&&[31m ([33m<[31m[33mSidebarItem[31m icon[33m=[31m{[33mSettingsIcon[31m} label[33m=[31m[32m'Defini��es'[31m active[33m=[31m{activeTab [33m===[31m [32m'settings'[31m} onClick[33m=[31m{() [33m=>[31m { setActiveTab([32m'settings'[31m)[33m;[31m setIsMobileMenuOpen([36mfalse[31m)[33m;[31m }} [33m/[31m[33m>[31m)}
+ [90m      |[31m                             [31m[1m^[22m[31m
+ [90m 4765 |[31m                   [33m<[31m[33mSidebarItem[31m icon[33m=[31m{[33mSettingsIcon[31m} label[33m=[31m[32m"Parametrização"[31m active[33m=[31m{activeTab [33m===[31m [32m'parametrization'[31m} onClick[33m=[31m{() [33m=>[31m { setActiveTab([32m'parametrization'[31m)[33m;[31m setIsMobileMenuOpen([36mfalse[31m)[33m;[31m }} [33m/[31m[33m>[31m
+ [90m 4766 |[31m                 )}
+ [90m 4767 |[31m                 [33m<[31m[33mmotion[31m[33m.[31mbutton [0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/App.tsx[39m:4764:28
+[33m  4842|                      <p className="text-xs text-zinc-500 mt-0.5">Pode também aparecer como <strong className="text-zinc-300">"Instalar aplicação"</strong> ou <strong className="text-zinc-300">"Adicionar ao início"</strong></p>
+  4843|                    </div>
+  4844|                  </div>
+     |   ^
+  4845|                  <div className="flex items-start gap-4">
+  4846|                    <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-black text-xs shrink-0 mt-0.5">3</div>[39m
+      at toParseError (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parse-error.ts:95:45)
+      at raise (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\tokenizer\index.ts:1504:19)
+      at unexpected (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\tokenizer\index.ts:1544:16)
+      at expect (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\util.ts:157:12)
+      at parseObjectLike (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:2087:14)
+      at parseExprAtom (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:1181:21)
+      at parseExprAtom (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:583:22)
+      at parseExprSubscripts (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:742:23)
+      at parseUpdate (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:721:21)
+      at parseMaybeUnary (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:683:23)
+      at parseMaybeUnary (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3893:20)
+      at parseMaybeUnaryOrPrivate (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:417:14)
+      at parseExprOps (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:429:23)
+      at parseMaybeConditional (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:384:23)
+      at parseMaybeAssign (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:301:21)
+      at parseMaybeAssign (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3764:22)
+      at callback (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:257:12)
+      at allowInAnd (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:3197:12)
+      at parseMaybeAssignAllowIn (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:256:17)
+      at parseMaybeAssignAllowInOrVoidPattern (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:3311:17)
+      at parseParenAndDistinguishExpression (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:1825:16)
+      at parseExprAtom (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:1170:21)
+      at parseExprAtom (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:583:22)
+      at parseExprSubscripts (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:742:23)
+      at parseUpdate (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:721:21)
+      at parseMaybeUnary (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:683:23)
+      at parseMaybeUnary (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3893:20)
+      at parseMaybeUnaryOrPrivate (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:417:14)
+      at parseExprOpBaseRightExpr (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:597:12)
+      at parseExprOpRightExpr (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:582:21)
+      at parseExprOp (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:513:27)
+      at parseExprOp (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:2872:20)
+      at parseExprOp (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:534:21)
+      at parseExprOp (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:2872:20)
+      at parseExprOps (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:435:17)
+      at parseMaybeConditional (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:384:23)
+      at parseMaybeAssign (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:301:21)
+      at parseMaybeAssign (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3764:22)
+      at parseExpressionBase (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:226:23)
+      at callback (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:217:39)
+      at allowInAnd (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:3197:12)
+      at parseExpression (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:217:17)
+      at jsxParseExpressionContainer (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:376:33)
+      at jsxParseElementAt (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:500:24)
+      at jsxParseElementAt (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:483:34)
+      at jsxParseElementAt (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:483:34)
+      at jsxParseElement (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:559:19)
+      at parseExprAtom (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:573:21)
+      at parseExprSubscripts (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:742:23)
+      at parseUpdate (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:721:21)
+[2m22:27:28[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: C:\Users\admin\Vodoo\MineGuard\src\App.tsx: Unexpected token, expected "," (4764:28)
+
+[0m [90m 4762 |[39m                 )}
+ [90m 4763 |[39m                 {currentUser[33m.[39mpermissions[33m?[39m[33m.[39mmanage_settings [33m===[39m [36mtrue[39m [33m&&[39m (
+[31m[1m>[22m[39m[90m 4764 |[39m                 {currentUser[33m.[39mpermissions[33m?[39m[33m.[39mmanage_settings [33m===[39m [36mtrue[39m [33m&&[39m ([33m<[39m[33mSidebarItem[39m icon[33m=[39m{[33mSettingsIcon[39m} label[33m=[39m[32m'Defini��es'[39m active[33m=[39m{activeTab [33m===[39m [32m'settings'[39m} onClick[33m=[39m{() [33m=>[39m { setActiveTab([32m'settings'[39m)[33m;[39m setIsMobileMenuOpen([36mfalse[39m)[33m;[39m }} [33m/[39m[33m>[39m)}
+ [90m      |[39m                             [31m[1m^[22m[39m
+ [90m 4765 |[39m                   [33m<[39m[33mSidebarItem[39m icon[33m=[39m{[33mSettingsIcon[39m} label[33m=[39m[32m"Parametrização"[39m active[33m=[39m{activeTab [33m===[39m [32m'parametrization'[39m} onClick[33m=[39m{() [33m=>[39m { setActiveTab([32m'parametrization'[39m)[33m;[39m setIsMobileMenuOpen([36mfalse[39m)[33m;[39m }} [33m/[39m[33m>[39m
+ [90m 4766 |[39m                 )}
+ [90m 4767 |[39m                 [33m<[39m[33mmotion[39m[33m.[39mbutton [0m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/App.tsx[39m:4764:28
+[33m  4842|                      <p className="text-xs text-zinc-500 mt-0.5">Pode também aparecer como <strong className="text-zinc-300">"Instalar aplicação"</strong> ou <strong className="text-zinc-300">"Adicionar ao início"</strong></p>
+  4843|                    </div>
+  4844|                  </div>
+     |   ^
+  4845|                  <div className="flex items-start gap-4">
+  4846|                    <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-black text-xs shrink-0 mt-0.5">3</div>[39m
+[2m22:27:28[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Users\admin\Vodoo\MineGuard\src\App.tsx: Unexpected token, expected "," (4764:28)
+
+[0m [90m 4762 |[31m                 )}
+ [90m 4763 |[31m                 {currentUser[33m.[31mpermissions[33m?[31m[33m.[31mmanage_settings [33m===[31m [36mtrue[31m [33m&&[31m (
+[31m[1m>[22m[31m[90m 4764 |[31m                 {currentUser[33m.[31mpermissions[33m?[31m[33m.[31mmanage_settings [33m===[31m [36mtrue[31m [33m&&[31m ([33m<[31m[33mSidebarItem[31m icon[33m=[31m{[33mSettingsIcon[31m} label[33m=[31m[32m'Defini��es'[31m active[33m=[31m{activeTab [33m===[31m [32m'settings'[31m} onClick[33m=[31m{() [33m=>[31m { setActiveTab([32m'settings'[31m)[33m;[31m setIsMobileMenuOpen([36mfalse[31m)[33m;[31m }} [33m/[31m[33m>[31m)}
+ [90m      |[31m                             [31m[1m^[22m[31m
+ [90m 4765 |[31m                   [33m<[31m[33mSidebarItem[31m icon[33m=[31m{[33mSettingsIcon[31m} label[33m=[31m[32m"Parametrização"[31m active[33m=[31m{activeTab [33m===[31m [32m'parametrization'[31m} onClick[33m=[31m{() [33m=>[31m { setActiveTab([32m'parametrization'[31m)[33m;[31m setIsMobileMenuOpen([36mfalse[31m)[33m;[31m }} [33m/[31m[33m>[31m
+ [90m 4766 |[31m                 )}
+ [90m 4767 |[31m                 [33m<[31m[33mmotion[31m[33m.[31mbutton [0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/App.tsx[39m:4764:28
+[33m  4842|                      <p className="text-xs text-zinc-500 mt-0.5">Pode também aparecer como <strong className="text-zinc-300">"Instalar aplicação"</strong> ou <strong className="text-zinc-300">"Adicionar ao início"</strong></p>
+  4843|                    </div>
+  4844|                  </div>
+     |   ^
+  4845|                  <div className="flex items-start gap-4">
+  4846|                    <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-black text-xs shrink-0 mt-0.5">3</div>[39m
+      at toParseError (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parse-error.ts:95:45)
+      at raise (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\tokenizer\index.ts:1504:19)
+      at unexpected (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\tokenizer\index.ts:1544:16)
+      at expect (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\util.ts:157:12)
+      at parseObjectLike (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:2087:14)
+      at parseExprAtom (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:1181:21)
+      at parseExprAtom (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:583:22)
+      at parseExprSubscripts (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:742:23)
+      at parseUpdate (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:721:21)
+      at parseMaybeUnary (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:683:23)
+      at parseMaybeUnary (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3893:20)
+      at parseMaybeUnaryOrPrivate (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:417:14)
+      at parseExprOps (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:429:23)
+      at parseMaybeConditional (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:384:23)
+      at parseMaybeAssign (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:301:21)
+      at parseMaybeAssign (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3764:22)
+      at callback (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:257:12)
+      at allowInAnd (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:3197:12)
+      at parseMaybeAssignAllowIn (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:256:17)
+      at parseMaybeAssignAllowInOrVoidPattern (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:3311:17)
+      at parseParenAndDistinguishExpression (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:1825:16)
+      at parseExprAtom (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:1170:21)
+      at parseExprAtom (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:583:22)
+      at parseExprSubscripts (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:742:23)
+      at parseUpdate (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:721:21)
+      at parseMaybeUnary (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:683:23)
+      at parseMaybeUnary (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3893:20)
+      at parseMaybeUnaryOrPrivate (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:417:14)
+      at parseExprOpBaseRightExpr (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:597:12)
+      at parseExprOpRightExpr (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:582:21)
+      at parseExprOp (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:513:27)
+      at parseExprOp (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:2872:20)
+      at parseExprOp (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:534:21)
+      at parseExprOp (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:2872:20)
+      at parseExprOps (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:435:17)
+      at parseMaybeConditional (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:384:23)
+      at parseMaybeAssign (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:301:21)
+      at parseMaybeAssign (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3764:22)
+      at parseExpressionBase (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:226:23)
+      at callback (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:217:39)
+      at allowInAnd (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:3197:12)
+      at parseExpression (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:217:17)
+      at jsxParseExpressionContainer (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:376:33)
+      at jsxParseElementAt (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:500:24)
+      at jsxParseElementAt (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:483:34)
+      at jsxParseElementAt (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:483:34)
+      at jsxParseElement (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:559:19)
+      at parseExprAtom (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:573:21)
+      at parseExprSubscripts (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:742:23)
+      at parseUpdate (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:721:21)
+[2m22:27:44[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: C:\Users\admin\Vodoo\MineGuard\src\App.tsx: Expected corresponding JSX closing tag for <div>. (4781:16)
+
+[0m [90m 4779 |[39m                   [33m<[39m[33mDownload[39m size[33m=[39m{[35m16[39m} strokeWidth[33m=[39m{[35m3[39m} [33m/[39m[33m>[39m
+ [90m 4780 |[39m                   [33mInstalar[39m como [33mApp[39m
+[31m[1m>[22m[39m[90m 4781 |[39m                 [33m<[39m[33m/[39m[33mmotion[39m[33m.[39mbutton[33m>[39m
+ [90m      |[39m                 [31m[1m^[22m[39m
+ [90m 4782 |[39m               [33m<[39m[33m/[39m[33mdiv[39m[33m>[39m
+ [90m 4783 |[39m               [33m<[39m[33mdiv[39m className[33m=[39m[32m"mt-8 pt-8 border-t border-zinc-800 flex items-center justify-between"[39m[33m>[39m
+ [90m 4784 |[39m                 [33m<[39m[33mdiv[39m className[33m=[39m[32m"flex items-center gap-3"[39m[33m>[39m[0m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/App.tsx[39m:4781:16
+[33m  4869|            background: transparent;
+  4870|          }
+  4871|          .custom-scrollbar::-webkit-scrollbar-thumb {
+     |                    ^
+  4872|            background: #18181b;
+  4873|            border-radius: 10px;[39m
+[2m22:27:44[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Users\admin\Vodoo\MineGuard\src\App.tsx: Expected corresponding JSX closing tag for <div>. (4781:16)
+
+[0m [90m 4779 |[31m                   [33m<[31m[33mDownload[31m size[33m=[31m{[35m16[31m} strokeWidth[33m=[31m{[35m3[31m} [33m/[31m[33m>[31m
+ [90m 4780 |[31m                   [33mInstalar[31m como [33mApp[31m
+[31m[1m>[22m[31m[90m 4781 |[31m                 [33m<[31m[33m/[31m[33mmotion[31m[33m.[31mbutton[33m>[31m
+ [90m      |[31m                 [31m[1m^[22m[31m
+ [90m 4782 |[31m               [33m<[31m[33m/[31m[33mdiv[31m[33m>[31m
+ [90m 4783 |[31m               [33m<[31m[33mdiv[31m className[33m=[31m[32m"mt-8 pt-8 border-t border-zinc-800 flex items-center justify-between"[31m[33m>[31m
+ [90m 4784 |[31m                 [33m<[31m[33mdiv[31m className[33m=[31m[32m"flex items-center gap-3"[31m[33m>[31m[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/App.tsx[39m:4781:16
+[33m  4869|            background: transparent;
+  4870|          }
+  4871|          .custom-scrollbar::-webkit-scrollbar-thumb {
+     |                    ^
+  4872|            background: #18181b;
+  4873|            border-radius: 10px;[39m
+      at toParseError (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parse-error.ts:95:45)
+      at raise (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\tokenizer\index.ts:1504:19)
+      at jsxParseElementAt (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:527:18)
+      at jsxParseElementAt (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:483:34)
+      at jsxParseElementAt (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:483:34)
+      at jsxParseElement (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:559:19)
+      at parseExprAtom (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:573:21)
+      at parseExprSubscripts (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:742:23)
+      at parseUpdate (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:721:21)
+      at parseMaybeUnary (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:683:23)
+      at parseMaybeUnary (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3893:20)
+      at parseMaybeUnaryOrPrivate (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:417:14)
+      at parseExprOps (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:429:23)
+      at parseMaybeConditional (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:384:23)
+      at parseMaybeAssign (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:301:21)
+      at fn (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3745:23)
+      at tryParse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\util.ts:174:20)
+      at parseMaybeAssign (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3744:20)
+      at callback (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:257:12)
+      at allowInAnd (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:3197:12)
+      at parseMaybeAssignAllowIn (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:256:17)
+      at parseMaybeAssignAllowInOrVoidPattern (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:3311:17)
+      at parseParenAndDistinguishExpression (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:1825:16)
+      at parseExprAtom (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:1170:21)
+      at parseExprAtom (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:583:22)
+      at parseExprSubscripts (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:742:23)
+      at parseUpdate (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:721:21)
+      at parseMaybeUnary (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:683:23)
+      at parseMaybeUnary (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3893:20)
+      at parseMaybeUnaryOrPrivate (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:417:14)
+      at parseExprOpBaseRightExpr (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:597:12)
+      at parseExprOpRightExpr (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:582:21)
+      at parseExprOp (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:513:27)
+      at parseExprOp (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:2872:20)
+      at parseExprOps (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:435:17)
+      at parseMaybeConditional (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:384:23)
+      at parseMaybeAssign (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:301:21)
+      at parseMaybeAssign (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3764:22)
+      at parseExpressionBase (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:226:23)
+      at callback (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:217:39)
+      at allowInAnd (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:3197:12)
+      at parseExpression (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:217:17)
+      at jsxParseExpressionContainer (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:376:33)
+      at jsxParseElementAt (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:500:24)
+      at jsxParseElementAt (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:483:34)
+      at jsxParseElement (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:559:19)
+      at parseExprAtom (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:573:21)
+      at parseExprSubscripts (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:742:23)
+      at parseUpdate (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:721:21)
+      at parseMaybeUnary (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:683:23)
