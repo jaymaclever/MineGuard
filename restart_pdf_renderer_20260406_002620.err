@@ -1,0 +1,1530 @@
+[2m00:35:48[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Users\admin\Vodoo\MineGuard\src\App.tsx: Missing semicolon. (579:19)
+
+[0m [90m 577 |[31m   [90m// Form States[31m
+ [90m 578 |[31m   [36mconst[31m [newReport[33m,[31m setNewReport] [33m=[31m useState(createEmptyNewReport())[33m;[31m
+[31m[1m>[22m[31m[90m 579 |[31m     metadata[33m:[31m {} [36mas[31m any
+ [90m     |[31m                    [31m[1m^[22m[31m
+ [90m 580 |[31m   })[33m;[31m
+ [90m 581 |[31m
+ [90m 582 |[31m   [36mconst[31m [newUser[33m,[31m setNewUser] [33m=[31m useState({[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/App.tsx[39m:579:19
+[33m  598|        reportId
+  599|      };
+  600|      setNotifications(prev => [newNotif, ...prev]);
+     |                                             ^
+  601|      setIsBellShaking(true);
+  602|      setTimeout(() => setIsBellShaking(false), 1000);[39m
+      at toParseError (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parse-error.ts:95:45)
+      at raise (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\tokenizer\index.ts:1504:19)
+      at semicolon (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\util.ts:149:10)
+      at parseExpressionStatement (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1363:10)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:702:19)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3220:20)
+      at parseStatementLike (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:482:17)
+      at parseStatementListItem (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:431:17)
+      at parseBlockOrModuleBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1444:16)
+      at parseBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1417:10)
+      at parseBlock (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1385:10)
+      at parseFunctionBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:2621:24)
+      at parseFunctionBodyAndFinish (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:2590:10)
+      at parseFunctionBodyAndFinish (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:2609:20)
+      at callback (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1695:12)
+      at withSmartMixTopicForbiddingContext (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:3171:14)
+      at parseFunction (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1693:10)
+      at parseExportDefaultExpression (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:2570:19)
+      at parseExportDefaultExpression (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3076:20)
+      at parseExport (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:2452:25)
+      at parseExport (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3046:22)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:649:25)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3220:20)
+      at parseStatementLike (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:482:17)
+      at parseModuleItem (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:419:17)
+      at parseBlockOrModuleBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1443:16)
+      at parseBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1417:10)
+      at parseProgram (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:229:10)
+      at parseTopLevel (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:203:25)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\index.ts:83:25)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:4354:20)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\index.ts:86:38)
+      at parser (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\parser\index.ts:29:19)
+      at parser.next (<anonymous>)
+      at normalizeFile (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transformation\normalize-file.ts:50:24)
+      at normalizeFile.next (<anonymous>)
+      at run (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transformation\index.ts:41:36)
+      at run.next (<anonymous>)
+      at transform (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transform.ts:29:20)
+      at transform.next (<anonymous>)
+      at step (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:261:32)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:273:13
+      at async.call.result.err.err (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:223:11)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:189:28
+      at <anonymous> (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\gensync-utils\async.ts:90:7)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:113:33
+      at step (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:287:14)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:273:13
+      at async.call.result.err.err (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:223:11)
+[2m00:35:49[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: C:\Users\admin\Vodoo\MineGuard\src\App.tsx: Missing semicolon. (579:19)
+
+[0m [90m 577 |[39m   [90m// Form States[39m
+ [90m 578 |[39m   [36mconst[39m [newReport[33m,[39m setNewReport] [33m=[39m useState(createEmptyNewReport())[33m;[39m
+[31m[1m>[22m[39m[90m 579 |[39m     metadata[33m:[39m {} [36mas[39m any
+ [90m     |[39m                    [31m[1m^[22m[39m
+ [90m 580 |[39m   })[33m;[39m
+ [90m 581 |[39m
+ [90m 582 |[39m   [36mconst[39m [newUser[33m,[39m setNewUser] [33m=[39m useState({[0m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/App.tsx[39m:579:19
+[33m  598|        reportId
+  599|      };
+  600|      setNotifications(prev => [newNotif, ...prev]);
+     |                                             ^
+  601|      setIsBellShaking(true);
+  602|      setTimeout(() => setIsBellShaking(false), 1000);[39m
+[2m00:35:49[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Users\admin\Vodoo\MineGuard\src\App.tsx: Missing semicolon. (579:19)
+
+[0m [90m 577 |[31m   [90m// Form States[31m
+ [90m 578 |[31m   [36mconst[31m [newReport[33m,[31m setNewReport] [33m=[31m useState(createEmptyNewReport())[33m;[31m
+[31m[1m>[22m[31m[90m 579 |[31m     metadata[33m:[31m {} [36mas[31m any
+ [90m     |[31m                    [31m[1m^[22m[31m
+ [90m 580 |[31m   })[33m;[31m
+ [90m 581 |[31m
+ [90m 582 |[31m   [36mconst[31m [newUser[33m,[31m setNewUser] [33m=[31m useState({[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/App.tsx[39m:579:19
+[33m  598|        reportId
+  599|      };
+  600|      setNotifications(prev => [newNotif, ...prev]);
+     |                                             ^
+  601|      setIsBellShaking(true);
+  602|      setTimeout(() => setIsBellShaking(false), 1000);[39m
+      at toParseError (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parse-error.ts:95:45)
+      at raise (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\tokenizer\index.ts:1504:19)
+      at semicolon (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\util.ts:149:10)
+      at parseExpressionStatement (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1363:10)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:702:19)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3220:20)
+      at parseStatementLike (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:482:17)
+      at parseStatementListItem (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:431:17)
+      at parseBlockOrModuleBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1444:16)
+      at parseBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1417:10)
+      at parseBlock (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1385:10)
+      at parseFunctionBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:2621:24)
+      at parseFunctionBodyAndFinish (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:2590:10)
+      at parseFunctionBodyAndFinish (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:2609:20)
+      at callback (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1695:12)
+      at withSmartMixTopicForbiddingContext (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:3171:14)
+      at parseFunction (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1693:10)
+      at parseExportDefaultExpression (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:2570:19)
+      at parseExportDefaultExpression (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3076:20)
+      at parseExport (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:2452:25)
+      at parseExport (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3046:22)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:649:25)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3220:20)
+      at parseStatementLike (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:482:17)
+      at parseModuleItem (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:419:17)
+      at parseBlockOrModuleBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1443:16)
+      at parseBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1417:10)
+      at parseProgram (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:229:10)
+      at parseTopLevel (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:203:25)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\index.ts:83:25)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:4354:20)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\index.ts:86:38)
+      at parser (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\parser\index.ts:29:19)
+      at parser.next (<anonymous>)
+      at normalizeFile (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transformation\normalize-file.ts:50:24)
+      at normalizeFile.next (<anonymous>)
+      at run (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transformation\index.ts:41:36)
+      at run.next (<anonymous>)
+      at transform (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transform.ts:29:20)
+      at transform.next (<anonymous>)
+      at step (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:261:32)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:273:13
+      at async.call.result.err.err (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:223:11)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:189:28
+      at <anonymous> (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\gensync-utils\async.ts:90:7)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:113:33
+      at step (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:287:14)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:273:13
+      at async.call.result.err.err (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:223:11)
+[2m00:36:54[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: C:\Users\admin\Vodoo\MineGuard\src\App.tsx: Missing semicolon. (579:19)
+
+[0m [90m 577 |[39m   [90m// Form States[39m
+ [90m 578 |[39m   [36mconst[39m [newReport[33m,[39m setNewReport] [33m=[39m useState(createEmptyNewReport())[33m;[39m
+[31m[1m>[22m[39m[90m 579 |[39m     metadata[33m:[39m {} [36mas[39m any
+ [90m     |[39m                    [31m[1m^[22m[39m
+ [90m 580 |[39m   })[33m;[39m
+ [90m 581 |[39m
+ [90m 582 |[39m   [36mconst[39m [newUser[33m,[39m setNewUser] [33m=[39m useState({[0m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/App.tsx[39m:579:19
+[33m  598|        reportId
+  599|      };
+  600|      setNotifications(prev => [newNotif, ...prev]);
+     |                                             ^
+  601|      setIsBellShaking(true);
+  602|      setTimeout(() => setIsBellShaking(false), 1000);[39m
+[2m00:36:54[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Users\admin\Vodoo\MineGuard\src\App.tsx: Missing semicolon. (579:19)
+
+[0m [90m 577 |[31m   [90m// Form States[31m
+ [90m 578 |[31m   [36mconst[31m [newReport[33m,[31m setNewReport] [33m=[31m useState(createEmptyNewReport())[33m;[31m
+[31m[1m>[22m[31m[90m 579 |[31m     metadata[33m:[31m {} [36mas[31m any
+ [90m     |[31m                    [31m[1m^[22m[31m
+ [90m 580 |[31m   })[33m;[31m
+ [90m 581 |[31m
+ [90m 582 |[31m   [36mconst[31m [newUser[33m,[31m setNewUser] [33m=[31m useState({[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/App.tsx[39m:579:19
+[33m  598|        reportId
+  599|      };
+  600|      setNotifications(prev => [newNotif, ...prev]);
+     |                                             ^
+  601|      setIsBellShaking(true);
+  602|      setTimeout(() => setIsBellShaking(false), 1000);[39m
+      at toParseError (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parse-error.ts:95:45)
+      at raise (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\tokenizer\index.ts:1504:19)
+      at semicolon (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\util.ts:149:10)
+      at parseExpressionStatement (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1363:10)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:702:19)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3220:20)
+      at parseStatementLike (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:482:17)
+      at parseStatementListItem (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:431:17)
+      at parseBlockOrModuleBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1444:16)
+      at parseBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1417:10)
+      at parseBlock (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1385:10)
+      at parseFunctionBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:2621:24)
+      at parseFunctionBodyAndFinish (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:2590:10)
+      at parseFunctionBodyAndFinish (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:2609:20)
+      at callback (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1695:12)
+      at withSmartMixTopicForbiddingContext (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:3171:14)
+      at parseFunction (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1693:10)
+      at parseExportDefaultExpression (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:2570:19)
+      at parseExportDefaultExpression (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3076:20)
+      at parseExport (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:2452:25)
+      at parseExport (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3046:22)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:649:25)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3220:20)
+      at parseStatementLike (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:482:17)
+      at parseModuleItem (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:419:17)
+      at parseBlockOrModuleBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1443:16)
+      at parseBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1417:10)
+      at parseProgram (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:229:10)
+      at parseTopLevel (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:203:25)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\index.ts:83:25)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:4354:20)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\index.ts:86:38)
+      at parser (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\parser\index.ts:29:19)
+      at parser.next (<anonymous>)
+      at normalizeFile (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transformation\normalize-file.ts:50:24)
+      at normalizeFile.next (<anonymous>)
+      at run (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transformation\index.ts:41:36)
+      at run.next (<anonymous>)
+      at transform (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transform.ts:29:20)
+      at transform.next (<anonymous>)
+      at step (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:261:32)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:273:13
+      at async.call.result.err.err (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:223:11)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:189:28
+      at <anonymous> (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\gensync-utils\async.ts:90:7)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:113:33
+      at step (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:287:14)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:273:13
+      at async.call.result.err.err (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:223:11)
+[2m00:37:05[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: C:\Users\admin\Vodoo\MineGuard\src\App.tsx: Missing semicolon. (579:19)
+
+[0m [90m 577 |[39m   [90m// Form States[39m
+ [90m 578 |[39m   [36mconst[39m [newReport[33m,[39m setNewReport] [33m=[39m useState(createEmptyNewReport())[33m;[39m
+[31m[1m>[22m[39m[90m 579 |[39m     metadata[33m:[39m {} [36mas[39m any
+ [90m     |[39m                    [31m[1m^[22m[39m
+ [90m 580 |[39m   })[33m;[39m
+ [90m 581 |[39m
+ [90m 582 |[39m   [36mconst[39m [newUser[33m,[39m setNewUser] [33m=[39m useState({[0m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/App.tsx[39m:579:19
+[33m  598|        reportId
+  599|      };
+  600|      setNotifications(prev => [newNotif, ...prev]);
+     |                                             ^
+  601|      setIsBellShaking(true);
+  602|      setTimeout(() => setIsBellShaking(false), 1000);[39m
+[2m00:37:05[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Users\admin\Vodoo\MineGuard\src\App.tsx: Missing semicolon. (579:19)
+
+[0m [90m 577 |[31m   [90m// Form States[31m
+ [90m 578 |[31m   [36mconst[31m [newReport[33m,[31m setNewReport] [33m=[31m useState(createEmptyNewReport())[33m;[31m
+[31m[1m>[22m[31m[90m 579 |[31m     metadata[33m:[31m {} [36mas[31m any
+ [90m     |[31m                    [31m[1m^[22m[31m
+ [90m 580 |[31m   })[33m;[31m
+ [90m 581 |[31m
+ [90m 582 |[31m   [36mconst[31m [newUser[33m,[31m setNewUser] [33m=[31m useState({[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/App.tsx[39m:579:19
+[33m  598|        reportId
+  599|      };
+  600|      setNotifications(prev => [newNotif, ...prev]);
+     |                                             ^
+  601|      setIsBellShaking(true);
+  602|      setTimeout(() => setIsBellShaking(false), 1000);[39m
+      at toParseError (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parse-error.ts:95:45)
+      at raise (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\tokenizer\index.ts:1504:19)
+      at semicolon (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\util.ts:149:10)
+      at parseExpressionStatement (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1363:10)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:702:19)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3220:20)
+      at parseStatementLike (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:482:17)
+      at parseStatementListItem (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:431:17)
+      at parseBlockOrModuleBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1444:16)
+      at parseBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1417:10)
+      at parseBlock (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1385:10)
+      at parseFunctionBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:2621:24)
+      at parseFunctionBodyAndFinish (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:2590:10)
+      at parseFunctionBodyAndFinish (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:2609:20)
+      at callback (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1695:12)
+      at withSmartMixTopicForbiddingContext (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:3171:14)
+      at parseFunction (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1693:10)
+      at parseExportDefaultExpression (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:2570:19)
+      at parseExportDefaultExpression (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3076:20)
+      at parseExport (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:2452:25)
+      at parseExport (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3046:22)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:649:25)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3220:20)
+      at parseStatementLike (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:482:17)
+      at parseModuleItem (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:419:17)
+      at parseBlockOrModuleBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1443:16)
+      at parseBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1417:10)
+      at parseProgram (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:229:10)
+      at parseTopLevel (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:203:25)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\index.ts:83:25)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:4354:20)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\index.ts:86:38)
+      at parser (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\parser\index.ts:29:19)
+      at parser.next (<anonymous>)
+      at normalizeFile (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transformation\normalize-file.ts:50:24)
+      at normalizeFile.next (<anonymous>)
+      at run (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transformation\index.ts:41:36)
+      at run.next (<anonymous>)
+      at transform (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transform.ts:29:20)
+      at transform.next (<anonymous>)
+      at step (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:261:32)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:273:13
+      at async.call.result.err.err (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:223:11)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:189:28
+      at <anonymous> (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\gensync-utils\async.ts:90:7)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:113:33
+      at step (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:287:14)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:273:13
+      at async.call.result.err.err (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:223:11)
+[2m00:37:18[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: C:\Users\admin\Vodoo\MineGuard\src\App.tsx: Missing semicolon. (579:19)
+
+[0m [90m 577 |[39m   [90m// Form States[39m
+ [90m 578 |[39m   [36mconst[39m [newReport[33m,[39m setNewReport] [33m=[39m useState(createEmptyNewReport())[33m;[39m
+[31m[1m>[22m[39m[90m 579 |[39m     metadata[33m:[39m {} [36mas[39m any
+ [90m     |[39m                    [31m[1m^[22m[39m
+ [90m 580 |[39m   })[33m;[39m
+ [90m 581 |[39m
+ [90m 582 |[39m   [36mconst[39m [newUser[33m,[39m setNewUser] [33m=[39m useState({[0m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/App.tsx[39m:579:19
+[33m  598|        reportId
+  599|      };
+  600|      setNotifications(prev => [newNotif, ...prev]);
+     |                                             ^
+  601|      setIsBellShaking(true);
+  602|      setTimeout(() => setIsBellShaking(false), 1000);[39m
+[2m00:37:19[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Users\admin\Vodoo\MineGuard\src\App.tsx: Missing semicolon. (579:19)
+
+[0m [90m 577 |[31m   [90m// Form States[31m
+ [90m 578 |[31m   [36mconst[31m [newReport[33m,[31m setNewReport] [33m=[31m useState(createEmptyNewReport())[33m;[31m
+[31m[1m>[22m[31m[90m 579 |[31m     metadata[33m:[31m {} [36mas[31m any
+ [90m     |[31m                    [31m[1m^[22m[31m
+ [90m 580 |[31m   })[33m;[31m
+ [90m 581 |[31m
+ [90m 582 |[31m   [36mconst[31m [newUser[33m,[31m setNewUser] [33m=[31m useState({[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/App.tsx[39m:579:19
+[33m  598|        reportId
+  599|      };
+  600|      setNotifications(prev => [newNotif, ...prev]);
+     |                                             ^
+  601|      setIsBellShaking(true);
+  602|      setTimeout(() => setIsBellShaking(false), 1000);[39m
+      at toParseError (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parse-error.ts:95:45)
+      at raise (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\tokenizer\index.ts:1504:19)
+      at semicolon (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\util.ts:149:10)
+      at parseExpressionStatement (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1363:10)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:702:19)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3220:20)
+      at parseStatementLike (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:482:17)
+      at parseStatementListItem (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:431:17)
+      at parseBlockOrModuleBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1444:16)
+      at parseBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1417:10)
+      at parseBlock (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1385:10)
+      at parseFunctionBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:2621:24)
+      at parseFunctionBodyAndFinish (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:2590:10)
+      at parseFunctionBodyAndFinish (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:2609:20)
+      at callback (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1695:12)
+      at withSmartMixTopicForbiddingContext (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:3171:14)
+      at parseFunction (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1693:10)
+      at parseExportDefaultExpression (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:2570:19)
+      at parseExportDefaultExpression (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3076:20)
+      at parseExport (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:2452:25)
+      at parseExport (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3046:22)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:649:25)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3220:20)
+      at parseStatementLike (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:482:17)
+      at parseModuleItem (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:419:17)
+      at parseBlockOrModuleBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1443:16)
+      at parseBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1417:10)
+      at parseProgram (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:229:10)
+      at parseTopLevel (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:203:25)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\index.ts:83:25)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:4354:20)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\index.ts:86:38)
+      at parser (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\parser\index.ts:29:19)
+      at parser.next (<anonymous>)
+      at normalizeFile (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transformation\normalize-file.ts:50:24)
+      at normalizeFile.next (<anonymous>)
+      at run (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transformation\index.ts:41:36)
+      at run.next (<anonymous>)
+      at transform (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transform.ts:29:20)
+      at transform.next (<anonymous>)
+      at step (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:261:32)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:273:13
+      at async.call.result.err.err (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:223:11)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:189:28
+      at <anonymous> (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\gensync-utils\async.ts:90:7)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:113:33
+      at step (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:287:14)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:273:13
+      at async.call.result.err.err (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:223:11)
+[2m00:37:27[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: C:\Users\admin\Vodoo\MineGuard\src\App.tsx: Missing semicolon. (579:19)
+
+[0m [90m 577 |[39m   [90m// Form States[39m
+ [90m 578 |[39m   [36mconst[39m [newReport[33m,[39m setNewReport] [33m=[39m useState(createEmptyNewReport())[33m;[39m
+[31m[1m>[22m[39m[90m 579 |[39m     metadata[33m:[39m {} [36mas[39m any
+ [90m     |[39m                    [31m[1m^[22m[39m
+ [90m 580 |[39m   })[33m;[39m
+ [90m 581 |[39m
+ [90m 582 |[39m   [36mconst[39m [newUser[33m,[39m setNewUser] [33m=[39m useState({[0m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/App.tsx[39m:579:19
+[33m  598|        reportId
+  599|      };
+  600|      setNotifications(prev => [newNotif, ...prev]);
+     |                                             ^
+  601|      setIsBellShaking(true);
+  602|      setTimeout(() => setIsBellShaking(false), 1000);[39m
+[2m00:37:28[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Users\admin\Vodoo\MineGuard\src\App.tsx: Missing semicolon. (579:19)
+
+[0m [90m 577 |[31m   [90m// Form States[31m
+ [90m 578 |[31m   [36mconst[31m [newReport[33m,[31m setNewReport] [33m=[31m useState(createEmptyNewReport())[33m;[31m
+[31m[1m>[22m[31m[90m 579 |[31m     metadata[33m:[31m {} [36mas[31m any
+ [90m     |[31m                    [31m[1m^[22m[31m
+ [90m 580 |[31m   })[33m;[31m
+ [90m 581 |[31m
+ [90m 582 |[31m   [36mconst[31m [newUser[33m,[31m setNewUser] [33m=[31m useState({[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/App.tsx[39m:579:19
+[33m  598|        reportId
+  599|      };
+  600|      setNotifications(prev => [newNotif, ...prev]);
+     |                                             ^
+  601|      setIsBellShaking(true);
+  602|      setTimeout(() => setIsBellShaking(false), 1000);[39m
+      at toParseError (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parse-error.ts:95:45)
+      at raise (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\tokenizer\index.ts:1504:19)
+      at semicolon (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\util.ts:149:10)
+      at parseExpressionStatement (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1363:10)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:702:19)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3220:20)
+      at parseStatementLike (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:482:17)
+      at parseStatementListItem (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:431:17)
+      at parseBlockOrModuleBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1444:16)
+      at parseBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1417:10)
+      at parseBlock (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1385:10)
+      at parseFunctionBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:2621:24)
+      at parseFunctionBodyAndFinish (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:2590:10)
+      at parseFunctionBodyAndFinish (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:2609:20)
+      at callback (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1695:12)
+      at withSmartMixTopicForbiddingContext (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:3171:14)
+      at parseFunction (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1693:10)
+      at parseExportDefaultExpression (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:2570:19)
+      at parseExportDefaultExpression (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3076:20)
+      at parseExport (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:2452:25)
+      at parseExport (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3046:22)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:649:25)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3220:20)
+      at parseStatementLike (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:482:17)
+      at parseModuleItem (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:419:17)
+      at parseBlockOrModuleBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1443:16)
+      at parseBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1417:10)
+      at parseProgram (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:229:10)
+      at parseTopLevel (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:203:25)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\index.ts:83:25)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:4354:20)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\index.ts:86:38)
+      at parser (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\parser\index.ts:29:19)
+      at parser.next (<anonymous>)
+      at normalizeFile (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transformation\normalize-file.ts:50:24)
+      at normalizeFile.next (<anonymous>)
+      at run (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transformation\index.ts:41:36)
+      at run.next (<anonymous>)
+      at transform (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transform.ts:29:20)
+      at transform.next (<anonymous>)
+      at step (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:261:32)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:273:13
+      at async.call.result.err.err (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:223:11)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:189:28
+      at <anonymous> (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\gensync-utils\async.ts:90:7)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:113:33
+      at step (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:287:14)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:273:13
+      at async.call.result.err.err (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:223:11)
+[2m00:38:07[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: C:\Users\admin\Vodoo\MineGuard\src\App.tsx: Missing semicolon. (579:19)
+
+[0m [90m 577 |[39m   [90m// Form States[39m
+ [90m 578 |[39m   [36mconst[39m [newReport[33m,[39m setNewReport] [33m=[39m useState(createEmptyNewReport())[33m;[39m
+[31m[1m>[22m[39m[90m 579 |[39m     metadata[33m:[39m {} [36mas[39m any
+ [90m     |[39m                    [31m[1m^[22m[39m
+ [90m 580 |[39m   })[33m;[39m
+ [90m 581 |[39m
+ [90m 582 |[39m   [36mconst[39m [newUser[33m,[39m setNewUser] [33m=[39m useState({[0m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/App.tsx[39m:579:19
+[33m  598|        reportId
+  599|      };
+  600|      setNotifications(prev => [newNotif, ...prev]);
+     |                                             ^
+  601|      setIsBellShaking(true);
+  602|      setTimeout(() => setIsBellShaking(false), 1000);[39m
+[2m00:38:07[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Users\admin\Vodoo\MineGuard\src\App.tsx: Missing semicolon. (579:19)
+
+[0m [90m 577 |[31m   [90m// Form States[31m
+ [90m 578 |[31m   [36mconst[31m [newReport[33m,[31m setNewReport] [33m=[31m useState(createEmptyNewReport())[33m;[31m
+[31m[1m>[22m[31m[90m 579 |[31m     metadata[33m:[31m {} [36mas[31m any
+ [90m     |[31m                    [31m[1m^[22m[31m
+ [90m 580 |[31m   })[33m;[31m
+ [90m 581 |[31m
+ [90m 582 |[31m   [36mconst[31m [newUser[33m,[31m setNewUser] [33m=[31m useState({[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/App.tsx[39m:579:19
+[33m  598|        reportId
+  599|      };
+  600|      setNotifications(prev => [newNotif, ...prev]);
+     |                                             ^
+  601|      setIsBellShaking(true);
+  602|      setTimeout(() => setIsBellShaking(false), 1000);[39m
+      at toParseError (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parse-error.ts:95:45)
+      at raise (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\tokenizer\index.ts:1504:19)
+      at semicolon (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\util.ts:149:10)
+      at parseExpressionStatement (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1363:10)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:702:19)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3220:20)
+      at parseStatementLike (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:482:17)
+      at parseStatementListItem (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:431:17)
+      at parseBlockOrModuleBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1444:16)
+      at parseBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1417:10)
+      at parseBlock (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1385:10)
+      at parseFunctionBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:2621:24)
+      at parseFunctionBodyAndFinish (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:2590:10)
+      at parseFunctionBodyAndFinish (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:2609:20)
+      at callback (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1695:12)
+      at withSmartMixTopicForbiddingContext (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:3171:14)
+      at parseFunction (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1693:10)
+      at parseExportDefaultExpression (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:2570:19)
+      at parseExportDefaultExpression (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3076:20)
+      at parseExport (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:2452:25)
+      at parseExport (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3046:22)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:649:25)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3220:20)
+      at parseStatementLike (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:482:17)
+      at parseModuleItem (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:419:17)
+      at parseBlockOrModuleBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1443:16)
+      at parseBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1417:10)
+      at parseProgram (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:229:10)
+      at parseTopLevel (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:203:25)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\index.ts:83:25)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:4354:20)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\index.ts:86:38)
+      at parser (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\parser\index.ts:29:19)
+      at parser.next (<anonymous>)
+      at normalizeFile (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transformation\normalize-file.ts:50:24)
+      at normalizeFile.next (<anonymous>)
+      at run (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transformation\index.ts:41:36)
+      at run.next (<anonymous>)
+      at transform (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transform.ts:29:20)
+      at transform.next (<anonymous>)
+      at step (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:261:32)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:273:13
+      at async.call.result.err.err (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:223:11)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:189:28
+      at <anonymous> (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\gensync-utils\async.ts:90:7)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:113:33
+      at step (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:287:14)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:273:13
+      at async.call.result.err.err (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:223:11)
+[2m00:38:34[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: C:\Users\admin\Vodoo\MineGuard\src\App.tsx: Missing semicolon. (579:19)
+
+[0m [90m 577 |[39m   [90m// Form States[39m
+ [90m 578 |[39m   [36mconst[39m [newReport[33m,[39m setNewReport] [33m=[39m useState(createEmptyNewReport())[33m;[39m
+[31m[1m>[22m[39m[90m 579 |[39m     metadata[33m:[39m {} [36mas[39m any
+ [90m     |[39m                    [31m[1m^[22m[39m
+ [90m 580 |[39m   })[33m;[39m
+ [90m 581 |[39m
+ [90m 582 |[39m   [36mconst[39m [newUser[33m,[39m setNewUser] [33m=[39m useState({[0m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/App.tsx[39m:579:19
+[33m  598|        reportId
+  599|      };
+  600|      setNotifications(prev => [newNotif, ...prev]);
+     |                                             ^
+  601|      setIsBellShaking(true);
+  602|      setTimeout(() => setIsBellShaking(false), 1000);[39m
+[2m00:38:34[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Users\admin\Vodoo\MineGuard\src\App.tsx: Missing semicolon. (579:19)
+
+[0m [90m 577 |[31m   [90m// Form States[31m
+ [90m 578 |[31m   [36mconst[31m [newReport[33m,[31m setNewReport] [33m=[31m useState(createEmptyNewReport())[33m;[31m
+[31m[1m>[22m[31m[90m 579 |[31m     metadata[33m:[31m {} [36mas[31m any
+ [90m     |[31m                    [31m[1m^[22m[31m
+ [90m 580 |[31m   })[33m;[31m
+ [90m 581 |[31m
+ [90m 582 |[31m   [36mconst[31m [newUser[33m,[31m setNewUser] [33m=[31m useState({[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/App.tsx[39m:579:19
+[33m  598|        reportId
+  599|      };
+  600|      setNotifications(prev => [newNotif, ...prev]);
+     |                                             ^
+  601|      setIsBellShaking(true);
+  602|      setTimeout(() => setIsBellShaking(false), 1000);[39m
+      at toParseError (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parse-error.ts:95:45)
+      at raise (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\tokenizer\index.ts:1504:19)
+      at semicolon (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\util.ts:149:10)
+      at parseExpressionStatement (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1363:10)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:702:19)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3220:20)
+      at parseStatementLike (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:482:17)
+      at parseStatementListItem (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:431:17)
+      at parseBlockOrModuleBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1444:16)
+      at parseBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1417:10)
+      at parseBlock (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1385:10)
+      at parseFunctionBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:2621:24)
+      at parseFunctionBodyAndFinish (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:2590:10)
+      at parseFunctionBodyAndFinish (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:2609:20)
+      at callback (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1695:12)
+      at withSmartMixTopicForbiddingContext (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:3171:14)
+      at parseFunction (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1693:10)
+      at parseExportDefaultExpression (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:2570:19)
+      at parseExportDefaultExpression (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3076:20)
+      at parseExport (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:2452:25)
+      at parseExport (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3046:22)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:649:25)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3220:20)
+      at parseStatementLike (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:482:17)
+      at parseModuleItem (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:419:17)
+      at parseBlockOrModuleBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1443:16)
+      at parseBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1417:10)
+      at parseProgram (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:229:10)
+      at parseTopLevel (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:203:25)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\index.ts:83:25)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:4354:20)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\index.ts:86:38)
+      at parser (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\parser\index.ts:29:19)
+      at parser.next (<anonymous>)
+      at normalizeFile (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transformation\normalize-file.ts:50:24)
+      at normalizeFile.next (<anonymous>)
+      at run (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transformation\index.ts:41:36)
+      at run.next (<anonymous>)
+      at transform (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transform.ts:29:20)
+      at transform.next (<anonymous>)
+      at step (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:261:32)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:273:13
+      at async.call.result.err.err (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:223:11)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:189:28
+      at <anonymous> (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\gensync-utils\async.ts:90:7)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:113:33
+      at step (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:287:14)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:273:13
+      at async.call.result.err.err (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:223:11)
+[2m00:39:32[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: C:\Users\admin\Vodoo\MineGuard\src\App.tsx: Missing semicolon. (579:19)
+
+[0m [90m 577 |[39m   [90m// Form States[39m
+ [90m 578 |[39m   [36mconst[39m [newReport[33m,[39m setNewReport] [33m=[39m useState(createEmptyNewReport())[33m;[39m
+[31m[1m>[22m[39m[90m 579 |[39m     metadata[33m:[39m {} [36mas[39m any
+ [90m     |[39m                    [31m[1m^[22m[39m
+ [90m 580 |[39m   })[33m;[39m
+ [90m 581 |[39m
+ [90m 582 |[39m   [36mconst[39m [newUser[33m,[39m setNewUser] [33m=[39m useState({[0m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/App.tsx[39m:579:19
+[33m  598|        reportId
+  599|      };
+  600|      setNotifications(prev => [newNotif, ...prev]);
+     |                                             ^
+  601|      setIsBellShaking(true);
+  602|      setTimeout(() => setIsBellShaking(false), 1000);[39m
+[2m00:39:32[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Users\admin\Vodoo\MineGuard\src\App.tsx: Missing semicolon. (579:19)
+
+[0m [90m 577 |[31m   [90m// Form States[31m
+ [90m 578 |[31m   [36mconst[31m [newReport[33m,[31m setNewReport] [33m=[31m useState(createEmptyNewReport())[33m;[31m
+[31m[1m>[22m[31m[90m 579 |[31m     metadata[33m:[31m {} [36mas[31m any
+ [90m     |[31m                    [31m[1m^[22m[31m
+ [90m 580 |[31m   })[33m;[31m
+ [90m 581 |[31m
+ [90m 582 |[31m   [36mconst[31m [newUser[33m,[31m setNewUser] [33m=[31m useState({[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/App.tsx[39m:579:19
+[33m  598|        reportId
+  599|      };
+  600|      setNotifications(prev => [newNotif, ...prev]);
+     |                                             ^
+  601|      setIsBellShaking(true);
+  602|      setTimeout(() => setIsBellShaking(false), 1000);[39m
+      at toParseError (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parse-error.ts:95:45)
+      at raise (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\tokenizer\index.ts:1504:19)
+      at semicolon (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\util.ts:149:10)
+      at parseExpressionStatement (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1363:10)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:702:19)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3220:20)
+      at parseStatementLike (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:482:17)
+      at parseStatementListItem (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:431:17)
+      at parseBlockOrModuleBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1444:16)
+      at parseBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1417:10)
+      at parseBlock (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1385:10)
+      at parseFunctionBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:2621:24)
+      at parseFunctionBodyAndFinish (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:2590:10)
+      at parseFunctionBodyAndFinish (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:2609:20)
+      at callback (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1695:12)
+      at withSmartMixTopicForbiddingContext (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:3171:14)
+      at parseFunction (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1693:10)
+      at parseExportDefaultExpression (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:2570:19)
+      at parseExportDefaultExpression (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3076:20)
+      at parseExport (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:2452:25)
+      at parseExport (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3046:22)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:649:25)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3220:20)
+      at parseStatementLike (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:482:17)
+      at parseModuleItem (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:419:17)
+      at parseBlockOrModuleBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1443:16)
+      at parseBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1417:10)
+      at parseProgram (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:229:10)
+      at parseTopLevel (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:203:25)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\index.ts:83:25)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:4354:20)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\index.ts:86:38)
+      at parser (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\parser\index.ts:29:19)
+      at parser.next (<anonymous>)
+      at normalizeFile (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transformation\normalize-file.ts:50:24)
+      at normalizeFile.next (<anonymous>)
+      at run (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transformation\index.ts:41:36)
+      at run.next (<anonymous>)
+      at transform (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transform.ts:29:20)
+      at transform.next (<anonymous>)
+      at step (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:261:32)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:273:13
+      at async.call.result.err.err (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:223:11)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:189:28
+      at <anonymous> (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\gensync-utils\async.ts:90:7)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:113:33
+      at step (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:287:14)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:273:13
+      at async.call.result.err.err (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:223:11)
+[2m00:39:54[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: C:\Users\admin\Vodoo\MineGuard\src\App.tsx: Missing semicolon. (579:19)
+
+[0m [90m 577 |[39m   [90m// Form States[39m
+ [90m 578 |[39m   [36mconst[39m [newReport[33m,[39m setNewReport] [33m=[39m useState(createEmptyNewReport())[33m;[39m
+[31m[1m>[22m[39m[90m 579 |[39m     metadata[33m:[39m {} [36mas[39m any
+ [90m     |[39m                    [31m[1m^[22m[39m
+ [90m 580 |[39m   })[33m;[39m
+ [90m 581 |[39m
+ [90m 582 |[39m   [36mconst[39m [newUser[33m,[39m setNewUser] [33m=[39m useState({[0m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/App.tsx[39m:579:19
+[33m  598|        reportId
+  599|      };
+  600|      setNotifications(prev => [newNotif, ...prev]);
+     |                                             ^
+  601|      setIsBellShaking(true);
+  602|      setTimeout(() => setIsBellShaking(false), 1000);[39m
+[2m00:39:55[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Users\admin\Vodoo\MineGuard\src\App.tsx: Missing semicolon. (579:19)
+
+[0m [90m 577 |[31m   [90m// Form States[31m
+ [90m 578 |[31m   [36mconst[31m [newReport[33m,[31m setNewReport] [33m=[31m useState(createEmptyNewReport())[33m;[31m
+[31m[1m>[22m[31m[90m 579 |[31m     metadata[33m:[31m {} [36mas[31m any
+ [90m     |[31m                    [31m[1m^[22m[31m
+ [90m 580 |[31m   })[33m;[31m
+ [90m 581 |[31m
+ [90m 582 |[31m   [36mconst[31m [newUser[33m,[31m setNewUser] [33m=[31m useState({[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/App.tsx[39m:579:19
+[33m  598|        reportId
+  599|      };
+  600|      setNotifications(prev => [newNotif, ...prev]);
+     |                                             ^
+  601|      setIsBellShaking(true);
+  602|      setTimeout(() => setIsBellShaking(false), 1000);[39m
+      at toParseError (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parse-error.ts:95:45)
+      at raise (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\tokenizer\index.ts:1504:19)
+      at semicolon (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\util.ts:149:10)
+      at parseExpressionStatement (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1363:10)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:702:19)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3220:20)
+      at parseStatementLike (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:482:17)
+      at parseStatementListItem (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:431:17)
+      at parseBlockOrModuleBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1444:16)
+      at parseBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1417:10)
+      at parseBlock (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1385:10)
+      at parseFunctionBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:2621:24)
+      at parseFunctionBodyAndFinish (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:2590:10)
+      at parseFunctionBodyAndFinish (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:2609:20)
+      at callback (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1695:12)
+      at withSmartMixTopicForbiddingContext (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:3171:14)
+      at parseFunction (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1693:10)
+      at parseExportDefaultExpression (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:2570:19)
+      at parseExportDefaultExpression (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3076:20)
+      at parseExport (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:2452:25)
+      at parseExport (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3046:22)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:649:25)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3220:20)
+      at parseStatementLike (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:482:17)
+      at parseModuleItem (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:419:17)
+      at parseBlockOrModuleBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1443:16)
+      at parseBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1417:10)
+      at parseProgram (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:229:10)
+      at parseTopLevel (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:203:25)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\index.ts:83:25)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:4354:20)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\index.ts:86:38)
+      at parser (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\parser\index.ts:29:19)
+      at parser.next (<anonymous>)
+      at normalizeFile (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transformation\normalize-file.ts:50:24)
+      at normalizeFile.next (<anonymous>)
+      at run (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transformation\index.ts:41:36)
+      at run.next (<anonymous>)
+      at transform (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transform.ts:29:20)
+      at transform.next (<anonymous>)
+      at step (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:261:32)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:273:13
+      at async.call.result.err.err (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:223:11)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:189:28
+      at <anonymous> (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\gensync-utils\async.ts:90:7)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:113:33
+      at step (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:287:14)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:273:13
+      at async.call.result.err.err (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:223:11)
+[2m00:40:28[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: C:\Users\admin\Vodoo\MineGuard\src\App.tsx: Missing semicolon. (579:19)
+
+[0m [90m 577 |[39m   [90m// Form States[39m
+ [90m 578 |[39m   [36mconst[39m [newReport[33m,[39m setNewReport] [33m=[39m useState(createEmptyNewReport())[33m;[39m
+[31m[1m>[22m[39m[90m 579 |[39m     metadata[33m:[39m {} [36mas[39m any
+ [90m     |[39m                    [31m[1m^[22m[39m
+ [90m 580 |[39m   })[33m;[39m
+ [90m 581 |[39m
+ [90m 582 |[39m   [36mconst[39m [newUser[33m,[39m setNewUser] [33m=[39m useState({[0m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/App.tsx[39m:579:19
+[33m  598|        reportId
+  599|      };
+  600|      setNotifications(prev => [newNotif, ...prev]);
+     |                                             ^
+  601|      setIsBellShaking(true);
+  602|      setTimeout(() => setIsBellShaking(false), 1000);[39m
+[2m00:40:28[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Users\admin\Vodoo\MineGuard\src\App.tsx: Missing semicolon. (579:19)
+
+[0m [90m 577 |[31m   [90m// Form States[31m
+ [90m 578 |[31m   [36mconst[31m [newReport[33m,[31m setNewReport] [33m=[31m useState(createEmptyNewReport())[33m;[31m
+[31m[1m>[22m[31m[90m 579 |[31m     metadata[33m:[31m {} [36mas[31m any
+ [90m     |[31m                    [31m[1m^[22m[31m
+ [90m 580 |[31m   })[33m;[31m
+ [90m 581 |[31m
+ [90m 582 |[31m   [36mconst[31m [newUser[33m,[31m setNewUser] [33m=[31m useState({[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/App.tsx[39m:579:19
+[33m  598|        reportId
+  599|      };
+  600|      setNotifications(prev => [newNotif, ...prev]);
+     |                                             ^
+  601|      setIsBellShaking(true);
+  602|      setTimeout(() => setIsBellShaking(false), 1000);[39m
+      at toParseError (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parse-error.ts:95:45)
+      at raise (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\tokenizer\index.ts:1504:19)
+      at semicolon (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\util.ts:149:10)
+      at parseExpressionStatement (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1363:10)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:702:19)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3220:20)
+      at parseStatementLike (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:482:17)
+      at parseStatementListItem (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:431:17)
+      at parseBlockOrModuleBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1444:16)
+      at parseBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1417:10)
+      at parseBlock (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1385:10)
+      at parseFunctionBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:2621:24)
+      at parseFunctionBodyAndFinish (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:2590:10)
+      at parseFunctionBodyAndFinish (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:2609:20)
+      at callback (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1695:12)
+      at withSmartMixTopicForbiddingContext (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:3171:14)
+      at parseFunction (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1693:10)
+      at parseExportDefaultExpression (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:2570:19)
+      at parseExportDefaultExpression (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3076:20)
+      at parseExport (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:2452:25)
+      at parseExport (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3046:22)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:649:25)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3220:20)
+      at parseStatementLike (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:482:17)
+      at parseModuleItem (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:419:17)
+      at parseBlockOrModuleBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1443:16)
+      at parseBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1417:10)
+      at parseProgram (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:229:10)
+      at parseTopLevel (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:203:25)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\index.ts:83:25)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:4354:20)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\index.ts:86:38)
+      at parser (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\parser\index.ts:29:19)
+      at parser.next (<anonymous>)
+      at normalizeFile (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transformation\normalize-file.ts:50:24)
+      at normalizeFile.next (<anonymous>)
+      at run (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transformation\index.ts:41:36)
+      at run.next (<anonymous>)
+      at transform (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transform.ts:29:20)
+      at transform.next (<anonymous>)
+      at step (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:261:32)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:273:13
+      at async.call.result.err.err (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:223:11)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:189:28
+      at <anonymous> (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\gensync-utils\async.ts:90:7)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:113:33
+      at step (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:287:14)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:273:13
+      at async.call.result.err.err (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:223:11)
+[2m00:41:04[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: C:\Users\admin\Vodoo\MineGuard\src\App.tsx: Missing semicolon. (579:19)
+
+[0m [90m 577 |[39m   [90m// Form States[39m
+ [90m 578 |[39m   [36mconst[39m [newReport[33m,[39m setNewReport] [33m=[39m useState(createEmptyNewReport())[33m;[39m
+[31m[1m>[22m[39m[90m 579 |[39m     metadata[33m:[39m {} [36mas[39m any
+ [90m     |[39m                    [31m[1m^[22m[39m
+ [90m 580 |[39m   })[33m;[39m
+ [90m 581 |[39m
+ [90m 582 |[39m   [36mconst[39m [newUser[33m,[39m setNewUser] [33m=[39m useState({[0m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/App.tsx[39m:579:19
+[33m  598|        reportId
+  599|      };
+  600|      setNotifications(prev => [newNotif, ...prev]);
+     |                                             ^
+  601|      setIsBellShaking(true);
+  602|      setTimeout(() => setIsBellShaking(false), 1000);[39m
+[2m00:41:05[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Users\admin\Vodoo\MineGuard\src\App.tsx: Missing semicolon. (579:19)
+
+[0m [90m 577 |[31m   [90m// Form States[31m
+ [90m 578 |[31m   [36mconst[31m [newReport[33m,[31m setNewReport] [33m=[31m useState(createEmptyNewReport())[33m;[31m
+[31m[1m>[22m[31m[90m 579 |[31m     metadata[33m:[31m {} [36mas[31m any
+ [90m     |[31m                    [31m[1m^[22m[31m
+ [90m 580 |[31m   })[33m;[31m
+ [90m 581 |[31m
+ [90m 582 |[31m   [36mconst[31m [newUser[33m,[31m setNewUser] [33m=[31m useState({[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/App.tsx[39m:579:19
+[33m  598|        reportId
+  599|      };
+  600|      setNotifications(prev => [newNotif, ...prev]);
+     |                                             ^
+  601|      setIsBellShaking(true);
+  602|      setTimeout(() => setIsBellShaking(false), 1000);[39m
+      at toParseError (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parse-error.ts:95:45)
+      at raise (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\tokenizer\index.ts:1504:19)
+      at semicolon (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\util.ts:149:10)
+      at parseExpressionStatement (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1363:10)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:702:19)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3220:20)
+      at parseStatementLike (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:482:17)
+      at parseStatementListItem (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:431:17)
+      at parseBlockOrModuleBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1444:16)
+      at parseBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1417:10)
+      at parseBlock (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1385:10)
+      at parseFunctionBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:2621:24)
+      at parseFunctionBodyAndFinish (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:2590:10)
+      at parseFunctionBodyAndFinish (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:2609:20)
+      at callback (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1695:12)
+      at withSmartMixTopicForbiddingContext (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:3171:14)
+      at parseFunction (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1693:10)
+      at parseExportDefaultExpression (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:2570:19)
+      at parseExportDefaultExpression (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3076:20)
+      at parseExport (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:2452:25)
+      at parseExport (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3046:22)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:649:25)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3220:20)
+      at parseStatementLike (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:482:17)
+      at parseModuleItem (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:419:17)
+      at parseBlockOrModuleBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1443:16)
+      at parseBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1417:10)
+      at parseProgram (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:229:10)
+      at parseTopLevel (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:203:25)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\index.ts:83:25)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:4354:20)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\index.ts:86:38)
+      at parser (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\parser\index.ts:29:19)
+      at parser.next (<anonymous>)
+      at normalizeFile (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transformation\normalize-file.ts:50:24)
+      at normalizeFile.next (<anonymous>)
+      at run (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transformation\index.ts:41:36)
+      at run.next (<anonymous>)
+      at transform (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transform.ts:29:20)
+      at transform.next (<anonymous>)
+      at step (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:261:32)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:273:13
+      at async.call.result.err.err (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:223:11)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:189:28
+      at <anonymous> (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\gensync-utils\async.ts:90:7)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:113:33
+      at step (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:287:14)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:273:13
+      at async.call.result.err.err (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:223:11)
+[2m00:41:32[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: C:\Users\admin\Vodoo\MineGuard\src\App.tsx: Unexpected token (118:11)
+
+[0m [90m 116 |[39m }
+ [90m 117 |[39m   timestamp[33m:[39m string[33m;[39m
+[31m[1m>[22m[39m[90m 118 |[39m   metadata[33m?[39m[33m:[39m any[33m;[39m
+ [90m     |[39m            [31m[1m^[22m[39m
+ [90m 119 |[39m }
+ [90m 120 |[39m
+ [90m 121 |[39m [36minterface[39m [33mNotification[39m {[0m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/App.tsx[39m:118:11
+[33m  124|    message: string;
+  125|    timestamp: string;
+  126|    read: boolean;
+     |             ^
+  127|    type: 'report' | 'system' | 'alert';
+  128|    reportId?: number;[39m
+[2m00:41:33[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Users\admin\Vodoo\MineGuard\src\App.tsx: Unexpected token (118:11)
+
+[0m [90m 116 |[31m }
+ [90m 117 |[31m   timestamp[33m:[31m string[33m;[31m
+[31m[1m>[22m[31m[90m 118 |[31m   metadata[33m?[31m[33m:[31m any[33m;[31m
+ [90m     |[31m            [31m[1m^[22m[31m
+ [90m 119 |[31m }
+ [90m 120 |[31m
+ [90m 121 |[31m [36minterface[31m [33mNotification[31m {[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/App.tsx[39m:118:11
+[33m  124|    message: string;
+  125|    timestamp: string;
+  126|    read: boolean;
+     |             ^
+  127|    type: 'report' | 'system' | 'alert';
+  128|    reportId?: number;[39m
+      at toParseError (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parse-error.ts:95:45)
+      at raise (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\tokenizer\index.ts:1504:19)
+      at unexpected (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\tokenizer\index.ts:1544:16)
+      at parseExprAtom (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:1358:22)
+      at parseExprAtom (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:583:22)
+      at parseExprSubscripts (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:742:23)
+      at parseUpdate (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:721:21)
+      at parseMaybeUnary (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:683:23)
+      at parseMaybeUnary (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3893:20)
+      at parseMaybeUnaryOrPrivate (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:417:14)
+      at parseExprOps (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:429:23)
+      at parseMaybeConditional (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:384:23)
+      at parseMaybeAssign (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:301:21)
+      at parseMaybeAssign (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3764:22)
+      at callback (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:257:12)
+      at allowInAnd (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:3197:12)
+      at parseMaybeAssignAllowIn (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:256:17)
+      at parseConditional (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:403:30)
+      at parseConditional (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3393:20)
+      at parseMaybeConditional (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:390:17)
+      at parseMaybeAssign (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:301:21)
+      at parseMaybeAssign (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3764:22)
+      at parseExpressionBase (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:226:23)
+      at callback (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:217:39)
+      at allowInAnd (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:3192:16)
+      at parseExpression (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:217:17)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:688:23)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3220:20)
+      at parseStatementLike (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:482:17)
+      at parseModuleItem (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:419:17)
+      at parseBlockOrModuleBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1443:16)
+      at parseBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1417:10)
+      at parseProgram (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:229:10)
+      at parseTopLevel (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:203:25)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\index.ts:83:25)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:4354:20)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\index.ts:86:38)
+      at parser (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\parser\index.ts:29:19)
+      at parser.next (<anonymous>)
+      at normalizeFile (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transformation\normalize-file.ts:50:24)
+      at normalizeFile.next (<anonymous>)
+      at run (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transformation\index.ts:41:36)
+      at run.next (<anonymous>)
+      at transform (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transform.ts:29:20)
+      at transform.next (<anonymous>)
+      at step (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:261:32)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:273:13
+      at async.call.result.err.err (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:223:11)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:189:28
+      at <anonymous> (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\gensync-utils\async.ts:90:7)
+[2m00:42:06[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: C:\Users\admin\Vodoo\MineGuard\src\App.tsx: Missing semicolon. (586:19)
+
+[0m [90m 584 |[39m   [90m// Form States[39m
+ [90m 585 |[39m   [36mconst[39m [newReport[33m,[39m setNewReport] [33m=[39m useState(createEmptyNewReport())[33m;[39m
+[31m[1m>[22m[39m[90m 586 |[39m     metadata[33m:[39m {} [36mas[39m any
+ [90m     |[39m                    [31m[1m^[22m[39m
+ [90m 587 |[39m   })[33m;[39m
+ [90m 588 |[39m
+ [90m 589 |[39m   [36mconst[39m [newUser[33m,[39m setNewUser] [33m=[39m useState({[0m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/App.tsx[39m:586:19
+[33m  605|        reportId
+  606|      };
+  607|      setNotifications(prev => [newNotif, ...prev]);
+     |                                                    ^
+  608|      setIsBellShaking(true);
+  609|      setTimeout(() => setIsBellShaking(false), 1000);[39m
+[2m00:42:06[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Users\admin\Vodoo\MineGuard\src\App.tsx: Missing semicolon. (586:19)
+
+[0m [90m 584 |[31m   [90m// Form States[31m
+ [90m 585 |[31m   [36mconst[31m [newReport[33m,[31m setNewReport] [33m=[31m useState(createEmptyNewReport())[33m;[31m
+[31m[1m>[22m[31m[90m 586 |[31m     metadata[33m:[31m {} [36mas[31m any
+ [90m     |[31m                    [31m[1m^[22m[31m
+ [90m 587 |[31m   })[33m;[31m
+ [90m 588 |[31m
+ [90m 589 |[31m   [36mconst[31m [newUser[33m,[31m setNewUser] [33m=[31m useState({[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/App.tsx[39m:586:19
+[33m  605|        reportId
+  606|      };
+  607|      setNotifications(prev => [newNotif, ...prev]);
+     |                                                    ^
+  608|      setIsBellShaking(true);
+  609|      setTimeout(() => setIsBellShaking(false), 1000);[39m
+      at toParseError (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parse-error.ts:95:45)
+      at raise (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\tokenizer\index.ts:1504:19)
+      at semicolon (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\util.ts:149:10)
+      at parseExpressionStatement (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1363:10)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:702:19)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3220:20)
+      at parseStatementLike (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:482:17)
+      at parseStatementListItem (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:431:17)
+      at parseBlockOrModuleBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1444:16)
+      at parseBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1417:10)
+      at parseBlock (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1385:10)
+      at parseFunctionBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:2621:24)
+      at parseFunctionBodyAndFinish (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:2590:10)
+      at parseFunctionBodyAndFinish (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:2609:20)
+      at callback (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1695:12)
+      at withSmartMixTopicForbiddingContext (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:3171:14)
+      at parseFunction (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1693:10)
+      at parseExportDefaultExpression (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:2570:19)
+      at parseExportDefaultExpression (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3076:20)
+      at parseExport (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:2452:25)
+      at parseExport (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3046:22)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:649:25)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3220:20)
+      at parseStatementLike (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:482:17)
+      at parseModuleItem (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:419:17)
+      at parseBlockOrModuleBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1443:16)
+      at parseBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1417:10)
+      at parseProgram (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:229:10)
+      at parseTopLevel (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:203:25)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\index.ts:83:25)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:4354:20)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\index.ts:86:38)
+      at parser (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\parser\index.ts:29:19)
+      at parser.next (<anonymous>)
+      at normalizeFile (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transformation\normalize-file.ts:50:24)
+      at normalizeFile.next (<anonymous>)
+      at run (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transformation\index.ts:41:36)
+      at run.next (<anonymous>)
+      at transform (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transform.ts:29:20)
+      at transform.next (<anonymous>)
+      at step (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:261:32)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:273:13
+      at async.call.result.err.err (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:223:11)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:189:28
+      at <anonymous> (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\gensync-utils\async.ts:90:7)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:113:33
+      at step (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:287:14)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:273:13
+      at async.call.result.err.err (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:223:11)
+[2m00:42:25[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: C:\Users\admin\Vodoo\MineGuard\src\App.tsx: Unexpected token (1388:6)
+
+[0m [90m 1386 |[39m     }
+ [90m 1387 |[39m   }[33m;[39m
+[31m[1m>[22m[39m[90m 1388 |[39m     } [36mcatch[39m (err) {
+ [90m      |[39m       [31m[1m^[22m[39m
+ [90m 1389 |[39m       toast[33m.[39merror([32m"Erro ao salvar alterações"[39m)[33m;[39m
+ [90m 1390 |[39m       console[33m.[39merror(err)[33m;[39m
+ [90m 1391 |[39m     }[0m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/App.tsx[39m:1388:6
+[33m  1422|        <div className="h-screen w-full bg-[#050505] flex flex-col items-center justify-center p-8 text-center overscroll-none overflow-hidden">
+  1423|          <motion.div 
+  1424|            animate={{ scale: [1, 1.1, 1], rotate: [0, 180, 360] }}
+     |                                           ^
+  1425|            transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+  1426|            className="w-24 h-24 bg-primary rounded-3xl flex items-center justify-center shadow-2xl shadow-primary/30 mb-8 border-4 border-black group"[39m
+[2m00:42:25[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Users\admin\Vodoo\MineGuard\src\App.tsx: Unexpected token (1388:6)
+
+[0m [90m 1386 |[31m     }
+ [90m 1387 |[31m   }[33m;[31m
+[31m[1m>[22m[31m[90m 1388 |[31m     } [36mcatch[31m (err) {
+ [90m      |[31m       [31m[1m^[22m[31m
+ [90m 1389 |[31m       toast[33m.[31merror([32m"Erro ao salvar alterações"[31m)[33m;[31m
+ [90m 1390 |[31m       console[33m.[31merror(err)[33m;[31m
+ [90m 1391 |[31m     }[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/App.tsx[39m:1388:6
+[33m  1422|        <div className="h-screen w-full bg-[#050505] flex flex-col items-center justify-center p-8 text-center overscroll-none overflow-hidden">
+  1423|          <motion.div 
+  1424|            animate={{ scale: [1, 1.1, 1], rotate: [0, 180, 360] }}
+     |                                           ^
+  1425|            transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+  1426|            className="w-24 h-24 bg-primary rounded-3xl flex items-center justify-center shadow-2xl shadow-primary/30 mb-8 border-4 border-black group"[39m
+      at toParseError (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parse-error.ts:95:45)
+      at raise (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\tokenizer\index.ts:1504:19)
+      at unexpected (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\tokenizer\index.ts:1544:16)
+      at parseExprAtom (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:1358:22)
+      at parseExprAtom (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:583:22)
+      at parseExprSubscripts (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:742:23)
+      at parseUpdate (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:721:21)
+      at parseMaybeUnary (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:683:23)
+      at parseMaybeUnary (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3893:20)
+      at parseMaybeUnaryOrPrivate (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:417:14)
+      at parseExprOps (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:429:23)
+      at parseMaybeConditional (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:384:23)
+      at parseMaybeAssign (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:301:21)
+      at parseMaybeAssign (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3764:22)
+      at parseExpressionBase (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:226:23)
+      at callback (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:217:39)
+      at allowInAnd (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:3192:16)
+      at parseExpression (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:217:17)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:688:23)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3220:20)
+      at parseStatementLike (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:482:17)
+      at parseModuleItem (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:419:17)
+      at parseBlockOrModuleBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1443:16)
+      at parseBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1417:10)
+      at parseProgram (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:229:10)
+      at parseTopLevel (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:203:25)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\index.ts:83:25)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:4354:20)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\index.ts:86:38)
+      at parser (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\parser\index.ts:29:19)
+      at parser.next (<anonymous>)
+      at normalizeFile (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transformation\normalize-file.ts:50:24)
+      at normalizeFile.next (<anonymous>)
+      at run (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transformation\index.ts:41:36)
+      at run.next (<anonymous>)
+      at transform (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transform.ts:29:20)
+      at transform.next (<anonymous>)
+      at step (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:261:32)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:273:13
+      at async.call.result.err.err (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:223:11)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:189:28
+      at <anonymous> (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\gensync-utils\async.ts:90:7)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:113:33
+      at step (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:287:14)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:273:13
+      at async.call.result.err.err (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:223:11)
+[2m00:42:43[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: C:\Users\admin\Vodoo\MineGuard\src\App.tsx: Unexpected token (1388:6)
+
+[0m [90m 1386 |[39m     }
+ [90m 1387 |[39m   }[33m;[39m
+[31m[1m>[22m[39m[90m 1388 |[39m     } [36mcatch[39m (err) {
+ [90m      |[39m       [31m[1m^[22m[39m
+ [90m 1389 |[39m   [36mconst[39m handleConcludeReport [33m=[39m [36masync[39m (reportId[33m:[39m number[33m,[39m currentStatus[33m:[39m string) [33m=>[39m {
+ [90m 1390 |[39m     [36mconst[39m newStatus [33m=[39m currentStatus [33m===[39m [32m'Aberto'[39m [33m?[39m [32m'Concluído'[39m [33m:[39m [32m'Aberto'[39m[33m;[39m
+ [90m 1391 |[39m     [36mtry[39m {[0m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/App.tsx[39m:1388:6
+[33m  1418|          <motion.div 
+  1419|            animate={{ scale: [1, 1.1, 1], rotate: [0, 180, 360] }}
+  1420|            transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+     |                                                               ^
+  1421|            className="w-24 h-24 bg-primary rounded-3xl flex items-center justify-center shadow-2xl shadow-primary/30 mb-8 border-4 border-black group"
+  1422|          >[39m
+[2m00:42:43[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Users\admin\Vodoo\MineGuard\src\App.tsx: Unexpected token (1388:6)
+
+[0m [90m 1386 |[31m     }
+ [90m 1387 |[31m   }[33m;[31m
+[31m[1m>[22m[31m[90m 1388 |[31m     } [36mcatch[31m (err) {
+ [90m      |[31m       [31m[1m^[22m[31m
+ [90m 1389 |[31m   [36mconst[31m handleConcludeReport [33m=[31m [36masync[31m (reportId[33m:[31m number[33m,[31m currentStatus[33m:[31m string) [33m=>[31m {
+ [90m 1390 |[31m     [36mconst[31m newStatus [33m=[31m currentStatus [33m===[31m [32m'Aberto'[31m [33m?[31m [32m'Concluído'[31m [33m:[31m [32m'Aberto'[31m[33m;[31m
+ [90m 1391 |[31m     [36mtry[31m {[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/App.tsx[39m:1388:6
+[33m  1418|          <motion.div 
+  1419|            animate={{ scale: [1, 1.1, 1], rotate: [0, 180, 360] }}
+  1420|            transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+     |                                                               ^
+  1421|            className="w-24 h-24 bg-primary rounded-3xl flex items-center justify-center shadow-2xl shadow-primary/30 mb-8 border-4 border-black group"
+  1422|          >[39m
+      at toParseError (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parse-error.ts:95:45)
+      at raise (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\tokenizer\index.ts:1504:19)
+      at unexpected (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\tokenizer\index.ts:1544:16)
+      at parseExprAtom (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:1358:22)
+      at parseExprAtom (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:583:22)
+      at parseExprSubscripts (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:742:23)
+      at parseUpdate (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:721:21)
+      at parseMaybeUnary (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:683:23)
+      at parseMaybeUnary (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3893:20)
+      at parseMaybeUnaryOrPrivate (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:417:14)
+      at parseExprOps (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:429:23)
+      at parseMaybeConditional (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:384:23)
+      at parseMaybeAssign (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:301:21)
+      at parseMaybeAssign (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3764:22)
+      at parseExpressionBase (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:226:23)
+      at callback (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:217:39)
+      at allowInAnd (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:3192:16)
+      at parseExpression (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:217:17)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:688:23)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3220:20)
+      at parseStatementLike (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:482:17)
+      at parseModuleItem (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:419:17)
+      at parseBlockOrModuleBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1443:16)
+      at parseBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1417:10)
+      at parseProgram (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:229:10)
+      at parseTopLevel (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:203:25)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\index.ts:83:25)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:4354:20)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\index.ts:86:38)
+      at parser (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\parser\index.ts:29:19)
+      at parser.next (<anonymous>)
+      at normalizeFile (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transformation\normalize-file.ts:50:24)
+      at normalizeFile.next (<anonymous>)
+      at run (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transformation\index.ts:41:36)
+      at run.next (<anonymous>)
+      at transform (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transform.ts:29:20)
+      at transform.next (<anonymous>)
+      at step (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:261:32)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:273:13
+      at async.call.result.err.err (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:223:11)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:189:28
+      at <anonymous> (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\gensync-utils\async.ts:90:7)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:113:33
+      at step (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:287:14)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:273:13
+      at async.call.result.err.err (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:223:11)
+[2m00:43:01[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: C:\Users\admin\Vodoo\MineGuard\src\App.tsx: Missing semicolon. (1387:5)
+
+[0m [90m 1385 |[39m       console[33m.[39merror(err)[33m;[39m
+ [90m 1386 |[39m     }
+[31m[1m>[22m[39m[90m 1387 |[39m     } [36mcatch[39m (err) {
+ [90m      |[39m      [31m[1m^[22m[39m
+ [90m 1388 |[39m   [36mconst[39m handleConcludeReport [33m=[39m [36masync[39m (reportId[33m:[39m number[33m,[39m currentStatus[33m:[39m string) [33m=>[39m {
+ [90m 1389 |[39m     [36mconst[39m newStatus [33m=[39m currentStatus [33m===[39m [32m'Aberto'[39m [33m?[39m [32m'Concluído'[39m [33m:[39m [32m'Aberto'[39m[33m;[39m
+ [90m 1390 |[39m     [36mtry[39m {[0m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/App.tsx[39m:1387:5
+[33m  1417|          <motion.div 
+  1418|            animate={{ scale: [1, 1.1, 1], rotate: [0, 180, 360] }}
+  1419|            transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+     |                                                             ^
+  1420|            className="w-24 h-24 bg-primary rounded-3xl flex items-center justify-center shadow-2xl shadow-primary/30 mb-8 border-4 border-black group"
+  1421|          >[39m
+[2m00:43:02[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Users\admin\Vodoo\MineGuard\src\App.tsx: Missing semicolon. (1387:5)
+
+[0m [90m 1385 |[31m       console[33m.[31merror(err)[33m;[31m
+ [90m 1386 |[31m     }
+[31m[1m>[22m[31m[90m 1387 |[31m     } [36mcatch[31m (err) {
+ [90m      |[31m      [31m[1m^[22m[31m
+ [90m 1388 |[31m   [36mconst[31m handleConcludeReport [33m=[31m [36masync[31m (reportId[33m:[31m number[33m,[31m currentStatus[33m:[31m string) [33m=>[31m {
+ [90m 1389 |[31m     [36mconst[31m newStatus [33m=[31m currentStatus [33m===[31m [32m'Aberto'[31m [33m?[31m [32m'Concluído'[31m [33m:[31m [32m'Aberto'[31m[33m;[31m
+ [90m 1390 |[31m     [36mtry[31m {[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/App.tsx[39m:1387:5
+[33m  1417|          <motion.div 
+  1418|            animate={{ scale: [1, 1.1, 1], rotate: [0, 180, 360] }}
+  1419|            transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+     |                                                             ^
+  1420|            className="w-24 h-24 bg-primary rounded-3xl flex items-center justify-center shadow-2xl shadow-primary/30 mb-8 border-4 border-black group"
+  1421|          >[39m
+      at toParseError (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parse-error.ts:95:45)
+      at raise (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\tokenizer\index.ts:1504:19)
+      at semicolon (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\util.ts:149:10)
+      at parseVarStatement (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1252:10)
+      at parseVarStatement (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3085:33)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:612:21)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3220:20)
+      at parseStatementLike (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:482:17)
+      at parseStatementListItem (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:431:17)
+      at parseBlockOrModuleBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1444:16)
+      at parseBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1417:10)
+      at parseBlock (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1385:10)
+      at parseFunctionBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:2621:24)
+      at parseFunctionBodyAndFinish (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:2590:10)
+      at parseFunctionBodyAndFinish (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:2609:20)
+      at callback (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1695:12)
+      at withSmartMixTopicForbiddingContext (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:3171:14)
+      at parseFunction (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1693:10)
+      at parseExportDefaultExpression (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:2570:19)
+      at parseExportDefaultExpression (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3076:20)
+      at parseExport (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:2452:25)
+      at parseExport (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3046:22)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:649:25)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3220:20)
+      at parseStatementLike (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:482:17)
+      at parseModuleItem (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:419:17)
+      at parseBlockOrModuleBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1443:16)
+      at parseBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1417:10)
+      at parseProgram (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:229:10)
+      at parseTopLevel (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:203:25)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\index.ts:83:25)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:4354:20)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\index.ts:86:38)
+      at parser (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\parser\index.ts:29:19)
+      at parser.next (<anonymous>)
+      at normalizeFile (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transformation\normalize-file.ts:50:24)
+      at normalizeFile.next (<anonymous>)
+      at run (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transformation\index.ts:41:36)
+      at run.next (<anonymous>)
+      at transform (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transform.ts:29:20)
+      at transform.next (<anonymous>)
+      at step (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:261:32)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:273:13
+      at async.call.result.err.err (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:223:11)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:189:28
+      at <anonymous> (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\gensync-utils\async.ts:90:7)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:113:33
+      at step (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:287:14)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:273:13
+      at async.call.result.err.err (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:223:11)
+[2m00:43:18[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: C:\Users\admin\Vodoo\MineGuard\src\App.tsx: Unexpected token (4957:0)
+
+[0m [90m 4955 |[39m
+ [90m 4956 |[39m
+[31m[1m>[22m[39m[90m 4957 |[39m
+ [90m      |[39m [31m[1m^[22m[39m[0m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/App.tsx[39m:4957:0
+[2m00:43:18[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Users\admin\Vodoo\MineGuard\src\App.tsx: Unexpected token (4957:0)
+
+[0m [90m 4955 |[31m
+ [90m 4956 |[31m
+[31m[1m>[22m[31m[90m 4957 |[31m
+ [90m      |[31m [31m[1m^[22m[31m[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/App.tsx[39m:4957:0
+      at toParseError (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parse-error.ts:95:45)
+      at raise (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\tokenizer\index.ts:1504:19)
+      at unexpected (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\tokenizer\index.ts:1544:16)
+      at parseExprAtom (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:1358:22)
+      at parseExprAtom (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:583:22)
+      at parseExprSubscripts (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:742:23)
+      at parseUpdate (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:721:21)
+      at parseMaybeUnary (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:683:23)
+      at parseMaybeUnary (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3893:20)
+      at parseMaybeUnaryOrPrivate (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:417:14)
+      at parseExprOps (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:429:23)
+      at parseMaybeConditional (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:384:23)
+      at parseMaybeAssign (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:301:21)
+      at parseMaybeAssign (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3764:22)
+      at parseExpressionBase (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:226:23)
+      at callback (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:217:39)
+      at allowInAnd (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:3192:16)
+      at parseExpression (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:217:17)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:688:23)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3220:20)
+      at parseStatementLike (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:482:17)
+      at parseStatementListItem (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:431:17)
+      at parseBlockOrModuleBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1444:16)
+      at parseBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1417:10)
+      at parseBlock (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1385:10)
+      at parseFunctionBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:2621:24)
+      at parseFunctionBodyAndFinish (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:2590:10)
+      at parseFunctionBodyAndFinish (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:2609:20)
+      at callback (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1695:12)
+      at withSmartMixTopicForbiddingContext (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:3171:14)
+      at parseFunction (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1693:10)
+      at parseExportDefaultExpression (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:2570:19)
+      at parseExportDefaultExpression (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3076:20)
+      at parseExport (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:2452:25)
+      at parseExport (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3046:22)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:649:25)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3220:20)
+      at parseStatementLike (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:482:17)
+      at parseModuleItem (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:419:17)
+      at parseBlockOrModuleBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1443:16)
+      at parseBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1417:10)
+      at parseProgram (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:229:10)
+      at parseTopLevel (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:203:25)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\index.ts:83:25)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:4354:20)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\index.ts:86:38)
+      at parser (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\parser\index.ts:29:19)
+      at parser.next (<anonymous>)
+      at normalizeFile (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transformation\normalize-file.ts:50:24)
+      at normalizeFile.next (<anonymous>)
+[2m06:00:01[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: C:\Users\admin\Vodoo\MineGuard\src\App.tsx: Unexpected token (4957:0)
+
+[0m [90m 4955 |[39m
+ [90m 4956 |[39m
+[31m[1m>[22m[39m[90m 4957 |[39m
+ [90m      |[39m [31m[1m^[22m[39m[0m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/App.tsx[39m:4957:0
+[2m06:00:01[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: C:\Users\admin\Vodoo\MineGuard\src\App.tsx: Unexpected token (4957:0)
+
+[0m [90m 4955 |[39m
+ [90m 4956 |[39m
+[31m[1m>[22m[39m[90m 4957 |[39m
+ [90m      |[39m [31m[1m^[22m[39m[0m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/App.tsx[39m:4957:0
+[2m06:00:01[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Users\admin\Vodoo\MineGuard\src\App.tsx: Unexpected token (4957:0)
+
+[0m [90m 4955 |[31m
+ [90m 4956 |[31m
+[31m[1m>[22m[31m[90m 4957 |[31m
+ [90m      |[31m [31m[1m^[22m[31m[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/App.tsx[39m:4957:0
+      at toParseError (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parse-error.ts:95:45)
+      at raise (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\tokenizer\index.ts:1504:19)
+      at unexpected (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\tokenizer\index.ts:1544:16)
+      at parseExprAtom (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:1358:22)
+      at parseExprAtom (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:583:22)
+      at parseExprSubscripts (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:742:23)
+      at parseUpdate (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:721:21)
+      at parseMaybeUnary (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:683:23)
+      at parseMaybeUnary (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3893:20)
+      at parseMaybeUnaryOrPrivate (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:417:14)
+      at parseExprOps (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:429:23)
+      at parseMaybeConditional (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:384:23)
+      at parseMaybeAssign (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:301:21)
+      at parseMaybeAssign (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3764:22)
+      at parseExpressionBase (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:226:23)
+      at callback (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:217:39)
+      at allowInAnd (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:3192:16)
+      at parseExpression (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:217:17)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:688:23)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3220:20)
+      at parseStatementLike (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:482:17)
+      at parseStatementListItem (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:431:17)
+      at parseBlockOrModuleBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1444:16)
+      at parseBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1417:10)
+      at parseBlock (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1385:10)
+      at parseFunctionBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:2621:24)
+      at parseFunctionBodyAndFinish (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:2590:10)
+      at parseFunctionBodyAndFinish (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:2609:20)
+      at callback (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1695:12)
+      at withSmartMixTopicForbiddingContext (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:3171:14)
+      at parseFunction (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1693:10)
+      at parseExportDefaultExpression (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:2570:19)
+      at parseExportDefaultExpression (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3076:20)
+      at parseExport (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:2452:25)
+      at parseExport (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3046:22)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:649:25)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3220:20)
+      at parseStatementLike (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:482:17)
+      at parseModuleItem (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:419:17)
+      at parseBlockOrModuleBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1443:16)
+      at parseBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1417:10)
+      at parseProgram (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:229:10)
+      at parseTopLevel (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:203:25)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\index.ts:83:25)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:4354:20)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\index.ts:86:38)
+      at parser (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\parser\index.ts:29:19)
+      at parser.next (<anonymous>)
+      at normalizeFile (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transformation\normalize-file.ts:50:24)
+      at normalizeFile.next (<anonymous>)

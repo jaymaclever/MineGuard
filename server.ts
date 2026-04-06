@@ -17,7 +17,16 @@ import http from "http";
 import https from "https";
 import bcrypt from "bcryptjs";
 import { Parser } from "json2csv";
-import { generateDailyReport } from "./report_generator";
+import {
+  approveDailyReport,
+  exportDailyReportsBatch,
+  exportDailyReport,
+  generateDailyReport,
+  getDailyReportDetail,
+  getDailyReportPreviewHtml,
+  listDailyReports,
+  updateDailyReportLifecycle,
+} from "./report_generator";
 
 const db = new Database("mina_seguranca.db");
 
@@ -554,37 +563,102 @@ async function startServer() {
   });
 
   // --- Report API ---
-  app.get("/api/reports/daily", authenticate, (req, res) => {
-    const reportsDir = path.join(process.cwd(), "daily_reports");
-    if (!fs.existsSync(reportsDir)) {
-      return res.json([]);
-    }
-    const files = fs.readdirSync(reportsDir)
-      .filter(f => f.endsWith('.html'))
-      .map(f => ({
-        name: f,
-        date: f.split('_')[1].replace('.html', ''),
-        url: `/api/reports/view/${f}`
-      }))
-      .sort((a, b) => b.date.localeCompare(a.date));
-    res.json(files);
-  });
-
-  app.get("/api/reports/view/:filename", authenticate, checkPermission('view_daily_reports'), (req, res) => {
-    const { filename } = req.params;
-    const reportsDir = path.join(process.cwd(), "daily_reports");
-    const filePath = path.join(reportsDir, filename);
-    if (fs.existsSync(filePath)) {
-      res.sendFile(filePath);
-    } else {
-      res.status(404).send("Relatório não encontrado.");
-    }
-  });
-
-  app.post("/api/reports/generate-now", authenticate, checkPermission('manage_settings'), (req, res) => {
+  app.get("/api/reports/daily", authenticate, checkPermission('view_daily_reports'), (req, res) => {
     try {
-      const filePath = generateDailyReport();
-      res.json({ status: "ok", message: "Relatório gerado com sucesso.", file: path.basename(filePath) });
+      const { search, from, to } = req.query as Record<string, string | undefined>;
+      res.json(listDailyReports({ search, from, to }));
+    } catch (err: any) {
+      res.status(500).json({ status: "error", message: err.message });
+    }
+  });
+
+  app.get("/api/reports/daily/:id", authenticate, checkPermission('view_daily_reports'), (req, res) => {
+    try {
+      res.json(getDailyReportDetail(Number(req.params.id)));
+    } catch (err: any) {
+      res.status(404).json({ status: "error", message: err.message });
+    }
+  });
+
+  app.get("/api/reports/daily/:id/preview", authenticate, checkPermission('view_daily_reports'), (req, res) => {
+    try {
+      res.type("html").send(getDailyReportPreviewHtml(Number(req.params.id)));
+    } catch (err: any) {
+      res.status(404).send(err.message);
+    }
+  });
+
+  app.get("/api/reports/daily/:id/export", authenticate, checkPermission('export_reports'), async (req, res) => {
+    try {
+      const format = String(req.query.format || "html") as "html" | "pdf" | "xlsx";
+      if (!["html", "pdf", "xlsx"].includes(format)) {
+        return res.status(400).json({ status: "error", message: "Formato de exportacao invalido." });
+      }
+
+      const file = await exportDailyReport(Number(req.params.id), format);
+      res.setHeader("Content-Type", file.mimeType);
+      res.setHeader("Content-Disposition", `attachment; filename="${file.fileName}"`);
+      res.send(file.buffer);
+    } catch (err: any) {
+      res.status(404).json({ status: "error", message: err.message });
+    }
+  });
+
+  app.post("/api/reports/daily/export-batch", authenticate, checkPermission('export_reports'), async (req, res) => {
+    try {
+      const format = String(req.body?.format || "pdf") as "html" | "pdf" | "xlsx";
+      const ids = Array.isArray(req.body?.ids) ? req.body.ids.map((id: unknown) => Number(id)) : [];
+      if (!["html", "pdf", "xlsx"].includes(format)) {
+        return res.status(400).json({ status: "error", message: "Formato de exportacao invalido." });
+      }
+
+      const file = await exportDailyReportsBatch(ids, format);
+      res.setHeader("Content-Type", file.mimeType);
+      res.setHeader("Content-Disposition", `attachment; filename="${file.fileName}"`);
+      res.send(file.buffer);
+    } catch (err: any) {
+      res.status(400).json({ status: "error", message: err.message });
+    }
+  });
+
+  app.patch("/api/reports/daily/:id/status", authenticate, checkPermission('manage_settings'), (req, res) => {
+    try {
+      const status = String(req.body?.status || "");
+      if (!["draft", "issued", "archived"].includes(status)) {
+        return res.status(400).json({ status: "error", message: "Estado de relatorio invalido." });
+      }
+
+      const report = updateDailyReportLifecycle(Number(req.params.id), status as "draft" | "issued" | "archived");
+      res.json({ status: "ok", report });
+    } catch (err: any) {
+      res.status(404).json({ status: "error", message: err.message });
+    }
+  });
+
+  app.patch("/api/reports/daily/:id/approve", authenticate, checkPermission('manage_settings'), (req: any, res) => {
+    try {
+      const report = approveDailyReport(Number(req.params.id), {
+        id: req.user.id,
+        name: req.user.nome,
+        role: req.user.nivel_hierarquico || req.user.funcao || "Responsavel",
+      });
+      res.json({ status: "ok", report });
+    } catch (err: any) {
+      res.status(404).json({ status: "error", message: err.message });
+    }
+  });
+
+  app.post("/api/reports/generate-now", authenticate, checkPermission('manage_settings'), (req: any, res) => {
+    try {
+      const { date } = req.body || {};
+      const result = generateDailyReport({ date, generatedBy: req.user?.id ?? null });
+      res.json({
+        status: "ok",
+        message: "Relatorio gerado com sucesso.",
+        file: path.basename(result.filePath),
+        reportId: result.id,
+        reportDate: result.snapshot.reportDate,
+      });
     } catch (err: any) {
       res.status(500).json({ status: "error", message: err.message });
     }
@@ -1100,6 +1174,28 @@ async function startServer() {
     }
   });
 
+  app.get("/api/reports/:id", authenticate, checkPermission('view_reports'), (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const report = db.prepare(`
+        SELECT r.*, u.nome as agente_nome, u.nivel_hierarquico as agente_nivel
+        FROM reports r
+        LEFT JOIN users u ON r.agente_id = u.id
+        WHERE r.id = ?
+      `).get(id) as any;
+
+      if (!report) {
+        return res.status(404).json({ status: 'error', message: 'Relatório não encontrado' });
+      }
+
+      report.photos = db.prepare("SELECT * FROM report_photos WHERE report_id = ? ORDER BY id DESC").all(id);
+      res.json({ status: 'success', report });
+    } catch (err: any) {
+      console.error("Erro ao obter relatório:", err);
+      res.status(500).json({ status: 'error', message: err.message });
+    }
+  });
+
   app.delete("/api/reports/:id", authenticate, checkPermission('conclude_reports'), (req: any, res) => {
     try {
       const { id } = req.params;
@@ -1432,21 +1528,13 @@ async function startServer() {
         });
       }
       
-      const newReport = {
-        id: result.lastInsertRowid,
-        agente_id,
-        agente_nome: req.user.nome,
-        titulo,
-        categoria,
-        gravidade,
-        descricao,
-        metadata: metadata ? JSON.parse(metadata) : null,
-        fotos_path,
-        coords_lat,
-        coords_lng,
-        status: 'Aberto',
-        timestamp: new Date().toISOString()
-      };
+      const newReport = db.prepare(`
+        SELECT r.*, u.nome as agente_nome, u.nivel_hierarquico as agente_nivel
+        FROM reports r
+        LEFT JOIN users u ON r.agente_id = u.id
+        WHERE r.id = ?
+      `).get(result.lastInsertRowid) as any;
+      newReport.photos = db.prepare("SELECT * FROM report_photos WHERE report_id = ? ORDER BY id DESC").all(result.lastInsertRowid);
 
       // Notify via Socket.io
       io.emit("new_report", newReport);
@@ -1462,8 +1550,7 @@ async function startServer() {
           console.error("Erro ao inserir na fila do Telegram:", queueErr);
         }
       }
-
-      res.json({ status: "success", id: result.lastInsertRowid });
+      res.json({ status: "success", id: result.lastInsertRowid, report: newReport });
     } catch (err: any) {
       res.status(500).json({ status: "error", message: err.message });
     }
@@ -1583,82 +1670,6 @@ async function startServer() {
 
       db.prepare("DELETE FROM alerts WHERE id = ?").run(id);
       db.prepare("DELETE FROM alert_reads WHERE alert_id = ?").run(id);
-    } catch (err: any) {
-      res.status(500).json({ status: "error", message: err.message });
-    }
-  });
-
-  app.post("/api/reports", authenticate, checkPermission('create_reports'), upload.array("fotos", 20), async (req: any, res) => {
-    try {
-      const { titulo, categoria, gravidade, descricao, coords_lat, coords_lng, metadata, captions, setor, pessoas_envolvidas, equipamento, acao_imediata, requer_investigacao, testemunhas, potencial_risco } = req.body;
-      const agente_id = req.user.id;
-      const fotos_path = req.files && req.files.length > 0 ? `/uploads/${req.files[0].filename}` : null;
-      
-      if (!categoria || !gravidade || !descricao) {
-        return res.status(400).json({ status: "error", message: "Missing required fields" });
-      }
-
-      if (categoria === 'Safety') {
-        let metadataObj: any = {};
-        try {
-          metadataObj = metadata ? JSON.parse(metadata) : {};
-        } catch(e) {}
-        if (!metadataObj.incidentType || !metadataObj.ppeUsage) {
-          return res.status(400).json({ status: "error", message: "Safety reports require Incident Type and PPE Usage" });
-        }
-      }
-
-      const stmt = db.prepare(`
-        INSERT INTO reports (agente_id, titulo, categoria, gravidade, descricao, metadata, fotos_path, coords_lat, coords_lng, setor, pessoas_envolvidas, equipamento, acao_imediata, requer_investigacao, testemunhas, potencial_risco, timestamp)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
-      `);
-      
-      const result = stmt.run(agente_id, titulo || null, categoria, gravidade, descricao, metadata || null, fotos_path, coords_lat || null, coords_lng || null, setor || null, pessoas_envolvidas || null, equipamento || null, acao_imediata || null, requer_investigacao ? 1 : 0, testemunhas || null, potencial_risco || null);
-      
-      // Add photos to report_photos table
-      if (req.files && req.files.length > 0) {
-        const photoCaptions = Array.isArray(captions) ? captions : (captions ? [captions] : []);
-        const insertPhoto = db.prepare("INSERT INTO report_photos (report_id, photo_path, caption) VALUES (?, ?, ?)");
-        
-        req.files.forEach((file: any, index: number) => {
-          const photoPath = `/uploads/${file.filename}`;
-          const caption = photoCaptions[index] || '';
-          insertPhoto.run(result.lastInsertRowid, photoPath, caption);
-        });
-      }
-      
-      const newReport = {
-        id: result.lastInsertRowid,
-        agente_id,
-        agente_nome: req.user.nome,
-        titulo,
-        categoria,
-        gravidade,
-        descricao,
-        metadata: metadata ? JSON.parse(metadata) : null,
-        fotos_path,
-        coords_lat,
-        coords_lng,
-        status: 'Aberto',
-        timestamp: new Date().toISOString()
-      };
-
-      // Notify via Socket.io
-      io.emit("new_report", newReport);
-
-      // Telegram Alert Queueing for G3/G4
-      if (gravidade === 'G3' || gravidade === 'G4') {
-        try {
-          db.prepare(`
-            INSERT INTO telegram_queue (report_id, gravidade, titulo, categoria, agente_nome, descricao, coords_lat, coords_lng)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-          `).run(result.lastInsertRowid, gravidade, titulo || null, categoria, req.user.nome, descricao, coords_lat || null, coords_lng || null);
-        } catch (queueErr) {
-          console.error("Erro ao inserir na fila do Telegram:", queueErr);
-        }
-      }
-
-      res.json({ status: "success", id: result.lastInsertRowid });
     } catch (err: any) {
       res.status(500).json({ status: "error", message: err.message });
     }
@@ -1874,3 +1885,4 @@ ${alert.coords_lat ? `<b>Local:</b> <a href="https://www.google.com/maps?q=${ale
 }
 
 startServer();
+

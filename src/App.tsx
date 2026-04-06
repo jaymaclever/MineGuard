@@ -47,6 +47,7 @@ import {
 } from 'recharts';
 import { Toaster, toast } from 'sonner';
 import { cn } from './lib/utils';
+import { DailyReportsWorkspaceTab } from './components/tabs/DailyReportsWorkspaceTab';
 import { io } from 'socket.io-client';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
@@ -102,9 +103,16 @@ interface Report {
   photos?: ReportPhoto[];
   coords_lat: number;
   coords_lng: number;
-  status: 'Aberto' | 'Conclu√≠do';
+  status: 'Aberto' | 'Conclu√≠do' | 'Aprovado';
   timestamp: string;
   metadata?: any;
+  setor?: string;
+  pessoas_envolvidas?: string;
+  equipamento?: string;
+  acao_imediata?: string;
+  requer_investigacao?: boolean;
+  testemunhas?: string;
+  potencial_risco?: string;
 }
 
 interface Notification {
@@ -272,7 +280,7 @@ const LanguageSwitcher = () => {
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <button 
           onClick={() => handleLanguageChange('pt-BR')}
           className={cn(
@@ -529,6 +537,39 @@ export default function App() {
     }
   };
 
+  function createEmptyEditingReportData() {
+    return {
+      titulo: '',
+      descricao: '',
+      setor: '',
+      equipamento: '',
+      acao_imediata: '',
+      testemunhas: '',
+      potencial_risco: '',
+      fotos: [] as Array<{ file: File; caption: string }>
+    };
+  }
+
+  function createEmptyNewReport() {
+    return {
+      titulo: '',
+      categoria: 'Valores' as Categoria,
+      gravidade: 'G1' as Gravidade,
+      descricao: '',
+      coords_lat: '',
+      coords_lng: '',
+      setor: '',
+      pessoas_envolvidas: '',
+      equipamento: '',
+      acao_imediata: '',
+      requer_investigacao: false,
+      testemunhas: '',
+      potencial_risco: '',
+      fotos: [] as Array<{ file: File; caption: string }>,
+      metadata: {} as any
+    };
+  }
+
   const [editingReportData, setEditingReportData] = useState<{
     titulo: string;
     descricao: string;
@@ -538,35 +579,10 @@ export default function App() {
     testemunhas: string;
     potencial_risco: string;
     fotos: Array<{ file: File; caption: string }>;
-  }>({
-    titulo: '',
-    descricao: '',
-    setor: '',
-    equipamento: '',
-    acao_imediata: '',
-    testemunhas: '',
-    potencial_risco: '',
-    fotos: []
-  });
+  }>(createEmptyEditingReportData());
   
   // Form States
-  const [newReport, setNewReport] = useState({
-    titulo: '',
-    categoria: 'Valores' as Categoria,
-    gravidade: 'G1' as Gravidade,
-    descricao: '',
-    coords_lat: '',
-    coords_lng: '',
-    setor: '',
-    pessoas_envolvidas: '',
-    equipamento: '',
-    acao_imediata: '',
-    requer_investigacao: false,
-    testemunhas: '',
-    potencial_risco: '',
-    fotos: [] as Array<{ file: File; caption: string }>,
-    metadata: {} as any
-  });
+  const [newReport, setNewReport] = useState(createEmptyNewReport());
 
   const [newUser, setNewUser] = useState({
     nome: '',
@@ -594,14 +610,14 @@ export default function App() {
   // Socket.io Connection
   useEffect(() => {
     const socket = io();
+
     socket.on('new_report', (report: Report) => {
-      // Robust check: use currentUser weight if available
       const weight = (currentUser as any)?.peso || 0;
       const isAuthor = report.agente_id === currentUser?.id;
       const isOficialPlus = weight >= 60;
 
       if (isAuthor || isOficialPlus) {
-        setReports(prev => [report, ...prev]);
+        setReports(prev => [report, ...prev.filter(r => r.id !== report.id)]);
         toast.info(`Nova ocorr√™ncia: ${report.categoria} - ${report.agente_nome}`, {
           description: report.descricao.substring(0, 50) + "..."
         });
@@ -613,18 +629,15 @@ export default function App() {
           report.id
         );
 
-        // Refresh stats if permitted
         if (currentUser?.permissions?.view_dashboard === true) {
           fetch('/api/stats', { credentials: 'include' }).then(res => res.ok ? res.json() : null).then(data => data && setStats(data));
         }
       }
     });
 
-    socket.on('report_updated', ({ id, status }: { id: number, status: 'Aberto' | 'Conclu√≠do' }) => {
-      setReports(prev => prev.map(r => r.id === id ? { ...r, status } : r));
-      if (selectedReport && selectedReport.id === id) {
-        setSelectedReport(prev => prev ? { ...prev, status } : null);
-      }
+    socket.on('report_updated', (report: Partial<Report> & { id: number; status?: Report['status'] }) => {
+      setReports(prev => prev.map(r => r.id === report.id ? { ...r, ...report } : r));
+      setSelectedReport(prev => prev && prev.id === report.id ? { ...prev, ...report } : prev);
     });
 
     socket.on('new_alert', (alert: any) => {
@@ -947,14 +960,130 @@ export default function App() {
     }
   }, [selectedReport]);
 
+  const closeNewReportModal = () => {
+    setIsNewReportModalOpen(false);
+    setShowReportPreview(false);
+    setNewReportStep(1);
+    setNewReport(createEmptyNewReport());
+  };
+
+  const closeReportDetails = () => {
+    setSelectedReport(null);
+    setIsEditingReport(false);
+    setEditingReportData(createEmptyEditingReportData());
+  };
+
+  const validateNewReportStep = (step: number) => {
+    if (step === 1) {
+      if (!newReport.titulo.trim()) {
+        toast.error("Informe o tÌtulo da ocorrÍncia.");
+        return false;
+      }
+      if (!newReport.descricao.trim()) {
+        toast.error("Descreva a ocorrÍncia para continuar.");
+        return false;
+      }
+    }
+
+    if (step === 2 && newReport.categoria === 'Safety') {
+      if (!newReport.metadata?.incidentType || !newReport.metadata?.ppeUsage) {
+        toast.error("Nos relatÛrios Safety, preencha o tipo de incidente e o uso de EPI.");
+        return false;
+      }
+    }
+
+    return true;
+  };
+
+  const validateNewReportBeforeSubmit = () => {
+    return validateNewReportStep(1) && validateNewReportStep(2);
+  };
+
+  const handlePreviewNewReport = () => {
+    if (!validateNewReportBeforeSubmit()) return;
+    setShowReportPreview(true);
+  };
+
+  const handleNextNewReportStep = () => {
+    if (!validateNewReportStep(newReportStep)) return;
+    setNewReportStep((step) => Math.min(step + 1, 3));
+  };
+
+  const addNewReportPhotos = (files: File[]) => {
+    const imageFiles = files
+      .filter((file) => file.type && file.type.startsWith('image/'))
+      .map((file) => ({ file, caption: '' }));
+
+    if (imageFiles.length === 0) return;
+    setNewReport((current) => ({ ...current, fotos: [...current.fotos, ...imageFiles] }));
+  };
+
+  const addEditingReportPhotos = (files: File[]) => {
+    const imageFiles = files
+      .filter((file) => file.type && file.type.startsWith('image/'))
+      .map((file) => ({ file, caption: '' }));
+
+    if (imageFiles.length === 0) return;
+    setEditingReportData((current) => ({ ...current, fotos: [...current.fotos, ...imageFiles] }));
+  };
+
+  const openReportDetails = async (report: Report) => {
+    setSelectedReport(report);
+    setIsEditingReport(false);
+
+    try {
+      const res = await fetch(`/api/reports/${report.id}`, { credentials: 'include' });
+      const data = await res.json();
+      if (res.ok && data?.report) {
+        setSelectedReport(data.report);
+      }
+    } catch (err) {
+      console.error('Erro ao carregar detalhes da ocorrÍncia', err);
+    }
+  };
+
+  const startEditingSelectedReport = () => {
+    if (!selectedReport) return;
+    setEditingReportData({
+      titulo: selectedReport.titulo || '',
+      descricao: selectedReport.descricao || '',
+      setor: selectedReport.setor || '',
+      equipamento: selectedReport.equipamento || '',
+      acao_imediata: selectedReport.acao_imediata || '',
+      testemunhas: selectedReport.testemunhas || '',
+      potencial_risco: selectedReport.potencial_risco || '',
+      fotos: []
+    });
+    setIsEditingReport(true);
+  };
+
+  const cancelEditingSelectedReport = () => {
+    if (selectedReport) {
+      setEditingReportData({
+        titulo: selectedReport.titulo || '',
+        descricao: selectedReport.descricao || '',
+        setor: selectedReport.setor || '',
+        equipamento: selectedReport.equipamento || '',
+        acao_imediata: selectedReport.acao_imediata || '',
+        testemunhas: selectedReport.testemunhas || '',
+        potencial_risco: selectedReport.potencial_risco || '',
+        fotos: []
+      });
+    } else {
+      setEditingReportData(createEmptyEditingReportData());
+    }
+    setIsEditingReport(false);
+  };
+
   // Actions
-  const handleCreateReport = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    const toastId = toast.loading("Capturando localiza√ß√£o e preparando transmiss√£o...");
+  const submitNewReport = async () => {
+    if (!validateNewReportBeforeSubmit()) {
+      return false;
+    }
+
+    const toastId = toast.loading("Capturando localizaÁ„o e preparando transmiss„o...");
     
     try {
-      // Capture Geolocation
       let lat = newReport.coords_lat;
       let lng = newReport.coords_lng;
       
@@ -965,22 +1094,21 @@ export default function App() {
           });
           lat = position.coords.latitude.toString();
           lng = position.coords.longitude.toString();
-          toast.loading("Localiza√ß√£o capturada. Enviando relat√≥rio...", { id: toastId });
+          toast.loading("LocalizaÁ„o capturada. Enviando relatÛrio...", { id: toastId });
           console.log("Geolocation captured:", lat, lng);
         } catch (geoErr: any) {
           console.warn("Geolocation failed, using map center as fallback", geoErr);
-          // Use map center as fallback
           lat = mapCenter[0].toString();
           lng = mapCenter[1].toString();
-          toast.loading("Usando localiza√ß√£o do mapa como refer√™ncia...", { id: toastId });
+          toast.loading("Usando localizaÁ„o do mapa como referÍncia...", { id: toastId });
         }
       }
 
       const formData = new FormData();
-      formData.append('titulo', newReport.titulo);
+      formData.append('titulo', newReport.titulo.trim());
       formData.append('categoria', newReport.categoria);
       formData.append('gravidade', newReport.gravidade);
-      formData.append('descricao', newReport.descricao);
+      formData.append('descricao', newReport.descricao.trim());
       formData.append('coords_lat', lat);
       formData.append('coords_lng', lng);
       formData.append('setor', newReport.setor);
@@ -992,17 +1120,16 @@ export default function App() {
       formData.append('potencial_risco', newReport.potencial_risco);
       formData.append('metadata', JSON.stringify(newReport.metadata));
       
-      // Add multiple photos with captions & compression
       for (const foto of newReport.fotos) {
         try {
           const options = { maxSizeMB: 0.3, maxWidthOrHeight: 1280, useWebWorker: true };
           const compressedFile = await imageCompression(foto.file, options);
-          formData.append(`fotos`, compressedFile);
+          formData.append('fotos', compressedFile);
         } catch (e) {
           console.error("Image compression failed", e);
-          formData.append(`fotos`, foto.file);
+          formData.append('fotos', foto.file);
         }
-        formData.append(`captions`, foto.caption);
+        formData.append('captions', foto.caption);
       }
 
       const res = await fetch('/api/reports', {
@@ -1010,35 +1137,29 @@ export default function App() {
         body: formData,
         credentials: 'include'
       });
+      const data = await res.json();
       
       if (res.ok) {
-        toast.success("Relat√≥rio Enviado com Sucesso", { id: toastId });
-        setIsNewReportModalOpen(false);
-        setNewReport({ 
-          titulo: '', 
-          categoria: 'Valores', 
-          gravidade: 'G1', 
-          descricao: '', 
-          coords_lat: '', 
-          coords_lng: '', 
-          setor: '',
-          pessoas_envolvidas: '',
-          equipamento: '',
-          acao_imediata: '',
-          requer_investigacao: false,
-          testemunhas: '',
-          potencial_risco: '',
-          fotos: [],
-          metadata: {}
-        });
+        toast.success("RelatÛrio enviado com sucesso", { id: toastId });
+        if (data?.report) {
+          setReports(prev => [data.report, ...prev.filter(r => r.id !== data.report.id)]);
+        }
+        closeNewReportModal();
         fetchData();
-      } else {
-        const data = await res.json();
-        toast.error(data.message || "Erro ao enviar relat√≥rio", { id: toastId });
+        return true;
       }
+
+      toast.error(data.message || "Erro ao enviar relatÛrio", { id: toastId });
+      return false;
     } catch (err) {
-      toast.error("Erro de conex√£o com o servidor", { id: toastId });
+      toast.error("Erro de conex„o com o servidor", { id: toastId });
+      return false;
     }
+  };
+
+  const handleCreateReport = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await submitNewReport();
   };
 
   const handleCreateAlert = async (e: React.FormEvent) => {
@@ -1212,29 +1333,33 @@ export default function App() {
 
   const handleSaveReportEdits = async () => {
     if (!selectedReport) return;
+    if (!editingReportData.descricao.trim()) {
+      toast.error("A descriÁ„o da ocorrÍncia n„o pode ficar vazia.");
+      return;
+    }
+
     try {
       const formData = new FormData();
-      formData.append('titulo', editingReportData.titulo);
-      formData.append('descricao', editingReportData.descricao);
+      formData.append('titulo', editingReportData.titulo.trim());
+      formData.append('descricao', editingReportData.descricao.trim());
       formData.append('setor', editingReportData.setor);
       formData.append('equipamento', editingReportData.equipamento);
       formData.append('acao_imediata', editingReportData.acao_imediata);
       formData.append('testemunhas', editingReportData.testemunhas);
       formData.append('potencial_risco', editingReportData.potencial_risco);
       
-      // Add multiple photos with captions & compression
       for (const foto of editingReportData.fotos) {
         if (foto.file) {
           try {
             const options = { maxSizeMB: 0.3, maxWidthOrHeight: 1280, useWebWorker: true };
             const compressedFile = await imageCompression(foto.file, options);
-            formData.append(`fotos`, compressedFile);
+            formData.append('fotos', compressedFile);
           } catch (e) {
             console.error("Image compression failed", e);
-            formData.append(`fotos`, foto.file);
+            formData.append('fotos', foto.file);
           }
         }
-        formData.append(`captions`, foto.caption);
+        formData.append('captions', foto.caption);
       }
 
       const res = await fetch(`/api/reports/${selectedReport.id}`, {
@@ -1245,21 +1370,21 @@ export default function App() {
 
       const data = await res.json();
       if (data.status === 'success') {
-        toast.success("Ocorr√™ncia atualizada com sucesso!");
+        toast.success("OcorrÍncia atualizada com sucesso!");
         setIsEditingReport(false);
-        fetchData();
         if (data.report) {
+          setReports(prev => prev.map(report => report.id === data.report.id ? data.report : report));
           setSelectedReport(data.report);
         }
+        fetchData();
       } else {
-        toast.error(data.message || "Erro ao salvar altera√ß√µes");
+        toast.error(data.message || "Erro ao salvar alteraÁıes");
       }
     } catch (err) {
-      toast.error("Erro ao salvar altera√ß√µes");
+      toast.error("Erro ao salvar alteraÁıes");
       console.error(err);
     }
   };
-
   const handleConcludeReport = async (reportId: number, currentStatus: string) => {
     const newStatus = currentStatus === 'Aberto' ? 'Conclu√≠do' : 'Aberto';
     try {
@@ -1756,7 +1881,7 @@ export default function App() {
                               <div className="pt-2 border-t border-zinc-800 flex items-center justify-between">
                                 <span className="text-[9px] font-bold text-zinc-500">{new Date(r.timestamp).toLocaleDateString()}</span>
                                 <button 
-                                  onClick={() => setSelectedReport(r)}
+                                  onClick={() => openReportDetails(r)}
                                   className="text-[10px] font-black text-primary hover:text-white transition-colors uppercase tracking-widest"
                                 >
                                   Ver Ficha
@@ -1810,7 +1935,7 @@ export default function App() {
                       {reports.slice(0, 5).map((report) => (
                         <div 
                           key={report.id}
-                          onClick={() => setSelectedReport(report)}
+                          onClick={() => openReportDetails(report)}
                           className="flex items-center gap-4 p-3 rounded-xl bg-zinc-900/50 border border-zinc-800/50 hover:border-primary/30 hover:bg-zinc-900 transition-all cursor-pointer group"
                         >
                           <div className={cn(
@@ -2036,7 +2161,7 @@ export default function App() {
                               initial={{ opacity: 0, x: -10 }}
                               animate={{ opacity: 1, x: 0 }}
                               transition={{ delay: index * 0.03 }}
-                              onClick={() => setSelectedReport(report)}
+                              onClick={() => openReportDetails(report)}
                               className="hover:bg-primary/5 hover:border-primary/20 transition-all group cursor-pointer active:scale-[0.99] border-zinc-800/40"
                             >
                             <td className="hidden md:table-cell px-6 py-4 font-mono text-xs text-zinc-500">#{report.id}</td>
@@ -2124,7 +2249,7 @@ export default function App() {
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: index * 0.05 }}
-                          onClick={() => setSelectedReport(report)}
+                          onClick={() => openReportDetails(report)}
                           className="p-4 active:bg-white/[0.03] transition-colors flex items-center justify-between gap-4"
                         >
                           <div className="flex items-center gap-4 flex-1 min-w-0">
@@ -2239,8 +2364,8 @@ export default function App() {
                           key={report.id} 
                           className="hover:bg-zinc-800/20 transition-colors group cursor-pointer"
                         >
-                          <td className="hidden md:table-cell px-6 py-4 font-mono text-xs text-zinc-500" onClick={() => setSelectedReport(report)}>#{report.id}</td>
-                          <td className="px-6 py-4" onClick={() => setSelectedReport(report)}>
+                          <td className="hidden md:table-cell px-6 py-4 font-mono text-xs text-zinc-500" onClick={() => openReportDetails(report)}>#{report.id}</td>
+                          <td className="px-6 py-4" onClick={() => openReportDetails(report)}>
                             <div className="flex items-center gap-3">
                               {report.fotos_path && (
                                 <div className="w-10 h-10 rounded-lg overflow-hidden border border-zinc-800 shrink-0">
@@ -2253,11 +2378,11 @@ export default function App() {
                               </div>
                             </div>
                           </td>
-                          <td className="hidden lg:table-cell px-6 py-4 text-sm text-zinc-400" onClick={() => setSelectedReport(report)}>{report.categoria}</td>
-                          <td className="px-6 py-4" onClick={() => setSelectedReport(report)}>
+                          <td className="hidden lg:table-cell px-6 py-4 text-sm text-zinc-400" onClick={() => openReportDetails(report)}>{report.categoria}</td>
+                          <td className="px-6 py-4" onClick={() => openReportDetails(report)}>
                             <Badge gravidade={report.gravidade} />
                           </td>
-                          <td className="px-6 py-4" onClick={() => setSelectedReport(report)}>
+                          <td className="px-6 py-4" onClick={() => openReportDetails(report)}>
                             <span className={cn("text-xs font-bold px-2 py-1 rounded uppercase", 
                               report.status === 'Conclu√≠do' ? 'bg-green-500/10 text-green-400' : 
                               report.status === 'Aprovado' ? 'bg-blue-500/10 text-blue-400' :
@@ -2299,7 +2424,7 @@ export default function App() {
                               >
                                 <Trash2 size={14} />
                               </button>
-                              <button className="text-zinc-600 hover:text-primary transition-colors ml-2" onClick={() => setSelectedReport(report)}>
+                              <button className="text-zinc-600 hover:text-primary transition-colors ml-2" onClick={() => openReportDetails(report)}>
                                 <ChevronRight size={18} />
                               </button>
                             </div>
@@ -2414,7 +2539,7 @@ export default function App() {
                           {dailyReportPersonal.reports.map((report: Report) => (
                             <div 
                               key={report.id}
-                              onClick={() => setSelectedReport(report)}
+                              onClick={() => openReportDetails(report)}
                               className="flex items-center justify-between p-3 bg-zinc-800/30 border border-zinc-800 rounded-lg hover:border-primary/50 cursor-pointer transition-all"
                             >
                               <div className="flex-1">
@@ -2537,7 +2662,7 @@ export default function App() {
                           {dailyReportTeam.reports.map((report: any) => (
                             <div 
                               key={report.id}
-                              onClick={() => setSelectedReport(report)}
+                              onClick={() => openReportDetails(report)}
                               className="flex items-center justify-between p-3 bg-zinc-800/30 border border-zinc-800 rounded-lg hover:border-primary/50 cursor-pointer transition-all"
                             >
                               <div className="flex-1">
@@ -2895,70 +3020,10 @@ export default function App() {
             )}
 
             {activeTab === 'daily_reports' && (
-              <motion.div 
-                key="daily_reports"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="space-y-6"
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className="text-2xl font-black tracking-tighter">RELAT√ìRIOS DI√ÅRIOS</h2>
-                    <p className="text-sm text-zinc-500">Resumos consolidados para auditoria externa.</p>
-                  </div>
-                  <button 
-                    onClick={async () => {
-                      toast.loading("Gerando relat√≥rio...");
-                      const res = await fetch('/api/reports/generate-now', { 
-                        method: 'POST',
-                        credentials: 'include'
-                      });
-                      const data = await res.json();
-                      toast.dismiss();
-                      if (data.status === 'ok') {
-                        toast.success("Relat√≥rio gerado!");
-                        fetchData();
-                      }
-                    }}
-                    className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-white font-black text-[10px] px-5 py-2.5 rounded-lg transition-all uppercase tracking-widest"
-                  >
-                    <Plus size={16} />
-                    Gerar Agora
-                  </button>
-                </div>
-
-                {dailyReports.length > 0 ? (
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                    {dailyReports.map((report) => (
-                      <Card key={report.name} className="group hover:border-primary/30 transition-all">
-                        <div className="p-3 bg-zinc-800/50 rounded-lg w-fit mb-4 text-zinc-400 group-hover:text-primary transition-colors">
-                          <FileText size={24} />
-                        </div>
-                        <h3 className="text-sm font-bold text-zinc-200 truncate">{report.name}</h3>
-                        <p className="text-[10px] text-zinc-500 mt-1 flex items-center gap-1">
-                          <Clock size={10} /> {report.date}
-                        </p>
-                        <a 
-                          href={report.url} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="mt-4 w-full flex items-center justify-center gap-2 py-2 bg-zinc-800 hover:bg-primary hover:text-black text-zinc-300 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all"
-                        >
-                          Visualizar
-                          <ChevronRight size={14} />
-                        </a>
-                      </Card>
-                    ))}
-                  </div>
-                ) : (
-                  <Card className="text-center py-8 text-zinc-500">
-                    <FileText size={32} className="mx-auto mb-4 opacity-50" />
-                    <p>Nenhum relat√≥rio di√°rio gerado ainda.</p>
-                    <p className="text-xs mt-2">Clique em "Gerar Agora" para criar o primeiro.</p>
-                  </Card>
-                )}
-              </motion.div>
+              <DailyReportsWorkspaceTab
+                canGenerate={currentUser.permissions?.manage_settings === true}
+                canExport={currentUser.permissions?.export_reports === true}
+              />
             )}
 
             {activeTab === 'permissions' && (
@@ -3111,7 +3176,7 @@ export default function App() {
                             toast.error("Erro ao salvar");
                           }
                         }} className="space-y-3">
-                          <div className="grid grid-cols-2 gap-3">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div className="space-y-1">
                               <label className="text-[9px] font-black text-zinc-500 uppercase">Remetente</label>
                               <input name="email_sender" type="email" defaultValue={systemSettings.find(s => s.key === 'email_sender')?.value || ''} placeholder="noreply@mineguard.com" className="w-full bg-zinc-800 border border-zinc-700 rounded py-2 px-3 text-sm focus:outline-none focus:border-primary" />
@@ -3121,7 +3186,7 @@ export default function App() {
                               <input name="email_sender_name" defaultValue={systemSettings.find(s => s.key === 'email_sender_name')?.value || 'MineGuard'} className="w-full bg-zinc-800 border border-zinc-700 rounded py-2 px-3 text-sm focus:outline-none focus:border-primary" />
                             </div>
                           </div>
-                          <div className="grid grid-cols-2 gap-3">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div className="space-y-1">
                               <label className="text-[9px] font-black text-zinc-500 uppercase">Host SMTP</label>
                               <input name="smtp_host" defaultValue={systemSettings.find(s => s.key === 'smtp_host')?.value || ''} placeholder="smtp.gmail.com" className="w-full bg-zinc-800 border border-zinc-700 rounded py-2 px-3 text-sm focus:outline-none focus:border-primary" />
@@ -3131,7 +3196,7 @@ export default function App() {
                               <input name="smtp_port" type="number" defaultValue={systemSettings.find(s => s.key === 'smtp_port')?.value || '587'} className="w-full bg-zinc-800 border border-zinc-700 rounded py-2 px-3 text-sm focus:outline-none focus:border-primary" />
                             </div>
                           </div>
-                          <div className="grid grid-cols-2 gap-3">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div className="space-y-1">
                               <label className="text-[9px] font-black text-zinc-500 uppercase">Usu√°rio</label>
                               <input name="smtp_user" defaultValue={systemSettings.find(s => s.key === 'smtp_user')?.value || ''} className="w-full bg-zinc-800 border border-zinc-700 rounded py-2 px-3 text-sm focus:outline-none focus:border-primary" />
@@ -3254,7 +3319,7 @@ export default function App() {
                             <label className="text-[9px] font-black text-zinc-500 uppercase">Hor√°rio de Envio</label>
                             <input type="time" name="scheduled_reports_time" defaultValue={systemSettings.find(s => s.key === 'scheduled_reports_time')?.value || '06:00'} className="w-full bg-zinc-800 border border-zinc-700 rounded py-2 px-3 text-sm focus:outline-none focus:border-primary" />
                           </div>
-                          <div className="grid grid-cols-2 gap-3">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <label className="flex items-center gap-2 cursor-pointer">
                               <input type="checkbox" name="scheduled_reports_email_enabled" defaultChecked={systemSettings.find(s => s.key === 'scheduled_reports_channel')?.value?.includes('email') ?? true} className="w-4 h-4 rounded" />
                               <span className="text-[9px] font-bold text-zinc-300">Email</span>
@@ -3580,16 +3645,16 @@ export default function App() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-[#0a0a0a] border border-zinc-800 w-full max-w-lg h-full md:h-auto md:max-h-[90vh] md:rounded-2xl overflow-hidden shadow-2xl flex flex-col relative"
+              className="bg-[#0a0a0a] border border-zinc-800 w-full max-w-4xl h-full md:h-auto md:max-h-[92vh] md:rounded-2xl overflow-hidden shadow-2xl flex flex-col relative"
             >
               <form onSubmit={handleCreateReport} className="flex flex-col h-full">
                 <div className="p-6 border-b border-zinc-800 flex items-center justify-between bg-zinc-900/20">
                   <h3 className="text-xl font-black tracking-tighter uppercase">Registrar Ocorr√™ncia</h3>
-                  <button type="button" onClick={() => setIsNewReportModalOpen(false)} className="text-zinc-500 hover:text-white transition-colors">
+                  <button type="button" onClick={closeNewReportModal} className="text-zinc-500 hover:text-white transition-colors">
                     <XCircle size={24} />
                   </button>
                 </div>
-                <div className="flex-1 min-h-0 md:max-h-[70vh] p-6 space-y-5 overflow-y-auto custom-scrollbar">
+                <div className="flex-1 min-h-0 md:max-h-[72vh] p-4 sm:p-6 space-y-5 overflow-y-auto custom-scrollbar">
                   {/* Wizard Header */}
                   <div className="flex flex-col gap-2 pb-4 border-b border-zinc-800">
                     <div className="flex justify-between text-[10px] uppercase font-bold text-zinc-500">
@@ -3617,7 +3682,7 @@ export default function App() {
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Categoria</label>
                       <select 
@@ -3697,7 +3762,7 @@ export default function App() {
                     </div>
                   )}
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-2">Setor/Local</label>
                       <div className="flex flex-wrap gap-2 mt-2">
@@ -3746,7 +3811,7 @@ export default function App() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Equipamento</label>
                       <input 
@@ -3828,7 +3893,7 @@ export default function App() {
                         const files = e.dataTransfer.files;
                         Array.from(files).forEach((file: File) => {
                           if (file.type && file.type.startsWith('image/')) {
-                            setNewReport({...newReport, fotos: [...newReport.fotos, { file, caption: '' }]});
+                            addNewReportPhotos([file]);
                           }
                         });
                       }}
@@ -3841,7 +3906,7 @@ export default function App() {
                         id="report-photos"
                         onChange={(e) => {
                           const newFiles = Array.from(e.target.files || []).map(f => ({ file: f as File, caption: '' }));
-                          setNewReport({...newReport, fotos: [...newReport.fotos, ...newFiles]});
+                          addNewReportPhotos(newFiles.map(item => item.file));
                         }}
                       />
                       <label 
@@ -3892,10 +3957,10 @@ export default function App() {
                     <button type="button" onClick={() => setNewReportStep(s => s - 1)} className="w-full sm:w-auto px-6 py-2.5 text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-white transition-all bg-zinc-800 rounded-lg">VOLTAR</button>
                   )}
                   {newReportStep < 3 && (
-                    <button type="button" onClick={() => setNewReportStep(s => s + 1)} className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-black font-black text-[10px] px-8 py-2.5 rounded-lg transition-all uppercase tracking-widest">PR√ìXIMO</button>
+                    <button type="button" onClick={handleNextNewReportStep} className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-black font-black text-[10px] px-8 py-2.5 rounded-lg transition-all uppercase tracking-widest">PR√ìXIMO</button>
                   )}
-                  <button type="button" onClick={() => setIsNewReportModalOpen(false)} className="w-full sm:w-auto px-6 py-2.5 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white transition-all bg-zinc-900/50 sm:bg-transparent rounded-lg border border-zinc-800 sm:border-none">Cancelar</button>
-                  <button type="button" onClick={() => setShowReportPreview(true)} className="w-full sm:w-auto bg-zinc-800 hover:bg-zinc-700 text-white font-black text-[10px] px-8 py-2.5 rounded-lg transition-all uppercase tracking-widest border border-zinc-700">Visualizar</button>
+                  <button type="button" onClick={closeNewReportModal} className="w-full sm:w-auto px-6 py-2.5 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white transition-all bg-zinc-900/50 sm:bg-transparent rounded-lg border border-zinc-800 sm:border-none">Cancelar</button>
+                  <button type="button" onClick={handlePreviewNewReport} className="w-full sm:w-auto bg-zinc-800 hover:bg-zinc-700 text-white font-black text-[10px] px-8 py-2.5 rounded-lg transition-all uppercase tracking-widest border border-zinc-700">Visualizar</button>
                   <button type="submit" className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-black font-black text-[10px] px-8 py-3 rounded-lg transition-all uppercase tracking-widest shadow-lg shadow-primary/20">Transmitir Relat√≥rio</button>
                 </div>
               </form>
@@ -3909,7 +3974,7 @@ export default function App() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-[#0a0a0a] border border-zinc-800 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl"
+              className="bg-[#0a0a0a] border border-zinc-800 rounded-2xl w-full max-w-3xl overflow-hidden shadow-2xl"
             >
               <div className="p-6 border-b border-zinc-800 flex items-center justify-between bg-zinc-900/20">
                 <h3 className="text-xl font-black tracking-tighter uppercase">Visualiza√ß√£o da Ocorr√™ncia</h3>
@@ -3917,13 +3982,13 @@ export default function App() {
                   <XCircle size={24} />
                 </button>
               </div>
-              <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
+              <div className="p-4 sm:p-6 space-y-6 max-h-[75vh] overflow-y-auto">
                 <div>
                   <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">T√≠tulo</p>
                   <p className="text-lg font-bold text-zinc-100">{newReport.titulo || 'Sem t√≠tulo'}</p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Categoria</p>
                     <p className="text-sm text-zinc-300 bg-zinc-900/50 p-2 rounded">{newReport.categoria}</p>
@@ -3939,7 +4004,7 @@ export default function App() {
                   <p className="text-sm text-zinc-300 bg-zinc-900/50 p-3 rounded leading-relaxed">{newReport.descricao || 'Sem descri√ß√£o'}</p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {newReport.setor && (
                     <div>
                       <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Setor/Local</p>
@@ -3991,7 +4056,7 @@ export default function App() {
                 {newReport.fotos.length > 0 && (
                   <div>
                     <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-3">Evid√™ncias ({newReport.fotos.length})</p>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {newReport.fotos.map((foto, idx) => (
                         <div key={idx} className="space-y-1">
                           <img src={URL.createObjectURL(foto.file)} alt={`Preview ${idx}`} className="w-full h-32 object-cover rounded border border-zinc-800" />
@@ -4004,7 +4069,7 @@ export default function App() {
               </div>
               <div className="p-6 bg-zinc-900/20 border-t border-zinc-800 flex justify-end gap-3">
                 <button type="button" onClick={() => setShowReportPreview(false)} className="px-6 py-2.5 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white transition-colors">Voltar</button>
-                <button type="button" onClick={() => { setShowReportPreview(false); handleCreateReport(new Event('submit') as any); }} className="bg-primary hover:bg-primary/90 text-black font-black text-[10px] px-8 py-2.5 rounded-lg transition-all uppercase tracking-widest shadow-lg shadow-primary/20">Confirmar e Enviar</button>
+                <button type="button" onClick={async () => { const ok = await submitNewReport(); if (ok) { setShowReportPreview(false); } }} className="bg-primary hover:bg-primary/90 text-black font-black text-[10px] px-8 py-2.5 rounded-lg transition-all uppercase tracking-widest shadow-lg shadow-primary/20">Confirmar e Enviar</button>
               </div>
             </motion.div>
           </div>
@@ -4016,7 +4081,7 @@ export default function App() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-[#0a0a0a] border border-zinc-800 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl"
+              className="bg-[#0a0a0a] border border-zinc-800 rounded-2xl w-full max-w-3xl overflow-hidden shadow-2xl"
             >
               <div className="p-6 border-b border-zinc-800 flex items-center justify-between">
                 <h3 className="text-xl font-black tracking-tighter uppercase">Editar Alerta</h3>
@@ -4162,14 +4227,14 @@ export default function App() {
                       <span className="text-[9px] font-black text-green-500 uppercase tracking-widest">Relat√≥rio Selado</span>
                     </div>
                   )}
-                  <button onClick={() => setSelectedReport(null)} className="text-zinc-500 hover:text-white transition-colors">
+                  <button onClick={closeReportDetails} className="text-zinc-500 hover:text-white transition-colors">
                     <XCircle size={24} />
                   </button>
                 </div>
               </div>
               
-              <div className="flex-1 min-h-0 md:max-h-[80vh] p-8 space-y-8 overflow-y-auto custom-scrollbar">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+              <div className="flex-1 min-h-0 md:max-h-[80vh] p-4 sm:p-6 lg:p-8 space-y-6 lg:space-y-8 overflow-y-auto custom-scrollbar">
+                <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)] gap-6 lg:gap-10">
                   <div className="space-y-6">
                     <div>
                       <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-2">T√≠tulo</label>
@@ -4185,7 +4250,7 @@ export default function App() {
                       )}
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-2">Categoria</label>
                         <div className="flex items-center gap-2 bg-zinc-900 px-3 py-2 rounded-lg border border-zinc-800">
@@ -4199,7 +4264,7 @@ export default function App() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-2">Setor / Local</label>
                         {isEditingReport ? (
@@ -4343,7 +4408,7 @@ export default function App() {
                             const files = e.dataTransfer.files;
                             Array.from(files).forEach((file: File) => {
                               if (file.type && file.type.startsWith('image/')) {
-                                setEditingReportData({...editingReportData, fotos: [...editingReportData.fotos, { file, caption: '' }]});
+                                addEditingReportPhotos([file]);
                               }
                             });
                           }}
@@ -4356,7 +4421,7 @@ export default function App() {
                             id="edit-report-photos"
                             onChange={(e) => {
                               const newFiles = Array.from(e.target.files || []).map(f => ({ file: f as File, caption: '' }));
-                              setEditingReportData({...editingReportData, fotos: [...editingReportData.fotos, ...newFiles]});
+                              addEditingReportPhotos(newFiles.map(item => item.file));
                             }}
                           />
                           <label htmlFor="edit-report-photos" className="flex flex-col items-center justify-center w-full cursor-pointer">
@@ -4392,7 +4457,7 @@ export default function App() {
                         ))}
                       </div>
                     ) : selectedReport.photos && selectedReport.photos.length > 0 ? (
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {selectedReport.photos.map((photo) => (
                           <div key={photo.id} className="space-y-2">
                             <div className="aspect-square rounded-lg overflow-hidden border border-zinc-800 bg-zinc-900 group relative">
@@ -4473,7 +4538,7 @@ export default function App() {
                         <Printer size={16} />
                       </button>
                       <button 
-                        onClick={() => setSelectedReport(null)}
+                        onClick={closeReportDetails}
                         className="bg-zinc-100 hover:bg-white text-black font-black text-[10px] px-6 py-2.5 rounded-lg transition-all uppercase tracking-widest"
                       >
                         Fechar
@@ -4486,7 +4551,7 @@ export default function App() {
                       <>
                         <button 
                           type="button"
-                          onClick={() => setIsEditingReport(false)}
+                          onClick={cancelEditingSelectedReport}
                           className="flex-1 sm:flex-none font-black text-[10px] px-8 py-2.5 rounded-lg transition-all uppercase tracking-widest bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700"
                         >
                           Cancelar
@@ -4500,11 +4565,11 @@ export default function App() {
                         </button>
                       </>
                     ) : (
-                      <div className="grid grid-cols-2 xs:flex xs:flex-wrap gap-2 w-full sm:w-auto">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-wrap gap-2 w-full sm:w-auto">
                         {selectedReport.status === 'Aberto' && (
                           <button 
                             type="button"
-                            onClick={() => setIsEditingReport(true)}
+                            onClick={startEditingSelectedReport}
                             className="bg-primary hover:bg-primary/90 text-black font-black text-[10px] px-6 py-2.5 rounded-lg transition-all uppercase tracking-widest shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
                           >
                             Editar
@@ -4610,7 +4675,7 @@ export default function App() {
                       onChange={(e) => setNewUser({...newUser, nome: e.target.value})}
                     />
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Fun√ß√£o Operacional</label>
                       <input 
@@ -4752,7 +4817,7 @@ export default function App() {
               className="fixed bottom-0 left-0 right-0 glass rounded-t-[2rem] z-[100] md:hidden pb-12 pt-8 px-6"
             >
               <div className="w-12 h-1 bg-zinc-800 rounded-full mx-auto mb-8 opacity-20" />
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <SidebarItem icon={FileText} label="Meus Relatos" active={activeTab === 'personal_reports'} onClick={() => { setActiveTab('personal_reports'); setIsMobileMenuOpen(false); }} />
                 <SidebarItem icon={Calendar} label="Meu Dia" active={activeTab === 'daily_report_personal'} onClick={() => { setActiveTab('daily_report_personal'); setIsMobileMenuOpen(false); }} />
                 {currentUser.permissions?.view_team_daily && (
@@ -4886,4 +4951,7 @@ export default function App() {
     </div>
   );
 }
+
+
+
 
