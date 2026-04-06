@@ -1,204 +1,221 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { motion } from 'motion/react';
-import { AlertTriangle, Shield, Activity, Bell, Plus, Trash2, Edit2, X, Check } from 'lucide-react';
+import { AlertTriangle, BellRing, Plus, Search } from 'lucide-react';
 import { Card } from '../ui/LayoutComponents';
 import { cn } from '../../lib/utils';
-import { User } from '../../types';
 
-interface AlertsTabProps {
-  currentUser: User | null;
-  alerts: any[];
-  onCreateAlert: (alert: any) => Promise<boolean>;
-  onDeleteAlert: (id: number) => Promise<void>;
-  onUpdateAlert: (id: number, alert: any) => Promise<boolean>;
+interface AlertItem {
+  id: number;
+  titulo: string;
+  mensagem: string;
+  tipo: 'aviso' | 'critico' | 'informativo' | string;
+  creator_name?: string;
+  created_by?: number;
+  timestamp: string;
 }
 
-export const AlertsTab: React.FC<AlertsTabProps> = ({ 
-  currentUser, 
-  alerts, 
-  onCreateAlert, 
+interface AlertFormState {
+  titulo: string;
+  mensagem: string;
+  tipo: string;
+}
+
+interface AlertsTabProps {
+  alerts: AlertItem[];
+  currentUser: any;
+  newAlert: AlertFormState;
+  setNewAlert: React.Dispatch<React.SetStateAction<AlertFormState>>;
+  onCreateAlert: (event: React.FormEvent) => void;
+  onStartEditAlert: (alert: AlertItem) => void;
+  onDeleteAlert: (id: number) => void;
+}
+
+const alertTheme = {
+  critico: {
+    tone: 'border-red-800/50 bg-red-900/20',
+    badge: 'bg-red-500 text-white',
+    label: 'Crítico',
+  },
+  aviso: {
+    tone: 'border-orange-800/50 bg-orange-900/20',
+    badge: 'bg-orange-500 text-white',
+    label: 'Aviso',
+  },
+  informativo: {
+    tone: 'border-blue-800/50 bg-blue-900/20',
+    badge: 'bg-blue-500 text-white',
+    label: 'Informativo',
+  },
+} as const;
+
+export const AlertsTab: React.FC<AlertsTabProps> = ({
+  alerts,
+  currentUser,
+  newAlert,
+  setNewAlert,
+  onCreateAlert,
+  onStartEditAlert,
   onDeleteAlert,
-  onUpdateAlert
 }) => {
-  const [newAlert, setNewAlert] = useState({ titulo: '', mensagem: '', tipo: 'aviso' });
-  const [isCreating, setIsCreating] = useState(false);
-  const [editingAlertId, setEditingAlertId] = useState<number | null>(null);
-  const [editForm, setEditForm] = useState({ titulo: '', mensagem: '', tipo: 'aviso' });
+  const [search, setSearch] = useState('');
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const success = await onCreateAlert(newAlert);
-    if (success) {
-      setNewAlert({ titulo: '', mensagem: '', tipo: 'aviso' });
-      setIsCreating(false);
-    }
-  };
+  const filteredAlerts = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    if (!query) return alerts;
+    return alerts.filter((alert) =>
+      [alert.titulo, alert.mensagem, alert.creator_name, alert.tipo].some((value) => String(value || '').toLowerCase().includes(query))
+    );
+  }, [alerts, search]);
 
-  const handleUpdate = async (id: number) => {
-    const success = await onUpdateAlert(id, editForm);
-    if (success) setEditingAlertId(null);
-  };
-
-  const startEditing = (alert: any) => {
-    setEditingAlertId(alert.id);
-    setEditForm({ titulo: alert.titulo, mensagem: alert.mensagem, tipo: alert.tipo });
-  };
+  const counters = useMemo(() => {
+    return filteredAlerts.reduce(
+      (acc, alert) => {
+        if (alert.tipo === 'critico') acc.critical += 1;
+        if (alert.tipo === 'aviso') acc.warning += 1;
+        if (alert.tipo === 'informativo') acc.info += 1;
+        return acc;
+      },
+      { critical: 0, warning: 0, info: 0 }
+    );
+  }, [filteredAlerts]);
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
-      className="space-y-8"
-    >
-      <div className="flex items-center justify-between">
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
+      <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
         <div>
-          <h2 className="text-2xl font-black tracking-tighter uppercase">Alertas & Avisos</h2>
-          <p className="text-sm text-zinc-500 font-bold uppercase tracking-widest text-[9px]">Comunicação em tempo real para a equipe de campo</p>
+          <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.22em] text-primary">
+            <BellRing size={12} />
+            Difusão operacional
+          </div>
+          <h2 className="mt-4 text-3xl font-black tracking-tight text-white">Alertas</h2>
+          <p className="mt-2 max-w-2xl text-sm text-zinc-500">Centraliza comunicações críticas, avisos rápidos e informação operacional para toda a equipa.</p>
         </div>
+        <div className="grid grid-cols-3 gap-3">
+          <div className="rounded-2xl border border-zinc-800/70 bg-zinc-950/50 px-4 py-3">
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-500">Críticos</p>
+            <p className="mt-1 text-2xl font-black text-white">{counters.critical}</p>
+          </div>
+          <div className="rounded-2xl border border-zinc-800/70 bg-zinc-950/50 px-4 py-3">
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-500">Avisos</p>
+            <p className="mt-1 text-2xl font-black text-white">{counters.warning}</p>
+          </div>
+          <div className="rounded-2xl border border-zinc-800/70 bg-zinc-950/50 px-4 py-3">
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-500">Informativos</p>
+            <p className="mt-1 text-2xl font-black text-white">{counters.info}</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,0.95fr)_minmax(360px,0.75fr)]">
         {currentUser?.permissions?.create_alerts && (
-          <button 
-            onClick={() => setIsCreating(!isCreating)}
-            className="flex items-center gap-2 bg-zinc-100 hover:bg-white text-black font-black text-[10px] px-5 py-2.5 rounded-lg transition-all uppercase tracking-widest"
-          >
-            {isCreating ? <X size={16} /> : <Plus size={16} />}
-            {isCreating ? 'Cancelar' : 'Novo Alerta'}
-          </button>
-        )}
-      </div>
+          <Card title="Novo alerta" subtitle="Distribua uma atualização operacional para toda a equipa" className="rounded-[1.75rem]">
+            <form onSubmit={onCreateAlert} className="mt-4 space-y-4">
+              <div>
+                <label className="mb-2 block text-[10px] font-black uppercase tracking-widest text-zinc-500">Título do alerta</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Ex: Manutenção de emergência"
+                  value={newAlert.titulo}
+                  onChange={(event) => setNewAlert((current) => ({ ...current, titulo: event.target.value }))}
+                  className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm focus:border-primary focus:outline-none"
+                />
+              </div>
 
-      <AnimatePresence>
-        {isCreating && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden"
-          >
-            <Card title="Criar Alerta Operacional" subtitle="Esta mensagem será enviada para todos os agentes ativos">
-              <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Título do Alerta</label>
-                    <input 
-                      type="text"
-                      required
-                      value={newAlert.titulo}
-                      onChange={(e) => setNewAlert({...newAlert, titulo: e.target.value})}
-                      placeholder="Ex: Manutenção de Emergência"
-                      className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Severidade</label>
-                    <select 
-                      value={newAlert.tipo}
-                      onChange={(e) => setNewAlert({...newAlert, tipo: e.target.value})}
-                      className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
-                    >
-                      <option value="aviso">⚠️ Aviso (Geral)</option>
-                      <option value="critico">🚨 Crítico (Ação Imediata)</option>
-                      <option value="informativo">ℹ️ Informativo (Baixo Impacto)</option>
-                    </select>
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Mensagem Detalhada</label>
-                  <textarea 
-                    required
-                    value={newAlert.mensagem}
-                    onChange={(e) => setNewAlert({...newAlert, mensagem: e.target.value})}
-                    placeholder="Descreva o alerta..."
-                    className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary min-h-[100px] resize-none"
-                  />
-                </div>
-                <button 
-                  type="submit"
-                  className="w-full bg-primary hover:bg-primary/90 text-black font-black text-[10px] px-6 py-3 rounded-lg transition-all uppercase tracking-widest shadow-lg shadow-primary/20"
+              <div>
+                <label className="mb-2 block text-[10px] font-black uppercase tracking-widest text-zinc-500">Mensagem</label>
+                <textarea
+                  required
+                  placeholder="Descreva o contexto, o impacto e a ação esperada..."
+                  value={newAlert.mensagem}
+                  onChange={(event) => setNewAlert((current) => ({ ...current, mensagem: event.target.value }))}
+                  className="min-h-[120px] w-full resize-none rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm focus:border-primary focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="mb-2 block text-[10px] font-black uppercase tracking-widest text-zinc-500">Tipo</label>
+                <select
+                  value={newAlert.tipo}
+                  onChange={(event) => setNewAlert((current) => ({ ...current, tipo: event.target.value }))}
+                  className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm focus:border-primary focus:outline-none"
                 >
-                  Publicar Alerta na Rede
-                </button>
-              </form>
-            </Card>
-          </motion.div>
-        )}
-      </AnimatePresence>
+                  <option value="aviso">Aviso</option>
+                  <option value="critico">Crítico</option>
+                  <option value="informativo">Informativo</option>
+                </select>
+              </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {alerts.map((alert: any) => {
-          const isEditing = editingAlertId === alert.id;
-          const bgColors = {
-            critico: "bg-red-500/5 border-red-500/20 shadow-red-500/5",
-            aviso: "bg-orange-500/5 border-orange-500/20 shadow-orange-500/5",
-            informativo: "bg-blue-500/5 border-blue-500/20 shadow-blue-500/5"
-          };
-          
-          return (
-            <Card 
-              key={alert.id} 
-              className={cn("transition-all group border-t-2", 
-                alert.tipo === 'critico' ? 'border-t-red-500' : 
-                alert.tipo === 'aviso' ? 'border-t-orange-500' : 'border-t-blue-500'
-              )}
-            >
-              {isEditing ? (
-                <div className="space-y-4">
-                  <input 
-                    type="text" 
-                    value={editForm.titulo}
-                    onChange={(e) => setEditForm({...editForm, titulo: e.target.value})}
-                    className="w-full bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-sm font-bold"
-                  />
-                  <textarea 
-                    value={editForm.mensagem}
-                    onChange={(e) => setEditForm({...editForm, mensagem: e.target.value})}
-                    className="w-full bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-xs min-h-[80px]"
-                  />
-                  <div className="flex gap-2">
-                    <button onClick={() => handleUpdate(alert.id)} className="flex-1 bg-primary/20 text-primary py-1 rounded text-[10px] font-black uppercase"><Check size={14} className="mx-auto" /></button>
-                    <button onClick={() => setEditingAlertId(null)} className="flex-1 bg-zinc-800 text-zinc-400 py-1 rounded text-[10px] font-black uppercase"><X size={14} className="mx-auto" /></button>
-                  </div>
+              <button type="submit" className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-[10px] font-black uppercase tracking-widest text-black shadow-lg shadow-primary/20 transition-all hover:bg-primary/90">
+                <Plus size={14} strokeWidth={3} />
+                Enviar alerta
+              </button>
+            </form>
+          </Card>
+        )}
+
+        <Card title={`Painel de alertas (${filteredAlerts.length})`} subtitle="Pesquise, reveja e atualize alertas ativos" className="rounded-[1.75rem]">
+          <div className="mt-4 space-y-4">
+            <div className="relative">
+              <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+              <input
+                type="text"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Pesquisar por título, mensagem ou autor..."
+                className="w-full rounded-xl border border-zinc-800 bg-zinc-900 pl-10 pr-4 py-3 text-sm text-zinc-100 focus:border-primary focus:outline-none"
+              />
+            </div>
+
+            {filteredAlerts.length === 0 ? (
+              <div className="flex min-h-[280px] flex-col items-center justify-center gap-4 rounded-2xl border border-zinc-800/60 bg-zinc-950/40 p-8 text-center">
+                <AlertTriangle className="text-zinc-600" size={34} />
+                <div>
+                  <p className="text-xs font-black uppercase tracking-[0.24em] text-zinc-300">Nenhum alerta encontrado</p>
+                  <p className="mt-2 text-sm text-zinc-500">Ajuste a pesquisa ou crie um novo alerta para iniciar a difusão operacional.</p>
                 </div>
-              ) : (
-                <>
-                  <div className="flex items-center justify-between mb-4">
-                    <div className={cn("p-2 rounded-lg", 
-                      alert.tipo === 'critico' ? 'bg-red-500/10 text-red-500' : 
-                      alert.tipo === 'aviso' ? 'bg-orange-500/10 text-orange-500' : 'bg-blue-500/10 text-blue-500'
-                    )}>
-                      {alert.tipo === 'critico' ? <Shield size={20} /> : alert.tipo === 'aviso' ? <AlertTriangle size={20} /> : <Bell size={20} />}
-                    </div>
-                    {currentUser?.id === alert.created_by && (
-                      <div className="flex items-center gap-1">
-                        <button onClick={() => startEditing(alert)} className="p-1.5 text-zinc-600 hover:text-blue-400 transition-colors"><Edit2 size={14} /></button>
-                        <button onClick={() => onDeleteAlert(alert.id)} className="p-1.5 text-zinc-600 hover:text-red-400 transition-colors"><Trash2 size={14} /></button>
+              </div>
+            ) : (
+              <div className="custom-scrollbar max-h-[520px] space-y-3 overflow-y-auto pr-1">
+                {filteredAlerts.map((alert) => {
+                  const theme = alertTheme[(alert.tipo as keyof typeof alertTheme) || 'informativo'] || alertTheme.informativo;
+                  const canManage = currentUser?.id === alert.created_by;
+                  return (
+                    <div key={alert.id} className={cn('rounded-2xl border p-4 transition-colors', theme.tone)}>
+                      <div className="mb-3 flex items-start justify-between gap-3">
+                        <div>
+                          <h4 className="text-sm font-black text-zinc-100">{alert.titulo}</h4>
+                          <p className="mt-1 text-xs text-zinc-400">Por {alert.creator_name || 'Sistema'} • {new Date(alert.timestamp).toLocaleString('pt-PT')}</p>
+                        </div>
+                        <span className={cn('rounded-full px-2.5 py-1 text-[8px] font-black uppercase tracking-[0.2em]', theme.badge)}>
+                          {theme.label}
+                        </span>
                       </div>
-                    )}
-                  </div>
-                  <h3 className="font-black text-zinc-100 uppercase tracking-tight mb-2 truncate">{alert.titulo}</h3>
-                  <p className="text-zinc-400 text-xs leading-relaxed line-clamp-3 mb-4">{alert.mensagem}</p>
-                  <div className="flex items-center justify-between mt-auto pt-4 border-t border-zinc-800/50">
-                    <div className="flex items-center gap-2">
-                      <div className="w-5 h-5 rounded bg-zinc-800 flex items-center justify-center text-[8px] font-black text-zinc-500 uppercase">{alert.creator_name?.charAt(0)}</div>
-                      <span className="text-[9px] font-bold text-zinc-500 uppercase">{alert.creator_name}</span>
+                      <p className="text-sm leading-relaxed text-zinc-200">{alert.mensagem}</p>
+                      {canManage && (
+                        <div className="mt-4 grid grid-cols-2 gap-2">
+                          <button
+                            onClick={() => onStartEditAlert(alert)}
+                            className="rounded-xl border border-blue-500/30 bg-blue-500/15 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-blue-300 transition-all hover:bg-blue-500/25"
+                          >
+                            Editar
+                          </button>
+                          <button
+                            onClick={() => onDeleteAlert(alert.id)}
+                            className="rounded-xl border border-red-500/30 bg-red-500/15 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-red-300 transition-all hover:bg-red-500/25"
+                          >
+                            Eliminar
+                          </button>
+                        </div>
+                      )}
                     </div>
-                    <span className="text-[9px] font-bold text-zinc-600">{new Date(alert.timestamp).toLocaleDateString()}</span>
-                  </div>
-                </>
-              )}
-            </Card>
-          );
-        })}
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </Card>
       </div>
-      
-      {alerts.length === 0 && (
-        <div className="py-20 text-center">
-          <Activity className="mx-auto text-zinc-800 mb-4 opacity-10" size={64} />
-          <p className="text-zinc-500 font-black uppercase tracking-[0.3em] text-[10px]">Silêncio operacional: nenhum alerta ativo</p>
-        </div>
-      )}
     </motion.div>
   );
 };
-
-import { AnimatePresence } from 'motion/react';

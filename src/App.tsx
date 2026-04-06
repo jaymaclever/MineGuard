@@ -48,11 +48,19 @@ import {
 import { Toaster, toast } from 'sonner';
 import { cn } from './lib/utils';
 import { DailyReportsWorkspaceTab } from './components/tabs/DailyReportsWorkspaceTab';
+import { ReportsTab } from './components/tabs/ReportsTab';
+import { DailyReportPersonalTab } from './components/tabs/DailyReportPersonalTab';
+import { DailyReportTeamTab } from './components/tabs/DailyReportTeamTab';
 import { CommandCenterTab } from './components/tabs/CommandCenterTab';
 import { CriticalOccurrencesTab } from './components/tabs/CriticalOccurrencesTab';
 import { TimelineTab } from './components/tabs/TimelineTab';
 import { EvidenceLibraryTab } from './components/tabs/EvidenceLibraryTab';
 import { ShiftsTab } from './components/tabs/ShiftsTab';
+import { AlertsTab } from './components/tabs/AlertsTab';
+import { UsersTab } from './components/tabs/UsersTab';
+import { NewReportModal } from './components/modals/ReportModals';
+import { ReportDetailModal } from './components/modals/ReportDetailModal';
+import { DashboardRangeModal, EditAlertModal, UserModal } from './components/modals/SystemModals';
 import { io } from 'socket.io-client';
 import { normalizeLanguage } from './i18n';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
@@ -1467,6 +1475,43 @@ export default function App() {
     settings: { title: t('app.sidebar.settings'), subtitle: 'Integrações, notificações e ajustes do sistema.' },
     parametrization: { title: t('app.sidebar.parametrization'), subtitle: 'Comportamentos operacionais e identidade do produto.' },
   };
+  const handleStartEditReport = (report: Report) => {
+    setSelectedReport(report);
+    setIsEditingReport(true);
+    setEditingReportData({
+      titulo: report.titulo || '',
+      descricao: report.descricao,
+      setor: report.setor || '',
+      equipamento: report.equipamento || '',
+      acao_imediata: report.acao_imediata || '',
+      testemunhas: report.testemunhas || '',
+      potencial_risco: report.potencial_risco || '',
+      fotos: []
+    });
+  };
+
+  const handleApproveReport = async (reportId: number) => {
+    try {
+      const res = await fetch(`/api/reports/${reportId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'Aprovado' }),
+        credentials: 'include'
+      });
+      const data = await res.json();
+      if (data.status === 'success') {
+        toast.success("Relatório aprovado e selado com sucesso!");
+        setReports(reports.map(r => r.id === reportId ? { ...r, status: 'Aprovado' as any } : r));
+        if (selectedReport?.id === reportId) {
+          setSelectedReport({ ...selectedReport, status: 'Aprovado' as any });
+        }
+      } else {
+        toast.error(data.message);
+      }
+    } catch (err) {
+      toast.error("Erro ao aprovar relatório");
+    }
+  };
   const currentViewMeta = activeViewMeta[activeTab] || activeViewMeta.dashboard;
 
   if (isLoading) {
@@ -2131,300 +2176,36 @@ export default function App() {
             )}
 
             {activeTab === 'reports' && (
-              <motion.div 
-                key="reports"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="space-y-6"
-              >
-                <div className="space-y-4">
-                  <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-                    <div>
-                      <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.22em] text-primary">
-                        <FileText size={12} />
-                        Log operacional
-                      </div>
-                      <h2 className="mt-4 text-3xl font-black tracking-tight text-white">{t('app.tabs.occurrencesLog')}</h2>
-                      <p className="mt-2 text-sm text-zinc-500">{t('app.tabs.occurrencesLogSubtitle')}</p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="rounded-2xl border border-zinc-800/70 bg-zinc-950/50 px-4 py-3">
-                        <p className="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-500">Resultados</p>
-                        <p className="mt-1 text-2xl font-black text-white">{reports.length}</p>
-                      </div>
-                      <a href="/api/reports/export" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-2xl border border-zinc-800/70 bg-zinc-950/50 px-4 py-3 text-[10px] font-black uppercase tracking-[0.18em] text-zinc-300 transition-colors hover:border-primary/40 hover:text-white">
-                        <Download size={16} />
-                        Exportar
-                      </a>
-                    </div>
-                  </div>
-
-                  <div className="rounded-[1.75rem] border border-zinc-800/70 bg-[linear-gradient(180deg,rgba(20,21,27,0.92),rgba(10,10,13,0.96))] p-5 space-y-5">
-                    <div>
-                      <h3 className="text-sm font-black uppercase tracking-[0.18em] text-zinc-100">Filtros Avançados</h3>
-                      <p className="mt-1 text-xs text-zinc-500">Ajusta o recorte operacional por categoria, gravidade, agente e intervalo.</p>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-7 gap-3">
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-black text-zinc-500 uppercase">Categoria</label>
-                        <select 
-                          className="w-full rounded-xl border border-zinc-800/80 bg-zinc-950/70 px-3 py-2.5 text-xs text-zinc-200 focus:outline-none focus:border-primary"
-                          value={filterCategory}
-                          onChange={(e) => setFilterCategory(e.target.value)}
-                        >
-                          <option value="">Todas</option>
-                          <option value="Valores">Valores</option>
-                          <option value="Perímetro">Perímetro</option>
-                          <option value="Logística">Logística</option>
-                          <option value="Safety">Safety</option>
-                          <option value="Manutenção">Manutenção</option>
-                          <option value="Informativo">Informativo</option>
-                          <option value="Operativo">Operativo</option>
-                        </select>
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-black text-zinc-500 uppercase">Gravidade</label>
-                        <select 
-                          className="w-full rounded-xl border border-zinc-800/80 bg-zinc-950/70 px-3 py-2.5 text-xs text-zinc-200 focus:outline-none focus:border-primary"
-                          value={filterSeverity}
-                          onChange={(e) => setFilterSeverity(e.target.value)}
-                        >
-                          <option value="">Todas</option>
-                          <option value="G1">G1 - Crítico</option>
-                          <option value="G2">G2 - Alto</option>
-                          <option value="G3">G3 - Médio</option>
-                          <option value="G4">G4 - Baixo</option>
-                        </select>
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-black text-zinc-500 uppercase">Status</label>
-                        <select 
-                          className="w-full rounded-xl border border-zinc-800/80 bg-zinc-950/70 px-3 py-2.5 text-xs text-zinc-200 focus:outline-none focus:border-primary"
-                          value={filterStatus}
-                          onChange={(e) => setFilterStatus(e.target.value)}
-                        >
-                          <option value="">Todos</option>
-                          <option value="Aberto">Aberto</option>
-                          <option value="Concluído">Concluído</option>
-                        </select>
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-black text-zinc-500 uppercase">Data Inicial</label>
-                        <input 
-                          type="date"
-                          className="w-full rounded-xl border border-zinc-800/80 bg-zinc-950/70 px-3 py-2.5 text-xs text-zinc-200 focus:outline-none focus:border-primary"
-                          value={filterDateFrom}
-                          onChange={(e) => setFilterDateFrom(e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-black text-zinc-500 uppercase">Data Final</label>
-                        <input 
-                          type="date"
-                          className="w-full rounded-xl border border-zinc-800/80 bg-zinc-950/70 px-3 py-2.5 text-xs text-zinc-200 focus:outline-none focus:border-primary"
-                          value={filterDateTo}
-                          onChange={(e) => setFilterDateTo(e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-black text-zinc-500 uppercase">Agente</label>
-                        <select 
-                          className="w-full rounded-xl border border-zinc-800/80 bg-zinc-950/70 px-3 py-2.5 text-xs text-zinc-200 focus:outline-none focus:border-primary"
-                          value={filterAgent}
-                          onChange={(e) => setFilterAgent(e.target.value)}
-                        >
-                          <option value="">Todos</option>
-                          {users.map(u => (
-                            <option key={u.id} value={u.id.toString()}>{u.nome}</option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="flex items-end">
-                        <button 
-                          onClick={() => {
-                            setFilterCategory('');
-                            setFilterSeverity('');
-                            setFilterStatus('');
-                            setFilterDateFrom('');
-                            setFilterDateTo('');
-                            setFilterAgent('');
-                          }}
-                          className="w-full rounded-xl border border-zinc-800/80 bg-zinc-950/70 py-2.5 text-[10px] font-black uppercase tracking-[0.18em] text-zinc-300 transition-all hover:border-zinc-700 hover:bg-zinc-900"
-                        >
-                          Limpar Filtros
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="glass-card rounded-[2rem] overflow-hidden border border-zinc-800/70 mb-20 md:mb-0">
-                  <div className="hidden md:block">
-                    <table className="w-full text-left border-collapse">
-                      <thead>
-                        <tr className="border-b border-zinc-800/70 bg-zinc-950/80">
-                          <th className="hidden md:table-cell px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">ID</th>
-                          <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">{t('app.common.titleDescription')}</th>
-                          <th className="hidden lg:table-cell px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">Categoria</th>
-                          <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">Gravidade</th>
-                          <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">Status</th>
-                          <th className="hidden sm:table-cell px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">Agente</th>
-                          <th className="hidden md:table-cell px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">Data/Hora</th>
-                          <th className="px-6 py-4"></th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-zinc-800/30">
-                        <AnimatePresence initial={false}>
-                          {reports.length === 0 ? (
-                            <tr>
-                              <td colSpan={8} className="py-20 text-center">
-                                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center gap-4 text-zinc-500">
-                                  <Search size={48} strokeWidth={1} className="opacity-20" />
-                                  <p className="text-xs font-black uppercase tracking-[0.3em]">Nenhuma ocorrência encontrada</p>
-                                </motion.div>
-                              </td>
-                            </tr>
-                          ) : reports.map((report, index) => (
-                            <motion.tr 
-                              key={report.id}
-                              initial={{ opacity: 0, x: -10 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ delay: index * 0.03 }}
-                              onClick={() => openReportDetails(report)}
-                              className="group cursor-pointer border-zinc-800/40 transition-all hover:bg-white/[0.025] active:scale-[0.995]"
-                            >
-                            <td className="hidden md:table-cell px-6 py-4 font-mono text-xs text-zinc-500">#{report.id}</td>
-                            <td className="px-6 py-4">
-                              <div className="flex items-center gap-3">
-                                {report.fotos_path && (
-                                  <div className="w-10 h-10 rounded-lg overflow-hidden border border-zinc-800 shrink-0">
-                                    <img src={report.fotos_path} alt="Evidência" className="w-full h-full object-cover" />
-                                  </div>
-                                )}
-                                <div className="flex flex-col">
-                                  <span className="text-xs font-black text-zinc-100 uppercase tracking-tight">{report.titulo || 'Sem Título'}</span>
-                                  <p className="text-[11px] text-zinc-500 line-clamp-1 group-hover:line-clamp-none transition-all">{report.descricao}</p>
-                                  {report.metadata && Object.keys(report.metadata).length > 0 && (
-                                    <div className="hidden sm:flex flex-wrap gap-1.5 mt-1">
-                                      {Object.entries(report.metadata).map(([key, value]) => (
-                                        <span key={key} className="text-[8px] font-black bg-zinc-800 text-zinc-500 px-1 py-0.5 rounded uppercase tracking-widest">
-                                          {key.replace('_', ' ')}: {value as string}
-                                        </span>
-                                      ))}
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            </td>
-                            <td className="hidden lg:table-cell px-6 py-4">
-                              <div className="flex items-center gap-2">
-                                <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-                                <span className="text-xs text-zinc-400 font-bold uppercase">{report.categoria}</span>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4"><Badge gravidade={report.gravidade} /></td>
-                            <td className="px-6 py-4">
-                              <div className={cn(
-                                "inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border",
-                                report.status === 'Concluído' 
-                                  ? "bg-green-500/10 text-green-400 border-green-500/20" 
-                                  : "bg-zinc-800 text-zinc-500 border-zinc-700"
-                              )}>
-                                {report.status === 'Concluído' ? <CheckCircle2 size={10} /> : <Clock size={10} />}
-                                {report.status || 'Aberto'}
-                              </div>
-                            </td>
-                            <td className="hidden sm:table-cell px-6 py-4">
-                              <div className="flex items-center gap-2">
-                                <div className="w-6 h-6 rounded bg-zinc-800 flex items-center justify-center text-[10px] font-bold text-zinc-400">
-                                  {report.agente_nome.charAt(0)}
-                                </div>
-                                <span className="text-xs font-medium text-zinc-300">{report.agente_nome}</span>
-                              </div>
-                            </td>
-                            <td className="hidden md:table-cell px-6 py-4">
-                              <div className="flex flex-col">
-                                <span className="text-xs text-zinc-400">{new Date(report.timestamp).toLocaleDateString()}</span>
-                                <span className="text-[10px] text-zinc-600">{new Date(report.timestamp).toLocaleTimeString()}</span>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 text-right">
-                              <motion.button 
-                                whileHover={{ scale: 1.1 }}
-                                whileTap={{ scale: 0.9 }}
-                                className="p-1.5 text-zinc-600 hover:text-white transition-colors"
-                              >
-                                <ChevronRight size={18} />
-                              </motion.button>
-                            </td>
-                          </motion.tr>
-                        ))}
-                        </AnimatePresence>
-                      </tbody>
-                    </table>
-                  </div>
-
-                  {/* Mobile Cards Layout */}
-                  <div className="md:hidden divide-y divide-zinc-800/30">
-                    <AnimatePresence initial={false}>
-                      {reports.length === 0 ? (
-                        <div className="py-20 text-center">
-                          <Search size={32} className="mx-auto text-zinc-800 mb-4 opacity-20" />
-                          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">Nenhum registo encontrado</p>
-                        </div>
-                      ) : reports.map((report, index) => (
-                        <motion.div 
-                          key={report.id}
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: index * 0.05 }}
-                          onClick={() => openReportDetails(report)}
-                          className="p-4 active:bg-white/[0.03] transition-colors flex items-center justify-between gap-4"
-                        >
-                          <div className="flex items-center gap-4 flex-1 min-w-0">
-                            {report.fotos_path ? (
-                              <div className="w-12 h-12 rounded-xl overflow-hidden border border-zinc-800 shrink-0">
-                                <img src={report.fotos_path} alt="Evidência" className="w-full h-full object-cover" />
-                              </div>
-                            ) : (
-                              <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0">
-                                <FileText size={20} className="text-zinc-700" />
-                              </div>
-                            )}
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
-                                <Badge gravidade={report.gravidade} />
-                                <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">{report.categoria}</span>
-                              </div>
-                              <p className="text-xs font-black text-zinc-200 uppercase truncate">{report.titulo || 'Ocorrência s/Título'}</p>
-                              <div className="flex items-center gap-2 mt-1.5">
-                                <div className="text-[9px] text-zinc-600 font-bold uppercase tracking-wider flex items-center gap-1">
-                                  <Clock size={10} />
-                                  {new Date(report.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                </div>
-                                <div className="w-1 h-1 rounded-full bg-zinc-800" />
-                                <div className="text-[9px] text-zinc-600 font-bold uppercase tracking-wider">
-                                  {report.agente_nome.split(' ')[0]}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                          <ChevronRight size={16} className="text-zinc-700 shrink-0" />
-                        </motion.div>
-                      ))}
-                    </AnimatePresence>
-                  </div>
-                </div>
-                
-                {reports.length > 0 && totalPages > 1 && (
-                  <PaginationControls 
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    onPageChange={setCurrentPage}
-                  />
-                )}
-              </motion.div>
+              <ReportsTab
+                reports={reports}
+                users={users}
+                filterCategory={filterCategory}
+                setFilterCategory={setFilterCategory}
+                filterSeverity={filterSeverity}
+                setFilterSeverity={setFilterSeverity}
+                filterStatus={filterStatus}
+                setFilterStatus={setFilterStatus}
+                filterDateFrom={filterDateFrom}
+                setFilterDateFrom={setFilterDateFrom}
+                filterDateTo={filterDateTo}
+                setFilterDateTo={setFilterDateTo}
+                filterAgent={filterAgent}
+                setFilterAgent={setFilterAgent}
+                clearFilters={() => {
+                  setFilterCategory('');
+                  setFilterSeverity('');
+                  setFilterStatus('');
+                  setFilterDateFrom('');
+                  setFilterDateTo('');
+                  setFilterAgent('');
+                }}
+                currentPage={currentPage}
+                totalPages={totalPages}
+                setCurrentPage={setCurrentPage}
+                onOpenReport={openReportDetails}
+                onEditReport={handleStartEditReport}
+                onDeleteReport={handleDeleteReport}
+              />
             )}
 
             {activeTab === 'personal_reports' && (
@@ -2574,392 +2355,32 @@ export default function App() {
             )}
 
             {activeTab === 'daily_report_personal' && (
-              <motion.div 
-                key="daily_report_personal"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="space-y-6"
-              >
-                <div className="overflow-hidden rounded-[2rem] border border-zinc-800/70 bg-[radial-gradient(circle_at_top_left,rgba(249,115,22,0.12),transparent_26%),linear-gradient(180deg,rgba(22,23,29,0.94),rgba(10,10,13,0.96))] p-5 md:p-7">
-                  <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-                    <div>
-                      <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.22em] text-primary">
-                        <Calendar size={12} />
-                        Resumo pessoal
-                      </div>
-                      <h2 className="mt-4 text-3xl font-black tracking-tight text-white">{t('app.tabs.myDailyReport')}</h2>
-                      <p className="mt-2 text-sm text-zinc-500">{new Date().toLocaleDateString('pt-PT')}</p>
-                    </div>
-                    <div className="rounded-2xl border border-zinc-800/70 bg-zinc-950/50 px-4 py-3">
-                      <p className="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-500">Estado do dia</p>
-                      <p className="mt-1 text-lg font-black text-white">{dailyReportPersonal?.totalReports ? 'Com atividade' : 'Sem registos'}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {dailyReportPersonal ? (
-                  <>
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-                      <Card className="border-primary/30 bg-primary/5">
-                        <div className="text-center">
-                          <p className="text-3xl font-black text-primary">{dailyReportPersonal.totalReports}</p>
-                          <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mt-2">Ocorrências Registadas</p>
-                        </div>
-                      </Card>
-                      
-                      <Card className="border-red-500/30 bg-red-500/5">
-                        <div className="text-center">
-                          <p className="text-3xl font-black text-red-400">{dailyReportPersonal.byGravity.G4}</p>
-                          <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mt-2">Crítica (G4)</p>
-                        </div>
-                      </Card>
-
-                      <Card className="border-orange-500/30 bg-orange-500/5">
-                        <div className="text-center">
-                          <p className="text-3xl font-black text-orange-400">{dailyReportPersonal.byGravity.G3}</p>
-                          <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mt-2">Alta (G3)</p>
-                        </div>
-                      </Card>
-
-                      <Card className="border-yellow-500/30 bg-yellow-500/5">
-                        <div className="text-center">
-                          <p className="text-3xl font-black text-yellow-400">{dailyReportPersonal.byGravity.G2 + dailyReportPersonal.byGravity.G1}</p>
-                          <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mt-2">Baixa/Média</p>
-                        </div>
-                      </Card>
-                    </div>
-
-
-
-                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 pb-20 md:pb-0">
-                      <Card title={t('app.common.distributionByCategory')}>
-                        <div className="space-y-3">
-                          {Object.entries(dailyReportPersonal.byCategory).map(([cat, count]: [string, any]) => (
-                            <div key={cat} className="flex items-center justify-between">
-                              <span className="text-sm text-zinc-300">{cat}</span>
-                              <div className="flex items-center gap-2">
-                                <div className="w-32 h-2 bg-zinc-800 rounded-full overflow-hidden">
-                                  <div 
-                                    className="h-full bg-primary rounded-full" 
-                                    style={{width: `${(count / dailyReportPersonal.totalReports) * 100}%`}}
-                                  />
-                                </div>
-                                <span className="text-sm font-bold text-primary">{count}</span>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </Card>
-
-                      <Card title={t('app.common.distributionBySeverity')}>
-                        <div className="space-y-3">
-                          {Object.entries(dailyReportPersonal.byGravity).map(([gravity, count]: [string, any]) => {
-                            const colors = { G1: 'bg-blue-500', G2: 'bg-yellow-500', G3: 'bg-orange-500', G4: 'bg-red-500' };
-                            return (
-                              <div key={gravity} className="flex items-center justify-between">
-                                <span className="text-sm text-zinc-300 font-bold">{gravity}</span>
-                                <div className="flex items-center gap-2">
-                                  <div className="w-32 h-2 bg-zinc-800 rounded-full overflow-hidden">
-                                    <div 
-                                      className={`h-full rounded-full ${colors[gravity as keyof typeof colors]}`}
-                                      style={{width: dailyReportPersonal.totalReports > 0 ? `${(count / dailyReportPersonal.totalReports) * 100}%` : '0'}}
-                                    />
-                                  </div>
-                                  <span className="text-sm font-bold">{count}</span>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </Card>
-                    </div>
-
-                    {dailyReportPersonal.reports.length > 0 && (
-                      <Card title={`Ocorrências de Hoje (${dailyReportPersonal.reports.length})`} className="rounded-[2rem]">
-                        <div className="space-y-2">
-                          {dailyReportPersonal.reports.map((report: Report) => (
-                            <div 
-                              key={report.id}
-                              onClick={() => openReportDetails(report)}
-                              className="flex items-center justify-between gap-4 rounded-2xl border border-zinc-800/70 bg-zinc-950/40 p-4 transition-all hover:border-primary/40 hover:bg-zinc-900/70 cursor-pointer"
-                            >
-                              <div className="flex-1">
-                                <p className="text-sm font-black uppercase tracking-[0.06em] text-zinc-100">{report.titulo || 'Sem título'}</p>
-                                <p className="mt-1 text-xs text-zinc-500">{report.categoria}</p>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <Badge gravidade={report.gravidade} />
-                                <ChevronRight size={16} className="text-zinc-600" />
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </Card>
-                    )}
-                  </>
-                ) : (
-                  <div className="py-20 text-center">
-                    <Calendar className="mx-auto text-zinc-800 mb-4" size={48} />
-                    <p className="text-zinc-500 font-bold uppercase tracking-widest text-xs">Nenhuma ocorrência registada hoje</p>
-                  </div>
-                )}
-              </motion.div>
+              <DailyReportPersonalTab
+                dailyReport={dailyReportPersonal}
+                onSelectReport={openReportDetails}
+              />
             )}
 
             {activeTab === 'daily_report_team' && (
-              <motion.div 
-                key="daily_report_team"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="space-y-6"
-              >
-                <div className="overflow-hidden rounded-[2rem] border border-zinc-800/70 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.12),transparent_24%),linear-gradient(180deg,rgba(22,23,29,0.94),rgba(10,10,13,0.96))] p-5 md:p-7">
-                  <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-                    <div>
-                      <div className="inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.22em] text-blue-300">
-                        <Users size={12} />
-                        Visão da equipa
-                      </div>
-                      <h2 className="mt-4 text-3xl font-black tracking-tight text-white">Dia da Equipa</h2>
-                      <p className="mt-2 text-sm text-zinc-500">{new Date().toLocaleDateString('pt-PT')}</p>
-                    </div>
-                    <div className="rounded-2xl border border-zinc-800/70 bg-zinc-950/50 px-4 py-3">
-                      <p className="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-500">Cobertura</p>
-                      <p className="mt-1 text-lg font-black text-white">{dailyReportTeam?.totalReports ? 'Ativa' : 'Sem registos'}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {dailyReportTeam && dailyReportTeam.totalReports > 0 ? (
-                  <>
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-                      <Card className="border-primary/30 bg-primary/5">
-                        <div className="text-center">
-                          <p className="text-3xl font-black text-primary">{dailyReportTeam.totalReports}</p>
-                          <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mt-2">Ocorrências da Equipa</p>
-                        </div>
-                      </Card>
-                      
-                      <Card className="border-red-500/30 bg-red-500/5">
-                        <div className="text-center">
-                          <p className="text-3xl font-black text-red-400">{dailyReportTeam.byGravity.G4}</p>
-                          <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mt-2">Crítica (G4)</p>
-                        </div>
-                      </Card>
-
-                      <Card className="border-orange-500/30 bg-orange-500/5">
-                        <div className="text-center">
-                          <p className="text-3xl font-black text-orange-400">{dailyReportTeam.byGravity.G3}</p>
-                          <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mt-2">Alta (G3)</p>
-                        </div>
-                      </Card>
-
-                      <Card className="border-yellow-500/30 bg-yellow-500/5">
-                        <div className="text-center">
-                          <p className="text-3xl font-black text-yellow-400">{dailyReportTeam.byGravity.G2 + dailyReportTeam.byGravity.G1}</p>
-                          <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mt-2">Baixa/Média</p>
-                        </div>
-                      </Card>
-                    </div>
-
-                    <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                      <Card title="Ocorrências por Agente">
-                        <div className="space-y-3">
-                          {Object.entries(dailyReportTeam.byAgent).map(([agent, count]: [string, any]) => (
-                            <div key={agent} className="flex items-center justify-between">
-                              <span className="text-sm text-zinc-300">{agent}</span>
-                              <div className="flex items-center gap-2">
-                                <div className="w-24 h-2 bg-zinc-800 rounded-full overflow-hidden">
-                                  <div 
-                                    className="h-full bg-primary rounded-full" 
-                                    style={{width: `${(count / dailyReportTeam.totalReports) * 100}%`}}
-                                  />
-                                </div>
-                                <span className="text-sm font-bold text-primary min-w-[30px]">{count}</span>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </Card>
-
-                      <Card title={t('app.common.distributionByCategory')}>
-                        <div className="space-y-3">
-                          {Object.entries(dailyReportTeam.byCategory).map(([cat, count]: [string, any]) => (
-                            <div key={cat} className="flex items-center justify-between">
-                              <span className="text-sm text-zinc-300">{cat}</span>
-                              <span className="text-sm font-bold text-primary">{count}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </Card>
-
-                      <Card title={t('app.common.distributionBySeverity')}>
-                        <div className="space-y-3">
-                          {Object.entries(dailyReportTeam.byGravity).map(([gravity, count]: [string, any]) => {
-                            const colors = { G1: 'bg-blue-500', G2: 'bg-yellow-500', G3: 'bg-orange-500', G4: 'bg-red-500' };
-                            return (
-                              <div key={gravity} className="flex items-center justify-between">
-                                <span className="text-sm text-zinc-300 font-bold">{gravity}</span>
-                                <span className="text-sm font-bold">{count}</span>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </Card>
-                    </div>
-
-                    {dailyReportTeam.reports.length > 0 && (
-                      <Card title={`Todas as Ocorrências (${dailyReportTeam.reports.length})`} className="rounded-[2rem]">
-                        <div className="space-y-2 max-h-96 overflow-y-auto">
-                          {dailyReportTeam.reports.map((report: any) => (
-                            <div 
-                              key={report.id}
-                              onClick={() => openReportDetails(report)}
-                              className="flex items-center justify-between gap-4 rounded-2xl border border-zinc-800/70 bg-zinc-950/40 p-4 transition-all hover:border-primary/40 hover:bg-zinc-900/70 cursor-pointer"
-                            >
-                              <div className="flex-1">
-                                <p className="text-sm font-black uppercase tracking-[0.06em] text-zinc-100">{report.titulo || 'Sem título'}</p>
-                                <p className="mt-1 text-xs text-zinc-500">{report.agente_nome} • {report.categoria}</p>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <Badge gravidade={report.gravidade} />
-                                <ChevronRight size={16} className="text-zinc-600" />
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </Card>
-                    )}
-                  </>
-                ) : (
-                  <div className="py-20 text-center">
-                    <Users className="mx-auto text-zinc-800 mb-4" size={48} />
-                    <p className="text-zinc-500 font-bold uppercase tracking-widest text-xs">Nenhuma ocorrência da equipa registada hoje</p>
-                  </div>
-                )}
-              </motion.div>
+              <DailyReportTeamTab
+                dailyReport={dailyReportTeam}
+                onSelectReport={openReportDetails}
+              />
             )}
 
             {activeTab === 'alerts' && (
-              <motion.div 
-                key="alerts"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="space-y-6"
-              >
-                <div>
-                  <h2 className="text-2xl font-black tracking-tighter">ALERTAS</h2>
-                  <p className="text-sm text-zinc-500">Gira alertas para toda a equipa</p>
-                </div>
-
-                {currentUser?.permissions?.create_alerts && (
-                  <Card title="Criar Novo Alerta" subtitle="Criar alertas para toda a equipa">
-                    <form onSubmit={handleCreateAlert} className="space-y-4 mt-4">
-                      <div>
-                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-2">Título do Alerta</label>
-                        <input 
-                          type="text"
-                          required
-                          placeholder="Ex: Manutenção de Emergência"
-                          value={newAlert.titulo}
-                          onChange={(e) => setNewAlert({...newAlert, titulo: e.target.value})}
-                          className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-2">Mensagem</label>
-                        <textarea 
-                          required
-                          placeholder="Descreva o alerta..."
-                          value={newAlert.mensagem}
-                          onChange={(e) => setNewAlert({...newAlert, mensagem: e.target.value})}
-                          className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary min-h-[80px] resize-none"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-2">Tipo</label>
-                        <select 
-                          value={newAlert.tipo}
-                          onChange={(e) => setNewAlert({...newAlert, tipo: e.target.value})}
-                          className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
-                        >
-                          <option value="aviso">Aviso</option>
-                          <option value="critico">Crítico</option>
-                          <option value="informativo">Informativo</option>
-                        </select>
-                      </div>
-
-                      <button 
-                        type="submit"
-                        className="w-full bg-primary hover:bg-primary/90 text-black font-black text-[10px] px-6 py-2.5 rounded-lg transition-all uppercase tracking-widest shadow-lg shadow-primary/20"
-                      >
-                        Enviar Alerta
-                      </button>
-                    </form>
-                  </Card>
-                )}
-
-                <Card title={`Alertas (${alerts.length})`}>
-                  {alerts.length === 0 ? (
-                    <div className="p-8 text-center">
-                      <AlertTriangle className="mx-auto text-zinc-600 mb-2" size={32} />
-                      <p className="text-xs text-zinc-500">Nenhum alerta no momento</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-3 max-h-96 overflow-y-auto">
-                      {alerts.map((alert: any) => (
-                        <div key={alert.id} className={cn(
-                          "p-4 rounded-lg border transition-colors",
-                          alert.tipo === 'critico' ? "bg-red-900/20 border-red-800/50" :
-                          alert.tipo === 'aviso' ? "bg-orange-900/20 border-orange-800/50" :
-                          "bg-blue-900/20 border-blue-800/50"
-                        )}>
-                          <div className="flex items-start justify-between mb-2">
-                            <h4 className="font-bold text-sm">{alert.titulo}</h4>
-                            <span className={cn(
-                              "text-[8px] font-black px-2 py-1 rounded uppercase tracking-tighter",
-                              alert.tipo === 'critico' ? "bg-red-500 text-white" :
-                              alert.tipo === 'aviso' ? "bg-orange-500 text-white" :
-                              "bg-blue-500 text-white"
-                            )}>
-                              {alert.tipo}
-                            </span>
-                          </div>
-                          <p className="text-sm text-zinc-300 mb-2">{alert.mensagem}</p>
-                          <div className="flex items-center justify-between text-[10px] text-zinc-500 mb-3">
-                            <span>Por: {alert.creator_name || 'Sistema'}</span>
-                            <span>{new Date(alert.timestamp).toLocaleString('pt-BR')}</span>
-                          </div>
-                          {currentUser?.id === alert.created_by && (
-                            <div className="flex gap-2">
-                              <button
-                                onClick={() => {
-                                  setEditingAlert(alert);
-                                  setEditAlertForm({ titulo: alert.titulo, mensagem: alert.mensagem, tipo: alert.tipo });
-                                }}
-                                className="flex-1 text-[9px] font-bold px-2 py-1.5 bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 rounded border border-blue-500/30 transition-colors uppercase tracking-tighter"
-                              >
-                                Editar
-                              </button>
-                              <button
-                                onClick={() => handleDeleteAlert(alert.id)}
-                                className="flex-1 text-[9px] font-bold px-2 py-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-300 rounded border border-red-500/30 transition-colors uppercase tracking-tighter"
-                              >
-                                Eliminar
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </Card>
-              </motion.div>
+              <AlertsTab
+                alerts={alerts as any}
+                currentUser={currentUser}
+                newAlert={newAlert}
+                setNewAlert={setNewAlert}
+                onCreateAlert={handleCreateAlert}
+                onStartEditAlert={(alert) => {
+                  setEditingAlert(alert);
+                  setEditAlertForm({ titulo: alert.titulo, mensagem: alert.mensagem, tipo: alert.tipo });
+                }}
+                onDeleteAlert={handleDeleteAlert}
+              />
             )}
 
             {activeTab === 'parametrization' && (
@@ -3100,77 +2521,27 @@ export default function App() {
             )}
 
             {activeTab === 'users' && (
-              <motion.div 
-                key="users"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="space-y-6"
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className="text-2xl font-black tracking-tighter">{t('app.tabs.staffManagement')}</h2>
-                    <p className="text-sm text-zinc-500">{t('app.tabs.staffManagementSubtitle')}</p>
-                  </div>
-                  <button 
-                    onClick={() => {
-                      setEditingUser(null);
-                      setNewUser({ nome: '', funcao: '', numero_mecanografico: '', nivel_hierarquico: 'Agente' });
-                      setIsNewUserModalOpen(true);
-                    }}
-                    className="flex items-center gap-2 bg-zinc-100 hover:bg-white text-black font-black text-[10px] px-5 py-2.5 rounded-lg transition-all uppercase tracking-widest"
-                  >
-                    <Plus size={16} strokeWidth={3} />
-                    Adicionar Agente
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-                  {users.map(user => (
-                    <Card key={user.id} className="group hover:border-zinc-700 transition-all">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="w-12 h-12 rounded-xl bg-zinc-800 flex items-center justify-center font-black text-primary text-lg shadow-inner">
-                          {user.nome.charAt(0)}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <button 
-                            onClick={() => {
-                              setEditingUser(user);
-                              setNewUser({ 
-                                nome: user.nome, 
-                                funcao: user.funcao, 
-                                numero_mecanografico: user.numero_mecanografico, 
-                                nivel_hierarquico: user.nivel_hierarquico 
-                              });
-                              setIsNewUserModalOpen(true);
-                            }}
-                            className="p-2 text-zinc-600 hover:text-blue-400 transition-colors"
-                          >
-                            <Edit2 size={14} />
-                          </button>
-                          <button 
-                            onClick={() => handleDeleteUser(user.id)}
-                            className="p-2 text-zinc-600 hover:text-red-400 transition-colors"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        </div>
-                      </div>
-                      <div>
-                        <h3 className="font-black text-zinc-100 group-hover:text-primary transition-colors">{user.nome}</h3>
-                        <p className="text-xs text-zinc-500 font-medium">{user.funcao}</p>
-                        <button className="sm:hidden mt-2 text-[8px] font-black text-primary uppercase tracking-widest text-left">Mais detalhes</button>
-                      </div>
-                      <div className="mt-4 pt-4 border-t border-zinc-800/50 flex items-center justify-between">
-                        <span className="text-[10px] font-black text-zinc-600 tracking-widest uppercase">{user.numero_mecanografico}</span>
-                        <span className="text-[10px] font-black px-2 py-1 rounded bg-zinc-800 text-zinc-400 uppercase tracking-widest">
-                          {user.nivel_hierarquico}
-                        </span>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              </motion.div>
+              <UsersTab
+                users={users}
+                onCreateUser={() => {
+                  setEditingUser(null);
+                  setNewUser({ nome: '', funcao: '', numero_mecanografico: '', nivel_hierarquico: 'Agente', password: '' });
+                  setIsNewUserModalOpen(true);
+                }}
+                onEditUser={(user) => {
+                  setEditingUser(user);
+                  setNewUser({
+                    nome: user.nome,
+                    funcao: user.funcao,
+                    numero_mecanografico: user.numero_mecanografico,
+                    nivel_hierarquico: user.nivel_hierarquico,
+                    password: '',
+                    preferred_language: (user as any).preferred_language || 'pt',
+                  } as any);
+                  setIsNewUserModalOpen(true);
+                }}
+                onDeleteUser={handleDeleteUser}
+              />
             )}
 
             {activeTab === 'daily_reports' && (
@@ -3790,1138 +3161,71 @@ export default function App() {
 
       {/* Modals */}
       <AnimatePresence>
-        {isNewReportModalOpen && (
-          <div key="new-report-modal" className="fixed inset-0 z-[100] flex items-center justify-center p-0 md:p-4 bg-black/90 backdrop-blur-md no-print">
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="w-full max-w-5xl h-full md:h-auto md:max-h-[92vh] overflow-hidden border border-zinc-800 bg-[linear-gradient(180deg,rgba(17,18,22,0.98),rgba(9,9,11,0.98))] shadow-2xl flex flex-col relative md:rounded-[2rem]"
-            >
-              <form onSubmit={handleCreateReport} className="flex flex-col h-full">
-                <div className="flex items-center justify-between border-b border-zinc-800/70 bg-zinc-950/60 px-5 py-5 md:px-7">
-                  <div>
-                    <p className="text-[10px] font-black uppercase tracking-[0.22em] text-primary">Nova ocorrência</p>
-                    <h3 className="mt-2 text-xl font-black tracking-tight uppercase text-white">Registar Ocorrência</h3>
-                  </div>
-                  <button type="button" onClick={closeNewReportModal} className="text-zinc-500 hover:text-white transition-colors">
-                    <XCircle size={24} />
-                  </button>
-                </div>
-                <div className="flex-1 min-h-0 md:max-h-[72vh] p-4 sm:p-6 space-y-5 overflow-y-auto custom-scrollbar">
-                  {/* Wizard Header */}
-                  <div className="rounded-[1.5rem] border border-zinc-800/70 bg-zinc-950/50 p-4 md:p-5">
-                    <div className="grid grid-cols-3 gap-3">
-                      {[
-                        { step: 1, label: 'Contexto', hint: 'O que aconteceu e onde' },
-                        { step: 2, label: 'Detalhes', hint: 'Impacto, pessoas e risco' },
-                        { step: 3, label: 'Evidências', hint: 'Ação imediata e anexos' },
-                      ].map((item) => (
-                        <div
-                          key={item.step}
-                          className={cn(
-                            "rounded-2xl border px-3 py-3 transition-all",
-                            newReportStep === item.step
-                              ? "border-primary/40 bg-primary/10"
-                              : newReportStep > item.step
-                                ? "border-emerald-500/30 bg-emerald-500/8"
-                                : "border-zinc-800/80 bg-zinc-950/40"
-                          )}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className={cn(
-                              "flex h-8 w-8 items-center justify-center rounded-full text-[10px] font-black uppercase",
-                              newReportStep === item.step
-                                ? "bg-primary text-black"
-                                : newReportStep > item.step
-                                  ? "bg-emerald-500 text-black"
-                                  : "bg-zinc-900 text-zinc-400"
-                            )}>
-                              {item.step}
-                            </div>
-                            <div className="min-w-0">
-                              <p className={cn("text-[10px] font-black uppercase tracking-[0.18em]", newReportStep === item.step ? "text-primary" : "text-zinc-300")}>{item.label}</p>
-                              <p className="mt-1 hidden text-[11px] text-zinc-500 md:block">{item.hint}</p>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+        <NewReportModal
+          isOpen={isNewReportModalOpen}
+          showPreview={showReportPreview}
+          newReport={newReport}
+          newReportStep={newReportStep}
+          systemSettings={systemSettings as any}
+          onClose={closeNewReportModal}
+          onSubmit={handleCreateReport}
+          onPreview={handlePreviewNewReport}
+          onClosePreview={() => setShowReportPreview(false)}
+          onConfirmPreview={async () => {
+            const ok = await submitNewReport();
+            if (ok) {
+              setShowReportPreview(false);
+            }
+          }}
+          onNextStep={handleNextNewReportStep}
+          onPreviousStep={() => setNewReportStep((step) => step - 1)}
+          setNewReportStep={setNewReportStep}
+          setNewReport={setNewReport}
+          addNewReportPhotos={addNewReportPhotos}
+        />
 
-                  <div className={cn("space-y-5", newReportStep !== 1 && "hidden")}>
-                    <div className="space-y-2">
-                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Título da Ocorrência</label>
-                    <input 
-                      type="text"
-                      required
-                      placeholder="Ex: Intrusão Setor Norte"
-                      className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
-                      value={newReport.titulo}
-                      onChange={(e) => setNewReport({...newReport, titulo: e.target.value})}
-                    />
-                  </div>
+        <EditAlertModal
+          isOpen={Boolean(editingAlert)}
+          form={editAlertForm}
+          setForm={setEditAlertForm}
+          onClose={() => setEditingAlert(null)}
+          onSubmit={handleEditAlert}
+        />
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Categoria</label>
-                      <select 
-                        className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
-                        value={newReport.categoria}
-                        onChange={(e) => setNewReport({...newReport, categoria: e.target.value as Categoria, metadata: {}})}
-                      >
-                        <option value="Valores">Proteção de Valores</option>
-                        <option value="Perímetro">Perímetro</option>
-                        <option value="Safety">Safety (HSE)</option>
-                        <option value="Operativo">Operativo</option>
-                        <option value="Logística">Logística</option>
-                        <option value="Manutenção">Manutenção de Planta</option>
-                        <option value="Informativo">Informativo</option>
-                      </select>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Gravidade</label>
-                      <select 
-                        className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
-                        value={newReport.gravidade}
-                        onChange={(e) => setNewReport({...newReport, gravidade: e.target.value as Gravidade})}
-                      >
-                        <option value="G1">G1 (Baixa)</option>
-                        <option value="G2">G2 (Média)</option>
-                        <option value="G3">G3 (Alta)</option>
-                        <option value="G4">G4 (Crítica)</option>
-                      </select>
-                    </div>
-                  </div>
+        <DashboardRangeModal
+          isOpen={isDashboardRangeModalOpen}
+          value={dashboardCustomRange}
+          setValue={setDashboardCustomRange}
+          onClose={() => setIsDashboardRangeModalOpen(false)}
+          onApply={applyDashboardCustomRange}
+        />
 
+        <ReportDetailModal
+          report={selectedReport as any}
+          currentUser={currentUser}
+          systemSettings={systemSettings as any}
+          isEditing={isEditingReport}
+          editingData={editingReportData}
+          onClose={closeReportDetails}
+          onStartEditing={startEditingSelectedReport}
+          onCancelEditing={cancelEditingSelectedReport}
+          setEditingData={setEditingReportData}
+          addEditingReportPhotos={addEditingReportPhotos}
+          onSaveEdits={handleSaveReportEdits}
+          onConclude={handleConcludeReport}
+          onApprove={handleApproveReport}
+          onDelete={handleDeleteReport}
+        />
 
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Descrição da Ocorrência</label>
-                    <textarea 
-                      required
-                      className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary min-h-[100px] resize-none"
-                      placeholder="Descreva detalhadamente o que aconteceu..."
-                      value={newReport.descricao}
-                      onChange={(e) => setNewReport({...newReport, descricao: e.target.value})}
-                    />
-                  </div>
-                  </div>
-
-                  <div className={cn("space-y-5", newReportStep !== 2 && "hidden")}>
-                  {newReport.categoria === 'Safety' && (
-                    <div className="grid grid-cols-2 gap-4 mb-4 p-4 border border-orange-500/30 bg-orange-500/5 rounded-lg">
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black text-orange-400 uppercase tracking-widest">Tipo de Incidente (Safety)</label>
-                        <select 
-                          required
-                          className="w-full bg-zinc-950 border border-orange-500/50 rounded-lg py-2 px-3 text-xs focus:outline-none focus:border-orange-500"
-                          value={newReport.metadata?.incidentType || ''}
-                          onChange={(e) => setNewReport({...newReport, metadata: {...newReport.metadata, incidentType: e.target.value}})}
-                        >
-                          <option value="">Selecione...</option>
-                          <option value="Queda">Queda de mesmo nível</option>
-                          <option value="Esmagamento">Risco de Esmagamento</option>
-                          <option value="Quimico">Derramamento Químico</option>
-                          <option value="Outro">Outro</option>
-                        </select>
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black text-orange-400 uppercase tracking-widest">Uso de EPI</label>
-                        <select 
-                          required
-                          className="w-full bg-zinc-950 border border-orange-500/50 rounded-lg py-2 px-3 text-xs focus:outline-none focus:border-orange-500"
-                          value={newReport.metadata?.ppeUsage || ''}
-                          onChange={(e) => setNewReport({...newReport, metadata: {...newReport.metadata, ppeUsage: e.target.value}})}
-                        >
-                          <option value="">Selecione...</option>
-                          <option value="Total">Sim, todos adequados</option>
-                          <option value="Parcial">Parcial / Inadequado</option>
-                          <option value="Nenhum">Não estava usando</option>
-                        </select>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-2">Setor/Local</label>
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {(systemSettings.find((s: any) => s.key === 'form_sectors')?.value || '').split(',').map((s: string) => s.trim()).filter(Boolean).map((sec: string) => {
-                          const selectedSectors = newReport.setor ? newReport.setor.split(', ') : [];
-                          const isSelected = selectedSectors.includes(sec);
-                          return (
-                            <button
-                              key={sec}
-                              type="button"
-                              onClick={() => {
-                                let updated;
-                                if (isSelected) {
-                                  updated = selectedSectors.filter(s => s !== sec);
-                                } else {
-                                  updated = [...selectedSectors, sec];
-                                }
-                                setNewReport({...newReport, setor: updated.join(', ')});
-                              }}
-                              className={cn(
-                                "px-3 py-1.5 text-[10px] font-bold rounded-lg border transition-all uppercase tracking-widest outline-none",
-                                isSelected 
-                                  ? "bg-primary/20 border-primary/50 text-primary glow-amber-sm" 
-                                  : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200"
-                              )}
-                            >
-                              {sec}
-                            </button>
-                          );
-                        })}
-                        {!(systemSettings.find((s: any) => s.key === 'form_sectors')?.value || '').trim() && (
-                          <p className="text-[10px] text-zinc-600 italic">Nenhum setor parametrizado.</p>
-                        )}
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Pessoas Envolvidas</label>
-                      <input 
-                        type="number"
-                        min="0"
-                        placeholder="Quantas?"
-                        value={newReport.pessoas_envolvidas}
-                        onChange={(e) => setNewReport({...newReport, pessoas_envolvidas: e.target.value})}
-                        className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Equipamento</label>
-                      <input 
-                        type="text"
-                        placeholder="Ex: Escavadora 01"
-                        value={newReport.equipamento}
-                        onChange={(e) => setNewReport({...newReport, equipamento: e.target.value})}
-                        className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                       <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Potencial de Risco</label>
-                       <select 
-                         className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
-                         value={newReport.potencial_risco}
-                         onChange={(e) => setNewReport({...newReport, potencial_risco: e.target.value})}
-                       >
-                         <option value="">Selecione...</option>
-                         <option value="Baixo">Baixo</option>
-                         <option value="Médio">Médio</option>
-                         <option value="Alto">Alto</option>
-                         <option value="Crítico">Crítico</option>
-                       </select>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Testemunhas</label>
-                    <input 
-                      type="text"
-                      placeholder="Nomes separados por vírgula"
-                      value={newReport.testemunhas}
-                      onChange={(e) => setNewReport({...newReport, testemunhas: e.target.value})}
-                      className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
-                    />
-                  </div>
-                  </div>
-
-                  <div className={cn("space-y-5", newReportStep !== 3 && "hidden")}>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Ação Imediata Tomada</label>
-                    <textarea 
-                      className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary min-h-[60px] resize-none"
-                      placeholder="O que foi feito no momento?"
-                      value={newReport.acao_imediata}
-                      onChange={(e) => setNewReport({...newReport, acao_imediata: e.target.value})}
-                    />
-                  </div>
-
-                  <div className="space-y-4 pt-2 border-t border-zinc-800/50">
-                    <div className="flex items-center gap-3 bg-zinc-900/50 p-4 rounded-xl border border-zinc-800">
-                      <input 
-                        type="checkbox"
-                        id="investigacao"
-                        checked={newReport.requer_investigacao}
-                        onChange={(e) => setNewReport({...newReport, requer_investigacao: e.target.checked})}
-                        className="w-5 h-5 cursor-pointer rounded border-zinc-700 bg-zinc-900 text-primary focus:ring-primary/20"
-                      />
-                      <label htmlFor="investigacao" className="text-sm font-bold text-zinc-300 cursor-pointer flex-1">
-                        ⚠️ Esta ocorrência requer investigação formal
-                      </label>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Galeria de Evidências</label>
-                    <div 
-                      className="relative group mb-3"
-                      onDragOver={(e) => {
-                        e.preventDefault();
-                        e.currentTarget.classList.add('border-primary/70', 'bg-primary/5');
-                      }}
-                      onDragLeave={(e) => {
-                        e.currentTarget.classList.remove('border-primary/70', 'bg-primary/5');
-                      }}
-                      onDrop={(e) => {
-                        e.preventDefault();
-                        e.currentTarget.classList.remove('border-primary/70', 'bg-primary/5');
-                        const files = e.dataTransfer.files;
-                        Array.from(files).forEach((file: File) => {
-                          if (file.type && file.type.startsWith('image/')) {
-                            addNewReportPhotos([file]);
-                          }
-                        });
-                      }}
-                    >
-                      <input 
-                        type="file"
-                        accept="image/*"
-                        multiple
-                        className="hidden"
-                        id="report-photos"
-                        onChange={(e) => {
-                          const newFiles = Array.from(e.target.files || []).map(f => ({ file: f as File, caption: '' }));
-                          addNewReportPhotos(newFiles.map(item => item.file));
-                        }}
-                      />
-                      <label 
-                        htmlFor="report-photos"
-                        className="flex items-center justify-center gap-3 w-full bg-zinc-900 border-2 border-dashed border-zinc-800 rounded-xl py-6 cursor-pointer hover:border-primary/50 hover:bg-zinc-900/50 transition-all"
-                      >
-                        <Camera className="text-zinc-500 group-hover:text-primary transition-colors" size={24} />
-                        <span className="text-xs font-bold text-zinc-500 group-hover:text-zinc-300">
-                          Clique ou arraste múltiplas fotos aqui
-                        </span>
-                      </label>
-                    </div>
-                    
-                    {newReport.fotos.length > 0 && (
-                      <div className="space-y-2">
-                        {newReport.fotos.map((foto, idx) => (
-                          <div key={idx} className="bg-zinc-900/50 border border-zinc-800 rounded-lg p-3 space-y-2">
-                            <div className="flex items-center justify-between">
-                              <span className="text-xs font-bold text-zinc-300">📷 {foto.file.name}</span>
-                              <button 
-                                type="button" 
-                                onClick={() => setNewReport({...newReport, fotos: newReport.fotos.filter((_, i) => i !== idx)})}
-                                className="text-[10px] font-bold text-red-500 hover:text-red-400 transition-colors"
-                              >
-                                OK REMOVER
-                              </button>
-                            </div>
-                            <input 
-                              type="text"
-                              placeholder="Legenda/descrição desta foto..."
-                              value={foto.caption}
-                              onChange={(e) => {
-                                const newFotos = [...newReport.fotos];
-                                newFotos[idx].caption = e.target.value;
-                                setNewReport({...newReport, fotos: newFotos});
-                              }}
-                              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg py-2 px-3 text-xs text-zinc-200 focus:outline-none focus:border-primary"
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  </div>
-                </div>
-                <div className="p-4 md:p-6 bg-zinc-900/40 border-t border-zinc-800 flex flex-col-reverse sm:flex-row justify-end gap-3 no-print">
-                  {newReportStep > 1 && (
-                    <button type="button" onClick={() => setNewReportStep(s => s - 1)} className="w-full sm:w-auto px-6 py-2.5 text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-white transition-all bg-zinc-800 rounded-lg">VOLTAR</button>
-                  )}
-                  {newReportStep < 3 && (
-                    <button type="button" onClick={handleNextNewReportStep} className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-black font-black text-[10px] px-8 py-2.5 rounded-lg transition-all uppercase tracking-widest">PRÓXIMO</button>
-                  )}
-                  <button type="button" onClick={closeNewReportModal} className="w-full sm:w-auto px-6 py-2.5 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white transition-all bg-zinc-900/50 sm:bg-transparent rounded-lg border border-zinc-800 sm:border-none">Cancelar</button>
-                  <button type="button" onClick={handlePreviewNewReport} className="w-full sm:w-auto bg-zinc-800 hover:bg-zinc-700 text-white font-black text-[10px] px-8 py-2.5 rounded-lg transition-all uppercase tracking-widest border border-zinc-700">Visualizar</button>
-                  <button type="submit" className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-black font-black text-[10px] px-8 py-3 rounded-lg transition-all uppercase tracking-widest shadow-lg shadow-primary/20">Transmitir Relatório</button>
-                </div>
-              </form>
-            </motion.div>
-          </div>
-        )}
-
-        {showReportPreview && (
-          <div key="preview-modal" className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-[#0a0a0a] border border-zinc-800 rounded-2xl w-full max-w-3xl overflow-hidden shadow-2xl"
-            >
-              <div className="p-6 border-b border-zinc-800 flex items-center justify-between bg-zinc-900/20">
-                <h3 className="text-xl font-black tracking-tighter uppercase">Visualização da Ocorrência</h3>
-                <button type="button" onClick={() => setShowReportPreview(false)} className="text-zinc-500 hover:text-white transition-colors">
-                  <XCircle size={24} />
-                </button>
-              </div>
-              <div className="p-4 sm:p-6 space-y-6 max-h-[75vh] overflow-y-auto">
-                <div>
-                  <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Título</p>
-                  <p className="text-lg font-bold text-zinc-100">{newReport.titulo || 'Sem título'}</p>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Categoria</p>
-                    <p className="text-sm text-zinc-300 bg-zinc-900/50 p-2 rounded">{newReport.categoria}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Gravidade</p>
-                    <div className="inline-block"><Badge gravidade={newReport.gravidade} /></div>
-                  </div>
-                </div>
-
-                <div>
-                  <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Descrição</p>
-                  <p className="text-sm text-zinc-300 bg-zinc-900/50 p-3 rounded leading-relaxed">{newReport.descricao || 'Sem descrição'}</p>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {newReport.setor && (
-                    <div>
-                      <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Setor/Local</p>
-                      <p className="text-sm text-zinc-300">{newReport.setor}</p>
-                    </div>
-                  )}
-                  {newReport.pessoas_envolvidas && (
-                    <div>
-                      <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Pessoas Envolvidas</p>
-                      <p className="text-sm text-zinc-300">{newReport.pessoas_envolvidas}</p>
-                    </div>
-                  )}
-                </div>
-
-                {newReport.equipamento && (
-                  <div>
-                    <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Equipamento</p>
-                    <p className="text-sm text-zinc-300">{newReport.equipamento}</p>
-                  </div>
-                )}
-
-                {newReport.acao_imediata && (
-                  <div>
-                    <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Ação Imediata</p>
-                    <p className="text-sm text-zinc-300 bg-zinc-900/50 p-2 rounded">{newReport.acao_imediata}</p>
-                  </div>
-                )}
-
-                {newReport.testemunhas && (
-                  <div>
-                    <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Testemunhas</p>
-                    <p className="text-sm text-zinc-300">{newReport.testemunhas}</p>
-                  </div>
-                )}
-
-                {newReport.potencial_risco && (
-                  <div>
-                    <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Potencial de Risco</p>
-                    <p className="text-sm text-zinc-300 bg-zinc-900/50 p-2 rounded">{newReport.potencial_risco}</p>
-                  </div>
-                )}
-
-                {newReport.requer_investigacao && (
-                  <div className="bg-red-900/20 border border-red-800/50 p-3 rounded">
-                    <p className="text-sm font-bold text-red-400">⚠️ Requer Investigação Formal</p>
-                  </div>
-                )}
-
-                {newReport.fotos.length > 0 && (
-                  <div>
-                    <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-3">Evidências ({newReport.fotos.length})</p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {newReport.fotos.map((foto, idx) => (
-                        <div key={idx} className="space-y-1">
-                          <img src={URL.createObjectURL(foto.file)} alt={`Preview ${idx}`} className="w-full h-32 object-cover rounded border border-zinc-800" />
-                          {foto.caption && <p className="text-xs text-zinc-400">{foto.caption}</p>}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-              <div className="p-6 bg-zinc-900/20 border-t border-zinc-800 flex justify-end gap-3">
-                <button type="button" onClick={() => setShowReportPreview(false)} className="px-6 py-2.5 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white transition-colors">Voltar</button>
-                <button type="button" onClick={async () => { const ok = await submitNewReport(); if (ok) { setShowReportPreview(false); } }} className="bg-primary hover:bg-primary/90 text-black font-black text-[10px] px-8 py-2.5 rounded-lg transition-all uppercase tracking-widest shadow-lg shadow-primary/20">Confirmar e Enviar</button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-
-        {editingAlert && (
-          <div key="edit-alert-modal" className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-[#0a0a0a] border border-zinc-800 rounded-2xl w-full max-w-3xl overflow-hidden shadow-2xl"
-            >
-              <div className="p-6 border-b border-zinc-800 flex items-center justify-between">
-                <h3 className="text-xl font-black tracking-tighter uppercase">Editar Alerta</h3>
-                <button type="button" onClick={() => setEditingAlert(null)} className="text-zinc-500 hover:text-white transition-colors">
-                  <XCircle size={24} />
-                </button>
-              </div>
-
-              <form onSubmit={handleEditAlert} className="p-6 space-y-4">
-                <div>
-                  <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-2">Título</label>
-                  <input 
-                    type="text"
-                    required
-                    value={editAlertForm.titulo}
-                    onChange={(e) => setEditAlertForm({...editAlertForm, titulo: e.target.value})}
-                    className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-2">Mensagem</label>
-                  <textarea 
-                    required
-                    value={editAlertForm.mensagem}
-                    onChange={(e) => setEditAlertForm({...editAlertForm, mensagem: e.target.value})}
-                    className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary min-h-[80px] resize-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-2">Tipo</label>
-                  <select 
-                    value={editAlertForm.tipo}
-                    onChange={(e) => setEditAlertForm({...editAlertForm, tipo: e.target.value})}
-                    className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
-                  >
-                    <option value="aviso">Aviso</option>
-                    <option value="critico">Crítico</option>
-                    <option value="informativo">Informativo</option>
-                  </select>
-                </div>
-
-                <div className="flex gap-3 pt-4">
-                  <button 
-                    type="button"
-                    onClick={() => setEditingAlert(null)}
-                    className="flex-1 px-6 py-2.5 text-[10px] font-bold uppercase tracking-widest text-zinc-500 hover:text-white transition-colors border border-zinc-800 rounded-lg"
-                  >
-                    Cancelar
-                  </button>
-                  <button 
-                    type="submit"
-                    className="flex-1 bg-primary hover:bg-primary/90 text-black font-black text-[10px] px-6 py-2.5 rounded-lg transition-all uppercase tracking-widest shadow-lg shadow-primary/20"
-                  >
-                    Guardar Alterações
-                  </button>
-                </div>
-              </form>
-            </motion.div>
-          </div>
-        )}
-
-        {isDashboardRangeModalOpen && (
-          <div key="dashboard-range-modal" className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md no-print">
-            <motion.div
-              initial={{ opacity: 0, y: 20, scale: 0.96 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 20, scale: 0.96 }}
-              className="bg-[#0a0a0a] border border-zinc-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl"
-            >
-              <div className="p-6 border-b border-zinc-800 flex items-center justify-between bg-zinc-900/20">
-                <div>
-                  <h3 className="text-lg font-black tracking-tighter uppercase">Intervalo da Dashboard</h3>
-                  <p className="text-[10px] text-zinc-500 font-bold tracking-widest uppercase">Defina o período da análise</p>
-                </div>
-                <button onClick={() => setIsDashboardRangeModalOpen(false)} className="text-zinc-500 hover:text-white transition-colors">
-                  <XCircle size={22} />
-                </button>
-              </div>
-              <div className="p-6 space-y-4">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">De</label>
-                  <input
-                    type="date"
-                    value={dashboardCustomRange.from}
-                    onChange={(e) => setDashboardCustomRange(prev => ({ ...prev, from: e.target.value }))}
-                    className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-primary"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Até</label>
-                  <input
-                    type="date"
-                    value={dashboardCustomRange.to}
-                    onChange={(e) => setDashboardCustomRange(prev => ({ ...prev, to: e.target.value }))}
-                    className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-primary"
-                  />
-                </div>
-              </div>
-              <div className="p-6 bg-zinc-900/20 border-t border-zinc-800 flex justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setIsDashboardRangeModalOpen(false)}
-                  className="px-6 py-2.5 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white transition-colors"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="button"
-                  onClick={applyDashboardCustomRange}
-                  className="bg-primary hover:bg-primary/90 text-black font-black text-[10px] px-8 py-2.5 rounded-lg transition-all uppercase tracking-widest shadow-lg shadow-primary/20"
-                >
-                  Aplicar Intervalo
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-
-        {selectedReport && (
-          <div key="report-details-modal" className="fixed inset-0 z-[200] flex items-center justify-center p-0 md:p-4 bg-black/95 backdrop-blur-xl no-print">
-            <motion.div 
-              initial={{ opacity: 0, y: 50, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 50, scale: 0.98 }}
-              className="w-full max-w-6xl h-full overflow-hidden border-zinc-800 bg-[linear-gradient(180deg,rgba(17,18,22,0.98),rgba(9,9,11,0.98))] flex flex-col shadow-2xl relative md:h-[90vh] md:rounded-[2rem] md:border"
-            >
-              <div className="flex items-center justify-between border-b border-zinc-800/70 bg-zinc-950/60 px-5 py-5 md:px-7">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                    <FileText size={20} />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-black tracking-tight uppercase">Detalhes da Ocorrência</h3>
-                    <p className="text-[10px] text-zinc-500 font-bold tracking-widest uppercase">ID #{selectedReport.id} • {new Date(selectedReport.timestamp).toLocaleString()}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  {selectedReport.status === 'Concluído' && (
-                    <div className="hidden md:flex items-center gap-2 px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-full">
-                      <CheckCircle2 size={12} className="text-green-500" />
-                      <span className="text-[9px] font-black text-green-500 uppercase tracking-widest">Relatório Selado</span>
-                    </div>
-                  )}
-                  <button onClick={closeReportDetails} className="text-zinc-500 hover:text-white transition-colors">
-                    <XCircle size={24} />
-                  </button>
-                </div>
-              </div>
-              
-              <div className="flex-1 min-h-0 md:max-h-[80vh] p-4 sm:p-6 lg:p-8 space-y-6 lg:space-y-8 overflow-y-auto custom-scrollbar">
-                <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)] gap-6 lg:gap-10">
-                  <div className="space-y-6">
-                    <div>
-                      <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-2">Título</label>
-                      {isEditingReport ? (
-                        <input 
-                          type="text" 
-                          value={editingReportData.titulo} 
-                          onChange={e => setEditingReportData({...editingReportData, titulo: e.target.value})}
-                          className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
-                        />
-                      ) : (
-                        <p className="text-lg font-black text-white uppercase tracking-tight">{selectedReport.titulo || 'Sem Título'}</p>
-                      )}
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-2">Categoria</label>
-                        <div className="flex items-center gap-2 bg-zinc-900 px-3 py-2 rounded-lg border border-zinc-800">
-                          <div className="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_8px_rgba(249,115,22,0.5)]" />
-                          <span className="text-xs font-bold text-zinc-300 uppercase">{selectedReport.categoria}</span>
-                        </div>
-                      </div>
-                      <div>
-                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-2">Gravidade</label>
-                        <Badge gravidade={selectedReport.gravidade} />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-2">Setor / Local</label>
-                        {isEditingReport ? (
-                          <div className="flex flex-wrap gap-2 mt-2">
-                            {(systemSettings.find((s: any) => s.key === 'form_sectors')?.value || '').split(',').map((s: string) => s.trim()).filter(Boolean).map((sec: string) => {
-                              const selectedSectors = editingReportData.setor ? editingReportData.setor.split(', ') : [];
-                              const isSelected = selectedSectors.includes(sec);
-                              return (
-                                <button
-                                  key={sec}
-                                  type="button"
-                                  onClick={() => {
-                                    let updated;
-                                    if (isSelected) {
-                                      updated = selectedSectors.filter(s => s !== sec);
-                                    } else {
-                                      updated = [...selectedSectors, sec];
-                                    }
-                                    setEditingReportData({...editingReportData, setor: updated.join(', ')});
-                                  }}
-                                  className={cn(
-                                    "px-3 py-1.5 text-[9px] font-bold rounded-md border transition-all uppercase tracking-widest outline-none",
-                                    isSelected 
-                                      ? "bg-primary/20 border-primary/50 text-primary" 
-                                      : "bg-zinc-900/50 border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200"
-                                  )}
-                                >
-                                  {sec}
-                                </button>
-                              );
-                            })}
-                            {!(systemSettings.find((s: any) => s.key === 'form_sectors')?.value || '').trim() && (
-                              <p className="text-[10px] text-zinc-600 italic">Nenhum setor parametrizado.</p>
-                            )}
-                          </div>
-                        ) : (
-                          <p className="text-sm font-bold text-zinc-300 bg-zinc-900/50 p-3 rounded-lg border border-zinc-800/50">{selectedReport.setor || 'N/A'}</p>
-                        )}
-                      </div>
-                      <div>
-                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-2">Equipamento</label>
-                        {isEditingReport ? (
-                          <input 
-                            type="text" 
-                            value={editingReportData.equipamento || ''} 
-                            onChange={e => setEditingReportData({...editingReportData, equipamento: e.target.value})}
-                            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2 px-4 text-sm focus:outline-none focus:border-primary"
-                          />
-                        ) : (
-                          <p className="text-sm font-bold text-zinc-300 bg-zinc-900/50 p-3 rounded-lg border border-zinc-800/50">{selectedReport.equipamento || 'N/A'}</p>
-                        )}
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-2">Ação Imediata Tomada</label>
-                      {isEditingReport ? (
-                        <textarea
-                          value={editingReportData.acao_imediata || ''}
-                          onChange={e => setEditingReportData({...editingReportData, acao_imediata: e.target.value})}
-                          className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-3 text-sm text-zinc-300 focus:outline-none focus:border-primary min-h-[60px]"
-                        />
-                      ) : (
-                        <div className="bg-amber-500/5 border border-amber-500/20 p-4 rounded-xl">
-                           <p className="text-sm text-zinc-300 leading-relaxed italic">"{selectedReport.acao_imediata || 'Nenhuma ação registada'}"</p>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="space-y-4">
-                      <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-1">Informações Adicionais</label>
-                      <div className="grid grid-cols-1 gap-3">
-                         <div className="bg-zinc-900/30 p-3 rounded-lg border border-zinc-900 flex items-center justify-between">
-                            <span className="text-[10px] font-bold text-zinc-500 uppercase">Testemunhas</span>
-                            {isEditingReport ? (
-                              <input 
-                                type="text" 
-                                value={editingReportData.testemunhas || ''} 
-                                onChange={e => setEditingReportData({...editingReportData, testemunhas: e.target.value})}
-                                className="bg-transparent text-right text-xs font-bold text-zinc-200 focus:outline-none"
-                                placeholder="Nomes..."
-                              />
-                            ) : (
-                              <span className="text-[10px] font-black text-zinc-300 uppercase">{selectedReport.testemunhas || 'Nenhuma'}</span>
-                            )}
-                         </div>
-                         <div className="bg-zinc-900/30 p-3 rounded-lg border border-zinc-900 flex items-center justify-between">
-                            <span className="text-[10px] font-bold text-zinc-500 uppercase">Potencial de Risco</span>
-                            {isEditingReport ? (
-                              <select 
-                                value={editingReportData.potencial_risco || ''} 
-                                onChange={e => setEditingReportData({...editingReportData, potencial_risco: e.target.value})}
-                                className="bg-transparent text-right text-xs font-bold text-zinc-200 focus:outline-none"
-                              >
-                                <option value="">Selecione...</option>
-                                <option value="Baixo">Baixo</option>
-                                <option value="Médio">Médio</option>
-                                <option value="Alto">Alto</option>
-                                <option value="Crítico">Crítico</option>
-                              </select>
-                            ) : (
-                              <span className={cn(
-                                "text-[10px] font-black uppercase",
-                                selectedReport.potencial_risco === 'Crítico' ? "text-red-500" : "text-zinc-300"
-                              )}>{selectedReport.potencial_risco || 'Não Avaliado'}</span>
-                            )}
-                         </div>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-2">Agente Responsável</label>
-                      <div className="flex items-center gap-3 bg-zinc-900/50 p-3 rounded-xl border border-zinc-800 shadow-inner">
-                        <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-sm font-black text-black shadow-lg shadow-primary/20">
-                          {selectedReport.agente_nome.charAt(0)}
-                        </div>
-                        <div>
-                          <p className="text-xs font-black text-zinc-200 uppercase tracking-tight">{selectedReport.agente_nome}</p>
-                          <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest leading-none mt-1">{selectedReport.agente_nivel}</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-2">Galeria de Evidências</label>
-                    {isEditingReport && selectedReport.status === 'Aberto' ? (
-                      <div className="space-y-3">
-                        <div 
-                          className="border-2 border-dashed border-zinc-800 hover:border-primary/50 transition-all flex flex-col items-center justify-center text-zinc-600 cursor-pointer bg-zinc-900/20 rounded-xl py-6"
-                          onDragOver={(e) => {
-                            e.preventDefault();
-                            e.currentTarget.classList.add('border-primary/70', 'bg-primary/5');
-                          }}
-                          onDragLeave={(e) => {
-                            e.currentTarget.classList.remove('border-primary/70', 'bg-primary/5');
-                          }}
-                          onDrop={(e) => {
-                            e.preventDefault();
-                            e.currentTarget.classList.remove('border-primary/70', 'bg-primary/5');
-                            const files = e.dataTransfer.files;
-                            Array.from(files).forEach((file: File) => {
-                              if (file.type && file.type.startsWith('image/')) {
-                                addEditingReportPhotos([file]);
-                              }
-                            });
-                          }}
-                        >
-                          <input 
-                            type="file"
-                            accept="image/*"
-                            multiple
-                            className="hidden"
-                            id="edit-report-photos"
-                            onChange={(e) => {
-                              const newFiles = Array.from(e.target.files || []).map(f => ({ file: f as File, caption: '' }));
-                              addEditingReportPhotos(newFiles.map(item => item.file));
-                            }}
-                          />
-                          <label htmlFor="edit-report-photos" className="flex flex-col items-center justify-center w-full cursor-pointer">
-                            <Camera size={32} strokeWidth={1} />
-                            <p className="text-[10px] font-bold mt-2 uppercase tracking-widest">Clique ou arraste múltiplas fotos</p>
-                          </label>
-                        </div>
-                        
-                        {editingReportData.fotos.map((foto, idx) => (
-                          <div key={idx} className="bg-zinc-900/50 border border-zinc-800 rounded-lg p-3 space-y-2">
-                            <div className="flex items-center justify-between">
-                              <span className="text-xs font-bold text-zinc-300">📷 {foto.file.name}</span>
-                              <button 
-                                type="button" 
-                                onClick={() => setEditingReportData({...editingReportData, fotos: editingReportData.fotos.filter((_, i) => i !== idx)})}
-                                className="text-[10px] font-bold text-red-500 hover:text-red-400 transition-colors"
-                              >
-                                OK
-                              </button>
-                            </div>
-                            <input 
-                              type="text"
-                              placeholder="Legenda/descrição..."
-                              value={foto.caption}
-                              onChange={(e) => {
-                                const newFotos = [...editingReportData.fotos];
-                                newFotos[idx].caption = e.target.value;
-                                setEditingReportData({...editingReportData, fotos: newFotos});
-                              }}
-                              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg py-2 px-3 text-xs text-zinc-200 focus:outline-none focus:border-primary"
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    ) : selectedReport.photos && selectedReport.photos.length > 0 ? (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {selectedReport.photos.map((photo) => (
-                          <div key={photo.id} className="space-y-2">
-                            <div className="aspect-square rounded-lg overflow-hidden border border-zinc-800 bg-zinc-900 group relative">
-                              <img 
-                                src={photo.photo_path} 
-                                alt={photo.caption || "Evidência"} 
-                                className="w-full h-full object-cover" 
-                              />
-                              <a 
-                                href={photo.photo_path} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all backdrop-blur-sm"
-                              >
-                                <span className="text-[10px] font-black text-white uppercase tracking-widest">Ver</span>
-                              </a>
-                            </div>
-                            {photo.caption && (
-                              <p className="text-[10px] text-zinc-400 leading-relaxed">{photo.caption}</p>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="aspect-video rounded-xl border-2 border-dashed border-zinc-800 flex flex-col items-center justify-center text-zinc-600">
-                        <Camera size={32} strokeWidth={1} />
-                        <p className="text-[10px] font-bold mt-2 uppercase tracking-widest">Nenhuma foto anexada</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-2">Descrição Detalhada</label>
-                    {isEditingReport && selectedReport.status === 'Aberto' ? (
-                      <textarea
-                        value={editingReportData.descricao}
-                        onChange={(e) => setEditingReportData({...editingReportData, descricao: e.target.value})}
-                        className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-sm text-zinc-300 focus:outline-none focus:border-primary resize-none min-h-[120px]"
-                        placeholder="Edite a descrição da ocorrência..."
-                      />
-                    ) : (
-                      <div className="bg-zinc-900/50 border border-zinc-800 p-4 rounded-xl text-sm text-zinc-300 leading-relaxed">
-                        {selectedReport.descricao}
-                      </div>
-                    )}
-                  </div>
-
-
-                  <div className="pt-4 flex items-center gap-6 border-t border-zinc-800/50">
-                    <div className="flex items-center gap-2">
-                      <MapPin size={14} className="text-zinc-500" />
-                      <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest">
-                        LAT: {selectedReport.coords_lat ? Number(selectedReport.coords_lat).toFixed(4) : 'N/A'}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <MapPin size={14} className="text-zinc-500" />
-                      <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest">
-                        LNG: {selectedReport.coords_lng ? Number(selectedReport.coords_lng).toFixed(4) : 'N/A'}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="p-4 md:p-6 bg-zinc-900/40 border-t border-zinc-800 no-print">
-                <div className="flex flex-col gap-4">
-                  <div className="flex flex-col sm:flex-row justify-between items-center bg-zinc-900/50 p-3 rounded-xl border border-zinc-800/50 gap-4 sm:gap-2">
-                    <p className="text-[9px] md:text-[10px] text-zinc-600 font-bold uppercase tracking-widest text-center sm:text-left">Sistema de Segurança MineGuard • Auditoria Ativa</p>
-                    <div className="flex items-center gap-2">
-                       <button 
-                        onClick={() => window.print()}
-                        className="p-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg transition-all border border-zinc-700"
-                        title="Exportar PDF"
-                      >
-                        <Printer size={16} />
-                      </button>
-                      <button 
-                        onClick={closeReportDetails}
-                        className="bg-zinc-100 hover:bg-white text-black font-black text-[10px] px-6 py-2.5 rounded-lg transition-all uppercase tracking-widest"
-                      >
-                        Fechar
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2 justify-center sm:justify-end">
-                    {isEditingReport && selectedReport.status === 'Aberto' ? (
-                      <>
-                        <button 
-                          type="button"
-                          onClick={cancelEditingSelectedReport}
-                          className="flex-1 sm:flex-none font-black text-[10px] px-8 py-2.5 rounded-lg transition-all uppercase tracking-widest bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700"
-                        >
-                          Cancelar
-                        </button>
-                        <button 
-                          type="button"
-                          onClick={handleSaveReportEdits}
-                          className="flex-1 sm:flex-none bg-blue-600 hover:bg-blue-500 text-white font-black text-[10px] px-8 py-2.5 rounded-lg transition-all uppercase tracking-widest shadow-lg shadow-blue-900/20"
-                        >
-                          Guardar Alterações
-                        </button>
-                      </>
-                    ) : (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-wrap gap-2 w-full sm:w-auto">
-                        {selectedReport.status === 'Aberto' && (
-                          <button 
-                            type="button"
-                            onClick={startEditingSelectedReport}
-                            className="bg-primary hover:bg-primary/90 text-black font-black text-[10px] px-6 py-2.5 rounded-lg transition-all uppercase tracking-widest shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
-                          >
-                            Editar
-                          </button>
-                        )}
-                        {selectedReport.status !== 'Aprovado' && (selectedReport.status !== 'Concluído' || currentUser?.permissions?.conclude_reports) && (
-                          <button 
-                            onClick={() => handleConcludeReport(selectedReport.id, selectedReport.status || 'Aberto')}
-                            className={cn(
-                              "font-black text-[10px] px-6 py-2.5 rounded-lg transition-all uppercase tracking-widest flex items-center justify-center gap-2 min-w-[120px]",
-                              selectedReport.status === 'Concluído'
-                                ? "bg-zinc-800 text-zinc-400 hover:bg-zinc-700 border border-zinc-700"
-                                : "bg-green-600 hover:bg-green-500 text-white shadow-lg shadow-green-900/20"
-                            )}
-                          >
-                            {selectedReport.status === 'Concluído' ? (
-                              <>
-                                <Clock size={14} />
-                                Reabrir
-                              </>
-                            ) : (
-                              <>
-                                <CheckCircle2 size={14} />
-                                Concluir
-                              </>
-                            )}
-                          </button>
-                        )}
-
-                        {selectedReport.status !== 'Aprovado' && selectedReport.status === 'Concluído' && currentUser?.permissions?.approve_reports && (
-                          <button 
-                            onClick={async () => {
-                              try {
-                                const res = await fetch(`/api/reports/${selectedReport.id}/status`, {
-                                  method: 'PATCH',
-                                  headers: { 'Content-Type': 'application/json' },
-                                  body: JSON.stringify({ status: 'Aprovado' }),
-                                  credentials: 'include'
-                                });
-                                const data = await res.json();
-                                if (data.status === 'success') {
-                                  toast.success("Relatório aprovado e selado com sucesso!");
-                                  setReports(reports.map(r => r.id === selectedReport.id ? { ...r, status: 'Aprovado' as any } : r));
-                                  setSelectedReport({ ...selectedReport, status: 'Aprovado' as any });
-                                } else {
-                                  toast.error(data.message);
-                                }
-                              } catch (err) {
-                                toast.error("Erro ao aprovar relatório");
-                              }
-                            }}
-                            className="bg-indigo-600 hover:bg-indigo-500 text-white font-black text-[10px] px-6 py-2.5 rounded-lg transition-all uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg shadow-indigo-900/20 col-span-2 xs:col-auto"
-                          >
-                            <Shield size={14} />
-                            Aprovar
-                          </button>
-                        )}
-                        {(String(currentUser?.nivel_hierarquico).toLowerCase() === 'superadmin' || 
-                          String(currentUser?.nivel_hierarquico).toLowerCase() === 'admin' || 
-                          currentUser?.permissions?.delete_reports ||
-                          currentUser?.id === 1) && (
-                          <button 
-                            onClick={() => handleDeleteReport(selectedReport.id)}
-                            className="bg-red-600/10 hover:bg-red-600 text-red-500 hover:text-white border border-red-500/20 font-black text-[10px] px-6 py-2.5 rounded-lg transition-all uppercase tracking-widest flex items-center justify-center gap-2"
-                          >
-                            <Trash2 size={14} />
-                            Eliminar
-                          </button>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-
-        {isNewUserModalOpen && (
-          <div key="new-user-modal" className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-[#0a0a0a] border border-zinc-800 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl"
-            >
-              <form onSubmit={handleCreateUser}>
-                <div className="p-6 border-b border-zinc-800 flex items-center justify-between bg-zinc-900/20">
-                  <h3 className="text-xl font-black tracking-tighter uppercase">{editingUser ? 'Editar Agente' : 'Novo Agente'}</h3>
-                  <button type="button" onClick={() => setIsNewUserModalOpen(false)} className="text-zinc-500 hover:text-white transition-colors">
-                    <XCircle size={24} />
-                  </button>
-                </div>
-                <div className="p-6 space-y-5">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Nome Completo</label>
-                    <input 
-                      required
-                      type="text" 
-                      className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
-                      placeholder="Ex: Carlos Oliveira"
-                      value={newUser.nome}
-                      onChange={(e) => setNewUser({...newUser, nome: e.target.value})}
-                    />
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Função Operacional</label>
-                      <input 
-                        required
-                        type="text" 
-                        className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
-                        placeholder="Ex: Monitor de Perímetro"
-                        value={newUser.funcao}
-                        onChange={(e) => setNewUser({...newUser, funcao: e.target.value})}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Nº Mecanográfico</label>
-                      <input 
-                        required
-                        type="text" 
-                        className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
-                        value={newUser.numero_mecanografico}
-                        onChange={(e) => setNewUser({...newUser, numero_mecanografico: e.target.value})}
-                      />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Nível Hierárquico</label>
-                      <select 
-                        className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
-                        value={newUser.nivel_hierarquico}
-                        onChange={(e) => setNewUser({...newUser, nivel_hierarquico: e.target.value as NivelHierarquico})}
-                      >
-                        {roles.map(r => (
-                          <option key={r.nivel_hierarquico} value={r.nivel_hierarquico}>{r.nivel_hierarquico}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Idioma Preferido</label>
-                      <select 
-                        className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
-                        value={normalizeLanguage((newUser as any).preferred_language || 'pt')}
-                        onChange={(e) => setNewUser({...newUser, preferred_language: e.target.value} as any)}
-                      >
-                        <option value="pt">Portugues</option>
-                        <option value="en">English</option>
-                      </select>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Senha de Acesso</label>
-                      <input 
-                        type="password" 
-                        required={!editingUser}
-                        className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
-                        value={newUser.password}
-                        onChange={(e) => setNewUser({...newUser, password: e.target.value})}
-                      />
-                    </div>
-                  </div>
-                </div>
-                <div className="p-6 bg-zinc-900/20 border-t border-zinc-800 flex justify-end gap-3">
-                  <button type="button" onClick={() => setIsNewUserModalOpen(false)} className="px-6 py-2.5 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white transition-colors">Cancelar</button>
-                  <button type="submit" className="bg-zinc-100 hover:bg-white text-black font-black text-[10px] px-8 py-2.5 rounded-lg transition-all uppercase tracking-widest shadow-lg shadow-white/10">Guardar Agente</button>
-                </div>
-              </form>
-            </motion.div>
-          </div>
-        )}
+        <UserModal
+          isOpen={isNewUserModalOpen}
+          editingUser={editingUser}
+          newUser={newUser}
+          setNewUser={setNewUser}
+          roles={roles as any}
+          onClose={() => setIsNewUserModalOpen(false)}
+          onSubmit={handleCreateUser}
+        />
       </AnimatePresence>
 
       {/* Bottom Navigation (Mobile) */}
