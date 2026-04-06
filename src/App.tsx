@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import i18n from './i18n';
 import imageCompression from 'browser-image-compression';
@@ -47,6 +47,7 @@ import {
 } from 'recharts';
 import { Toaster, toast } from 'sonner';
 import { cn } from './lib/utils';
+import { OperationsMapPanel } from './components/ui/OperationsMapPanel';
 import { DailyReportsWorkspaceTab } from './components/tabs/DailyReportsWorkspaceTab';
 import { ReportsTab } from './components/tabs/ReportsTab';
 import { DailyReportPersonalTab } from './components/tabs/DailyReportPersonalTab';
@@ -1935,108 +1936,13 @@ export default function App() {
 
                 {/* Interactive Map */}
                 <Card title={t('app.dashboard.operationsMap')} subtitle={t('app.dashboard.operationsMapSubtitle')}>
-                  <div className="h-[400px] bg-zinc-950 rounded-xl relative overflow-hidden border border-zinc-800/50 z-0">
-                    <MapContainer 
-                      center={mapCenter} 
-                      zoom={13} 
-                      scrollWheelZoom={false} 
-                      style={{ height: '100%', width: '100%', background: '#0a0a0a' }}
-                    >
-                      <TileLayer
-                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                        url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-                      />
-                      
-                      {/* Heatmap Layer - Dynamic color based on gravity severity */}
-                      {showHeatmap && reports.map(r => {
-                        const gravityColors: Record<string, string> = {
-                          'G4': '#ef4444', 
-                          'G3': '#f97316', 
-                          'G2': '#eab308', 
-                          'G1': '#3b82f6'  
-                        };
-                        const sizes: Record<string, number> = {
-                          'G4': 80,
-                          'G3': 60,
-                          'G2': 40,
-                          'G1': 30
-                        };
-                        const opacities: Record<string, number> = {
-                          'G4': 0.3,
-                          'G3': 0.2,
-                          'G2': 0.15,
-                          'G1': 0.1
-                        };
-                        const color = gravityColors[r.gravidade as string] || '#71717a';
-                        const size = sizes[r.gravidade as string] || 40;
-                        const opacity = opacities[r.gravidade as string] || 0.15;
-                        
-                        return (
-                          <Marker 
-                            key={`heat-${r.id}`} 
-                            position={[r.coords_lat, r.coords_lng]}
-                            icon={L.divIcon({
-                              className: 'custom-heat-pin',
-                              html: `<div style="
-                                background: ${color}; 
-                                width: ${size}px; 
-                                height: ${size}px; 
-                                margin-left: -${size/2}px;
-                                margin-top: -${size/2}px;
-                                border-radius: 50%; 
-                                opacity: ${opacity}; 
-                                filter: blur(${size/4}px); 
-                                box-shadow: 0 0 ${size/2}px ${color};
-                                animation: pulse-heat 3s infinite ease-in-out;
-                              "></div>`
-                            })}
-                          />
-                        );
-                      })}
-
-                      {reports.filter(r => r.coords_lat && r.coords_lng).map((r) => (
-                        <Marker key={r.id} position={[r.coords_lat, r.coords_lng]}>
-                          <Popup className="custom-popup">
-                            <div className="p-2 min-w-[180px] bg-zinc-950 text-zinc-100">
-                              <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-1">{r.categoria}</p>
-                              <p className="text-sm font-bold text-white mb-2">{r.agente_nome}</p>
-                              <p className="text-[10px] text-zinc-400 line-clamp-3 leading-relaxed mb-3 italic">"{r.descricao}"</p>
-                              <div className="pt-2 border-t border-zinc-800 flex items-center justify-between">
-                                <span className="text-[9px] font-bold text-zinc-500">{new Date(r.timestamp).toLocaleDateString()}</span>
-                                <button 
-                                  onClick={() => openReportDetails(r)}
-                                  className="text-[10px] font-black text-primary hover:text-white transition-colors uppercase tracking-widest"
-                                >
-                                  Ver Ficha
-                                </button>
-                              </div>
-                            </div>
-                          </Popup>
-                        </Marker>
-                      ))}
-                    </MapContainer>
-
-                    <button 
-                      onClick={() => setShowHeatmap(!showHeatmap)}
-                      className={cn(
-                        "absolute top-4 right-4 z-[1000] px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 border shadow-2xl",
-                        showHeatmap 
-                          ? "bg-primary text-black border-primary shadow-primary/20" 
-                          : "bg-zinc-900 text-zinc-400 border-zinc-800 hover:bg-zinc-800"
-                      )}
-                    >
-                      <Activity size={14} className={showHeatmap ? "animate-pulse" : ""} />
-                      {showHeatmap ? 'Heatmap On' : 'Heatmap Off'}
-                    </button>
-                    
-                    <div className="absolute bottom-4 right-4 bg-zinc-900/80 backdrop-blur-md border border-zinc-800 p-3 rounded-lg text-[10px] font-bold text-zinc-400 z-[1000] pointer-events-none">
-                      <div className="flex items-center gap-2 mb-1">
-                        <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                        <span>SISTEMA ATIVO</span>
-                      </div>
-                      <p>COORDENADAS: {Math.abs(mapCenter[0]).toFixed(4)}° {mapCenter[0] < 0 ? 'S' : 'N'}, {Math.abs(mapCenter[1]).toFixed(4)}° {mapCenter[1] > 0 ? 'E' : 'W'}</p>
-                    </div>
-                  </div>
+                  <OperationsMapPanel
+                    reports={reports}
+                    initialCenter={mapCenter}
+                    showHeatmap={showHeatmap}
+                    onToggleHeatmap={() => setShowHeatmap(!showHeatmap)}
+                    onOpenReportDetails={openReportDetails}
+                  />
                 </Card>
 
                 {/* Recent Reports List */}
@@ -3442,6 +3348,7 @@ export default function App() {
     </div>
   );
 }
+
 
 
 
