@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+﻿import React, { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import i18n from './i18n';
 import imageCompression from 'browser-image-compression';
@@ -49,6 +49,7 @@ import { Toaster, toast } from 'sonner';
 import { cn } from './lib/utils';
 import { DailyReportsWorkspaceTab } from './components/tabs/DailyReportsWorkspaceTab';
 import { io } from 'socket.io-client';
+import { normalizeLanguage } from './i18n';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 
@@ -210,7 +211,7 @@ const PdfConfigPanel = () => {
 
   const handleSave = () => {
     localStorage.setItem('mineguard_pdf_config', JSON.stringify(pdfConfig));
-    toast.success("Configurações de PDF salvas com sucesso!");
+    toast.success("Definições de PDF guardadas com sucesso!");
     window.dispatchEvent(new Event('storage'));
   };
 
@@ -241,7 +242,7 @@ const PdfConfigPanel = () => {
         </div>
       </div>
       <button onClick={handleSave} className="w-full py-3 bg-primary text-black rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-primary/90 transition-all flex items-center justify-center gap-2">
-        <Printer size={16} /> Salvar Configuração do Relatório
+        <Printer size={16} /> Guardar Configuração do Relatório
       </button>
     </div>
   );
@@ -268,47 +269,6 @@ const Card = ({ children, className, title, subtitle, action, onClick }: { child
     <div className="p-4 md:p-6">{children}</div>
   </div>
 );
-
-const LanguageSwitcher = () => {
-  const { i18n } = useTranslation();
-
-  const handleLanguageChange = (lang: string) => {
-    i18n.changeLanguage(lang);
-    localStorage.setItem('language', lang);
-    toast.success(`Idioma alterado para ${lang === 'pt-BR' ? 'Português' : 'English'}`);
-  };
-
-  return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <button 
-          onClick={() => handleLanguageChange('pt-BR')}
-          className={cn(
-            "py-3 px-4 rounded-lg font-bold uppercase text-[10px] tracking-widest transition-all",
-            i18n.language === 'pt-BR' 
-              ? "bg-primary text-black shadow-lg shadow-primary/20" 
-              : "bg-zinc-800 text-zinc-300 hover:bg-zinc-700"
-          )}
-        >
-          Português (BR)
-        </button>
-        <button 
-          onClick={() => handleLanguageChange('en-US')}
-          className={cn(
-            "py-3 px-4 rounded-lg font-bold uppercase text-[10px] tracking-widest transition-all",
-            i18n.language === 'en-US' 
-              ? "bg-primary text-black shadow-lg shadow-primary/20" 
-              : "bg-zinc-800 text-zinc-300 hover:bg-zinc-700"
-          )}
-        >
-          English (US)
-        </button>
-      </div>
-      <p className="text-[10px] text-zinc-500">Idioma atual: {i18n.language === 'pt-BR' ? 'Português Brasileiro' : 'English'}</p>
-    </div>
-  );
-};
-
 const PaginationControls = ({ currentPage, totalPages, onPageChange }: { currentPage: number, totalPages: number, onPageChange: (page: number) => void }) => {
   return (
     <div className="flex items-center justify-between py-4 px-6 bg-zinc-900/30 border-t border-zinc-800/50">
@@ -435,6 +395,7 @@ const Login = ({ onLogin, publicSettings }: { onLogin: (user: any) => void, publ
 };
 
 export default function App() {
+  const { t } = useTranslation();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const activeTabStorageKey = 'mineguard_active_tab';
   const [activeTab, setActiveTab] = useState<'dashboard' | 'reports' | 'users' | 'permissions' | 'daily_reports' | 'personal_reports' | 'daily_report_personal' | 'daily_report_team' | 'alerts' | 'settings' | 'parametrization'>(() => (localStorage.getItem(activeTabStorageKey) as 'dashboard' | 'reports' | 'users' | 'permissions' | 'daily_reports' | 'personal_reports' | 'daily_report_personal' | 'daily_report_team' | 'alerts' | 'settings' | 'parametrization') || 'dashboard');
@@ -624,7 +585,7 @@ export default function App() {
         
         addNotification(
           `Nova Ocorrência: ${report.categoria}`,
-          `Registrada por ${report.agente_nome} (${report.gravidade})`,
+          `Registada por ${report.agente_nome} (${report.gravidade})`,
           'report',
           report.id
         );
@@ -696,9 +657,9 @@ export default function App() {
       .then(user => {
         if (user) {
           setCurrentUser(user);
-          // Use user's preferred language
-          const preferredLang = (user as any).preferred_language || 'pt-BR';
+          const preferredLang = normalizeLanguage((user as any).preferred_language || 'pt');
           i18n.changeLanguage(preferredLang);
+          localStorage.setItem('language', preferredLang);
           // Initial notifications
           setNotifications([
             {
@@ -712,7 +673,7 @@ export default function App() {
             {
               id: '2',
               title: 'Dica de Segurança',
-              message: 'Lembre-se de registrar todas as alterações de turno.',
+              message: 'Lembre-se de registar todas as alterações de turno.',
               timestamp: new Date(Date.now() - 3600000).toISOString(),
               read: false,
               type: 'alert'
@@ -726,10 +687,11 @@ export default function App() {
   // Change language based on user's preferred language
   useEffect(() => {
     if (currentUser && (currentUser as any).preferred_language) {
-      i18n.changeLanguage((currentUser as any).preferred_language);
+      const preferredLang = normalizeLanguage((currentUser as any).preferred_language);
+      i18n.changeLanguage(preferredLang);
+      localStorage.setItem('language', preferredLang);
     }
   }, [(currentUser as any)?.preferred_language]);
-
   useEffect(() => {
     if (currentUser && activeTab === 'dashboard' && currentUser.permissions?.view_dashboard !== true) {
       setActiveTab('reports');
@@ -846,12 +808,12 @@ export default function App() {
 
   const applyDashboardCustomRange = () => {
     if (!dashboardCustomRange.from || !dashboardCustomRange.to) {
-      toast.error("Selecione as duas datas do intervalo");
+      toast.error(t('app.dashboard.selectRangeDates'));
       return;
     }
 
     if (dashboardCustomRange.from > dashboardCustomRange.to) {
-      toast.error("A data inicial não pode ser maior que a data final");
+      toast.error(t('app.dashboard.invalidRange'));
       return;
     }
 
@@ -861,8 +823,37 @@ export default function App() {
 
   const dashboardCustomRangeLabel =
     dashboardCustomRange.from && dashboardCustomRange.to
-      ? `${new Date(`${dashboardCustomRange.from}T00:00:00`).toLocaleDateString('pt-BR')} -> ${new Date(`${dashboardCustomRange.to}T00:00:00`).toLocaleDateString('pt-BR')}`
-      : 'INTERVALO';
+      ? `${new Date(`${dashboardCustomRange.from}T00:00:00`).toLocaleDateString(normalizeLanguage(i18n.language) === 'en' ? 'en-US' : 'pt-PT')} -> ${new Date(`${dashboardCustomRange.to}T00:00:00`).toLocaleDateString(normalizeLanguage(i18n.language) === 'en' ? 'en-US' : 'pt-PT')}`
+      : t('app.dashboard.customRange');
+
+  const normalizeReportsList = (payload: any): Report[] => {
+    if (Array.isArray(payload)) return payload as Report[];
+    if (Array.isArray(payload?.reports)) return payload.reports as Report[];
+    return [];
+  };
+
+  const normalizeDailyReport = (payload: any, includeAgent = false) => {
+    const base = {
+      totalReports: 0,
+      byGravity: { G1: 0, G2: 0, G3: 0, G4: 0 },
+      byCategory: {},
+      reports: [] as Report[],
+    };
+
+    const normalized = {
+      ...base,
+      ...(payload || {}),
+      byGravity: { ...base.byGravity, ...(payload?.byGravity || {}) },
+      byCategory: payload?.byCategory && typeof payload.byCategory === 'object' ? payload.byCategory : {},
+      reports: normalizeReportsList(payload?.reports ?? payload),
+    } as any;
+
+    if (includeAgent) {
+      normalized.byAgent = payload?.byAgent && typeof payload.byAgent === 'object' ? payload.byAgent : {};
+    }
+
+    return normalized;
+  };
 
   // Fetch Personal Reports
   const fetchPersonalReports = async () => {
@@ -875,7 +866,7 @@ export default function App() {
       const res = await fetch(`/api/reports/personal?${params.toString()}`, { credentials: 'include' });
       if (res.ok) {
         const data = await res.json();
-        setPersonalReports(data);
+        setPersonalReports(normalizeReportsList(data));
       }
     } catch (err) {
       console.error("Erro ao buscar relatórios pessoais:", err);
@@ -895,10 +886,13 @@ export default function App() {
       const res = await fetch('/api/reports/daily-personal', { credentials: 'include' });
       if (res.ok) {
         const data = await res.json();
-        setDailyReportPersonal(data);
+        setDailyReportPersonal(normalizeDailyReport(data));
+      } else {
+        setDailyReportPersonal(normalizeDailyReport(null));
       }
     } catch (err) {
       console.error("Erro ao buscar relatório diário pessoal:", err);
+      setDailyReportPersonal(normalizeDailyReport(null));
     }
   };
 
@@ -909,15 +903,18 @@ export default function App() {
   }, [activeTab, currentUser]);
 
   const fetchDailyReportTeam = async () => {
-    if (!currentUser || (currentUser.peso || 0) < 50) return;
+    if (!currentUser) return;
     try {
       const res = await fetch('/api/reports/daily-team', { credentials: 'include' });
       if (res.ok) {
         const data = await res.json();
-        setDailyReportTeam(data);
+        setDailyReportTeam(normalizeDailyReport(data, true));
+      } else {
+        setDailyReportTeam(normalizeDailyReport(null, true));
       }
     } catch (err) {
-      console.error("Erro ao buscar relatório da equipe:", err);
+      console.error("Erro ao buscar relatório da equipa:", err);
+      setDailyReportTeam(normalizeDailyReport(null, true));
     }
   };
 
@@ -976,18 +973,18 @@ export default function App() {
   const validateNewReportStep = (step: number) => {
     if (step === 1) {
       if (!newReport.titulo.trim()) {
-        toast.error("Informe o t�tulo da ocorr�ncia.");
+        toast.error(t('app.reports.validation.titleRequired'));
         return false;
       }
       if (!newReport.descricao.trim()) {
-        toast.error("Descreva a ocorr�ncia para continuar.");
+        toast.error(t('app.reports.validation.descriptionRequired'));
         return false;
       }
     }
 
     if (step === 2 && newReport.categoria === 'Safety') {
       if (!newReport.metadata?.incidentType || !newReport.metadata?.ppeUsage) {
-        toast.error("Nos relat�rios Safety, preencha o tipo de incidente e o uso de EPI.");
+        toast.error(t('app.reports.validation.safetyRequired'));
         return false;
       }
     }
@@ -1038,7 +1035,7 @@ export default function App() {
         setSelectedReport(data.report);
       }
     } catch (err) {
-      console.error('Erro ao carregar detalhes da ocorr�ncia', err);
+      console.error(t('app.reports.errors.loadDetails'), err);
     }
   };
 
@@ -1081,7 +1078,7 @@ export default function App() {
       return false;
     }
 
-    const toastId = toast.loading("Capturando localiza��o e preparando transmiss�o...");
+    const toastId = toast.loading(t('app.reports.sending.capturingLocation'));
     
     try {
       let lat = newReport.coords_lat;
@@ -1094,13 +1091,13 @@ export default function App() {
           });
           lat = position.coords.latitude.toString();
           lng = position.coords.longitude.toString();
-          toast.loading("Localiza��o capturada. Enviando relat�rio...", { id: toastId });
+          toast.loading(t('app.reports.sending.locationCaptured'), { id: toastId });
           console.log("Geolocation captured:", lat, lng);
         } catch (geoErr: any) {
           console.warn("Geolocation failed, using map center as fallback", geoErr);
           lat = mapCenter[0].toString();
           lng = mapCenter[1].toString();
-          toast.loading("Usando localiza��o do mapa como refer�ncia...", { id: toastId });
+          toast.loading(t('app.reports.sending.usingMapLocation'), { id: toastId });
         }
       }
 
@@ -1140,7 +1137,7 @@ export default function App() {
       const data = await res.json();
       
       if (res.ok) {
-        toast.success("Relat�rio enviado com sucesso", { id: toastId });
+        toast.success(t('app.reports.sending.success'), { id: toastId });
         if (data?.report) {
           setReports(prev => [data.report, ...prev.filter(r => r.id !== data.report.id)]);
         }
@@ -1149,10 +1146,10 @@ export default function App() {
         return true;
       }
 
-      toast.error(data.message || "Erro ao enviar relat�rio", { id: toastId });
+      toast.error(data.message || t('app.reports.sending.error'), { id: toastId });
       return false;
     } catch (err) {
-      toast.error("Erro de conex�o com o servidor", { id: toastId });
+      toast.error(t('app.reports.sending.connectionError'), { id: toastId });
       return false;
     }
   };
@@ -1217,7 +1214,7 @@ export default function App() {
   };
 
   const handleDeleteAlert = async (alertId: number) => {
-    if (!confirm("Tem certeza que deseja deletar este alerta?")) return;
+    if (!confirm("Tem a certeza de que deseja eliminar este alerta?")) return;
 
     try {
       const res = await fetch(`/api/alerts/${alertId}`, {
@@ -1230,10 +1227,10 @@ export default function App() {
         toast.success("Alerta deletado!");
         // Removed via Socket.io listener
       } else {
-        toast.error(data.message || "Erro ao deletar alerta");
+        toast.error(data.message || "Erro ao eliminar alerta");
       }
     } catch (err) {
-      toast.error("Erro ao deletar alerta");
+      toast.error("Erro ao eliminar alerta");
     }
   };
 
@@ -1271,32 +1268,32 @@ export default function App() {
       });
       
       if (res.ok) {
-        toast.success(editingUser ? "Usuário atualizado!" : "Usuário criado!");
+        toast.success(editingUser ? "Utilizador atualizado!" : "Utilizador criado!");
         setIsNewUserModalOpen(false);
         setEditingUser(null);
         setNewUser({ nome: '', funcao: '', numero_mecanografico: '', nivel_hierarquico: 'Agente', password: '' });
         fetchData();
       }
     } catch (err) {
-      toast.error("Erro ao salvar usuário");
+      toast.error("Erro ao guardar utilizador");
     }
   };
 
   const handleDeleteUser = async (id: number) => {
-    if (!confirm("Deseja realmente excluir este usuário?")) return;
+    if (!confirm("Deseja realmente excluir este utilizador?")) return;
     try {
       const res = await fetch(`/api/users/${id}`, { method: 'DELETE', credentials: 'include' });
       if (res.ok) {
-        toast.success("Usuário removido!");
+        toast.success("Utilizador removido!");
         fetchData();
       }
     } catch (err) {
-      toast.error("Erro ao remover usuário");
+      toast.error("Erro ao remover utilizador");
     }
   };
 
   const handleDeleteReport = async (id: number) => {
-    if (!confirm("Tem certeza que deseja DELETAR esta ocorrência? Esta ação é irreversível.")) return;
+    if (!confirm("Tem a certeza de que deseja ELIMINAR esta ocorrência? Esta ação é irreversível.")) return;
     try {
       const res = await fetch(`/api/reports/${id}`, { method: 'DELETE', credentials: 'include' });
       const data = await res.json();
@@ -1334,7 +1331,7 @@ export default function App() {
   const handleSaveReportEdits = async () => {
     if (!selectedReport) return;
     if (!editingReportData.descricao.trim()) {
-      toast.error("A descri��o da ocorr�ncia n�o pode ficar vazia.");
+      toast.error(t('app.reports.validation.descriptionEmpty'));
       return;
     }
 
@@ -1370,7 +1367,7 @@ export default function App() {
 
       const data = await res.json();
       if (data.status === 'success') {
-        toast.success("Ocorr�ncia atualizada com sucesso!");
+        toast.success(t('app.reports.edit.success'));
         setIsEditingReport(false);
         if (data.report) {
           setReports(prev => prev.map(report => report.id === data.report.id ? data.report : report));
@@ -1378,10 +1375,10 @@ export default function App() {
         }
         fetchData();
       } else {
-        toast.error(data.message || "Erro ao salvar altera��es");
+        toast.error(data.message || t('app.reports.edit.saveError'));
       }
     } catch (err) {
-      toast.error("Erro ao salvar altera��es");
+      toast.error(t('app.reports.edit.saveError'));
       console.error(err);
     }
   };
@@ -1475,17 +1472,17 @@ export default function App() {
         </div>
         
         <nav className="flex-1 mt-6 px-2 space-y-1">
-          {currentUser.permissions?.view_dashboard === true && <SidebarItem icon={Activity} label={publicSettings.app_layout === 'compact' ? "" : "Dashboard"} active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} />}
-          {currentUser.permissions?.view_reports === true && <SidebarItem icon={FileText} label={publicSettings.app_layout === 'compact' ? "" : "Ocorrências"} active={activeTab === 'reports'} onClick={() => setActiveTab('reports')} />}
-          {currentUser.permissions?.view_daily_reports === true && <SidebarItem icon={Calendar} label={publicSettings.app_layout === 'compact' ? "" : "Relatórios Diários"} active={activeTab === 'daily_reports'} onClick={() => setActiveTab('daily_reports')} />}
-          <SidebarItem icon={FileText} label={publicSettings.app_layout === 'compact' ? "" : "Meus Relatórios"} active={activeTab === 'personal_reports'} onClick={() => setActiveTab('personal_reports')} />
-          <SidebarItem icon={Calendar} label={publicSettings.app_layout === 'compact' ? "" : "Meu Dia"} active={activeTab === 'daily_report_personal'} onClick={() => setActiveTab('daily_report_personal')} />
-          {currentUser.permissions?.view_team_daily && <SidebarItem icon={Users} label={publicSettings.app_layout === 'compact' ? "" : "Dia da Equipe"} active={activeTab === 'daily_report_team'} onClick={() => setActiveTab('daily_report_team')} />}
-          <SidebarItem icon={AlertTriangle} label={publicSettings.app_layout === 'compact' ? "" : "Alertas"} active={activeTab === 'alerts'} onClick={() => setActiveTab('alerts')} />
-          {currentUser.permissions?.manage_users === true && <SidebarItem icon={Users} label={publicSettings.app_layout === 'compact' ? "" : "Gestão de Pessoal"} active={activeTab === 'users'} onClick={() => setActiveTab('users')} />}
-          {currentUser.permissions?.manage_permissions === true && <SidebarItem icon={Lock} label={publicSettings.app_layout === 'compact' ? "" : "Permissões & Roles"} active={activeTab === 'permissions'} onClick={() => setActiveTab('permissions')} />}
-          {currentUser.permissions?.manage_settings === true && <SidebarItem icon={SettingsIcon} label={publicSettings.app_layout === 'compact' ? '' : 'Defini\u00e7\u00f5es'} active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} />}
-          {currentUser.permissions?.manage_settings === true && <SidebarItem icon={SettingsIcon} label={publicSettings.app_layout === 'compact' ? '' : 'Parametriza\u00e7\u00e3o'} active={activeTab === 'parametrization'} onClick={() => setActiveTab('parametrization')} />}
+          {currentUser.permissions?.view_dashboard === true && <SidebarItem icon={Activity} label={publicSettings.app_layout === 'compact' ? "" : t('app.sidebar.dashboard')} active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} />}
+          {currentUser.permissions?.view_reports === true && <SidebarItem icon={FileText} label={publicSettings.app_layout === 'compact' ? "" : t('app.sidebar.occurrences')} active={activeTab === 'reports'} onClick={() => setActiveTab('reports')} />}
+          {currentUser.permissions?.view_daily_reports === true && <SidebarItem icon={Calendar} label={publicSettings.app_layout === 'compact' ? "" : t('app.sidebar.dailyReports')} active={activeTab === 'daily_reports'} onClick={() => setActiveTab('daily_reports')} />}
+          <SidebarItem icon={FileText} label={publicSettings.app_layout === 'compact' ? "" : t('app.sidebar.myReports')} active={activeTab === 'personal_reports'} onClick={() => setActiveTab('personal_reports')} />
+          <SidebarItem icon={Calendar} label={publicSettings.app_layout === 'compact' ? "" : t('app.sidebar.myDay')} active={activeTab === 'daily_report_personal'} onClick={() => setActiveTab('daily_report_personal')} />
+          {currentUser.permissions?.view_team_daily && <SidebarItem icon={Users} label={publicSettings.app_layout === 'compact' ? "" : t('app.sidebar.teamDay')} active={activeTab === 'daily_report_team'} onClick={() => setActiveTab('daily_report_team')} />}
+          <SidebarItem icon={AlertTriangle} label={publicSettings.app_layout === 'compact' ? "" : t('app.sidebar.alerts')} active={activeTab === 'alerts'} onClick={() => setActiveTab('alerts')} />
+          {currentUser.permissions?.manage_users === true && <SidebarItem icon={Users} label={publicSettings.app_layout === 'compact' ? "" : t('app.sidebar.staffManagement')} active={activeTab === 'users'} onClick={() => setActiveTab('users')} />}
+          {currentUser.permissions?.manage_permissions === true && <SidebarItem icon={Lock} label={publicSettings.app_layout === 'compact' ? "" : t('app.sidebar.permissionsRoles')} active={activeTab === 'permissions'} onClick={() => setActiveTab('permissions')} />}
+          {currentUser.permissions?.manage_settings === true && <SidebarItem icon={SettingsIcon} label={publicSettings.app_layout === 'compact' ? '' : t('app.sidebar.settings')} active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} />}
+          {currentUser.permissions?.manage_settings === true && <SidebarItem icon={SettingsIcon} label={publicSettings.app_layout === 'compact' ? '' : t('app.sidebar.parametrization')} active={activeTab === 'parametrization'} onClick={() => setActiveTab('parametrization')} />}
         </nav>
 
         <div className="p-4 mt-auto border-t border-[var(--border)]">
@@ -1524,7 +1521,7 @@ export default function App() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] group-focus-within:text-primary transition-colors" size={16} />
                 <input 
                   type="text" 
-                  placeholder="Pesquisar registros..." 
+                  placeholder="Pesquisar registos..." 
                   className="w-full bg-[var(--bg-main)]/50 border border-[var(--border)] rounded-lg py-2 pl-10 pr-4 text-sm focus:outline-none focus:border-primary/50 focus:bg-[var(--bg-main)] transition-all"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -1692,7 +1689,7 @@ export default function App() {
               >
                 <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
                 <Plus size={16} strokeWidth={4} className="relative z-10 group-hover:rotate-90 transition-transform" />
-                <span className="relative z-10">Nova Ocorrência</span>
+                <span className="relative z-10">{t('app.actions.newOccurrence')}</span>
               </motion.button>
             )}
           </div>
@@ -1711,23 +1708,23 @@ export default function App() {
               >
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div>
-                    <h2 className="text-2xl md:text-3xl font-black tracking-tighter">CENTRAL DE COMANDO</h2>
-                    <p className="text-[10px] md:text-sm text-zinc-500 mt-1 uppercase font-bold tracking-widest md:normal-case md:font-normal">Visão geral em tempo real</p>
+                    <h2 className="text-2xl md:text-3xl font-black tracking-tighter">{t('app.dashboard.commandCenter')}</h2>
+                    <p className="text-[10px] md:text-sm text-zinc-500 mt-1 uppercase font-bold tracking-widest md:normal-case md:font-normal">{t('app.dashboard.realtimeOverview')}</p>
                   </div>
                   <div className="flex items-center gap-2 bg-zinc-900/50 p-1 rounded-xl border border-zinc-800/50 self-start md:self-auto">
-                    <button onClick={() => setDashboardRange('today')} className={cn("px-3 py-1.5 text-[10px] font-bold rounded-lg transition-all", dashboardRange === 'today' ? "bg-zinc-800 text-zinc-100" : "text-zinc-500 hover:text-zinc-300")}>HOJE</button>
-                    <button onClick={() => setDashboardRange('7days')} className={cn("px-3 py-1.5 text-[10px] font-bold rounded-lg transition-all", dashboardRange === '7days' ? "bg-zinc-800 text-zinc-100" : "text-zinc-500 hover:text-zinc-300")}>7 DIAS</button>
-                    <button onClick={() => setDashboardRange('30days')} className={cn("px-3 py-1.5 text-[10px] font-bold rounded-lg transition-all", dashboardRange === '30days' ? "bg-zinc-800 text-zinc-100" : "text-zinc-500 hover:text-zinc-300")}>30 DIAS</button>
-                    <button onClick={() => setIsDashboardRangeModalOpen(true)} className={cn("px-3 py-1.5 text-[10px] font-bold rounded-lg transition-all", dashboardRange === 'custom' ? "bg-zinc-800 text-zinc-100" : "text-zinc-500 hover:text-zinc-300")}>{dashboardRange === 'custom' ? dashboardCustomRangeLabel : 'INTERVALO'}</button>
+                    <button onClick={() => setDashboardRange('today')} className={cn("px-3 py-1.5 text-[10px] font-bold rounded-lg transition-all", dashboardRange === 'today' ? "bg-zinc-800 text-zinc-100" : "text-zinc-500 hover:text-zinc-300")}>{t('app.dashboard.today')}</button>
+                    <button onClick={() => setDashboardRange('7days')} className={cn("px-3 py-1.5 text-[10px] font-bold rounded-lg transition-all", dashboardRange === '7days' ? "bg-zinc-800 text-zinc-100" : "text-zinc-500 hover:text-zinc-300")}>{t('app.dashboard.last7days')}</button>
+                    <button onClick={() => setDashboardRange('30days')} className={cn("px-3 py-1.5 text-[10px] font-bold rounded-lg transition-all", dashboardRange === '30days' ? "bg-zinc-800 text-zinc-100" : "text-zinc-500 hover:text-zinc-300")}>{t('app.dashboard.last30days')}</button>
+                    <button onClick={() => setIsDashboardRangeModalOpen(true)} className={cn("px-3 py-1.5 text-[10px] font-bold rounded-lg transition-all", dashboardRange === 'custom' ? "bg-zinc-800 text-zinc-100" : "text-zinc-500 hover:text-zinc-300")}>{dashboardRange === 'custom' ? dashboardCustomRangeLabel : t('app.dashboard.customRange')}</button>
                   </div>
                 </div>
 
                 {/* Stats Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6">
-                  <StatCard title="Total Ocorrências" value={stats?.totalReports || 0} icon={FileText} color="text-blue-500" onClick={() => setActiveTab('reports')} />
-                  <StatCard title="Nível G4 (Crítico)" value={stats?.reportsBySeverity.find(s => s.name === 'G4')?.value || 0} icon={AlertTriangle} color="text-red-500" onClick={() => setActiveTab('reports')} />
-                  <StatCard title="Agentes em Sistema" value={stats?.totalUsers || 0} icon={Users} color="text-green-500" onClick={() => setActiveTab('users')} />
-                  <StatCard title="Operacionalidade" value="100%" icon={Activity} color="text-primary" onClick={() => setActiveTab('settings')} />
+                  <StatCard title={t('app.dashboard.totalOccurrences')} value={stats?.totalReports || 0} icon={FileText} color="text-blue-500" onClick={() => setActiveTab('reports')} />
+                  <StatCard title={t('app.dashboard.g4Level')} value={stats?.reportsBySeverity.find(s => s.name === 'G4')?.value || 0} icon={AlertTriangle} color="text-red-500" onClick={() => setActiveTab('reports')} />
+                  <StatCard title={t('app.dashboard.activeAgents')} value={stats?.totalUsers || 0} icon={Users} color="text-green-500" onClick={() => setActiveTab('users')} />
+                  <StatCard title={t('app.dashboard.operationality')} value="100%" icon={Activity} color="text-primary" onClick={() => setActiveTab('settings')} />
                 </div>
 
                 {/* Charts Grid */}
@@ -1760,7 +1757,7 @@ export default function App() {
                     </div>
                   </Card>
 
-                  <Card title="Distribuição por Categoria">
+                  <Card title={t('app.common.distributionByCategory')}>
                     <div className="flex flex-col h-[350px] mt-4">
                       <div className="flex-1 min-h-0">
                         <ResponsiveContainer width="100%" height="100%">
@@ -1811,7 +1808,7 @@ export default function App() {
                 </div>
 
                 {/* Interactive Map */}
-                <Card title="Mapa de Operações" subtitle="Localização em tempo real das ocorrências registradas">
+                <Card title={t('app.dashboard.operationsMap')} subtitle={t('app.dashboard.operationsMapSubtitle')}>
                   <div className="h-[400px] bg-zinc-950 rounded-xl relative overflow-hidden border border-zinc-800/50 z-0">
                     <MapContainer 
                       center={mapCenter} 
@@ -1919,8 +1916,8 @@ export default function App() {
                 {/* Recent Reports List */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <Card 
-                    title="Últimas Ocorrências" 
-                    subtitle="Registros mais recentes no sistema"
+                    title={t('app.dashboard.latestOccurrences')} 
+                    subtitle="Registos mais recentes no sistema"
                     action={
                       <button 
                         onClick={() => window.print()}
@@ -1958,13 +1955,13 @@ export default function App() {
                         </div>
                       ))}
                       {reports.length === 0 && (
-                        <p className="text-center py-8 text-[10px] font-bold text-zinc-600 uppercase tracking-widest">Nenhum registro recente</p>
+                        <p className="text-center py-8 text-[10px] font-bold text-zinc-600 uppercase tracking-widest">Nenhum registo recente</p>
                       )}
                       <button 
                         onClick={() => setActiveTab('reports')}
                         className="w-full py-2 text-[10px] font-black text-zinc-500 hover:text-primary uppercase tracking-widest transition-colors border-t border-zinc-800/50 mt-2"
                       >
-                        Ver Todos os Registros
+                        Ver Todos os Registos
                       </button>
                     </div>
                   </Card>
@@ -2025,8 +2022,8 @@ export default function App() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h2 className="text-2xl font-black tracking-tighter">LOG DE OCORRÊNCIAS</h2>
-                      <p className="text-sm text-zinc-500">Histórico completo de registros operacionais.</p>
+                      <h2 className="text-2xl font-black tracking-tighter">{t('app.tabs.occurrencesLog')}</h2>
+                      <p className="text-sm text-zinc-500">{t('app.tabs.occurrencesLogSubtitle')}</p>
                     </div>
                     <a href="/api/reports/export" target="_blank" rel="noopener noreferrer" className="p-2 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-400 hover:text-white transition-colors flex items-center justify-center">
                       <Download size={16} />
@@ -2135,7 +2132,7 @@ export default function App() {
                       <thead>
                         <tr className="border-b border-zinc-800 bg-zinc-900/50">
                           <th className="hidden md:table-cell px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">ID</th>
-                          <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">Título / Descrição</th>
+                          <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">{t('app.common.titleDescription')}</th>
                           <th className="hidden lg:table-cell px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">Categoria</th>
                           <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">Gravidade</th>
                           <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">Status</th>
@@ -2241,7 +2238,7 @@ export default function App() {
                       {reports.length === 0 ? (
                         <div className="py-20 text-center">
                           <Search size={32} className="mx-auto text-zinc-800 mb-4 opacity-20" />
-                          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">Nenhum registro encontrado</p>
+                          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">Nenhum registo encontrado</p>
                         </div>
                       ) : reports.map((report, index) => (
                         <motion.div 
@@ -2307,8 +2304,8 @@ export default function App() {
               >
                 <div className="flex items-center justify-between">
                   <div>
-                    <h2 className="text-2xl font-black tracking-tighter">MEUS RELATÓRIOS</h2>
-                    <p className="text-sm text-zinc-500">Histórico pessoal de ocorrências registradas.</p>
+                    <h2 className="text-2xl font-black tracking-tighter">{t('app.tabs.myReports')}</h2>
+                    <p className="text-sm text-zinc-500">{t('app.tabs.myReportsSubtitle')}</p>
                   </div>
                 </div>
 
@@ -2351,11 +2348,11 @@ export default function App() {
                     <thead>
                       <tr className="border-b border-zinc-800 bg-zinc-900/50">
                         <th className="hidden md:table-cell px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">ID</th>
-                        <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">Título / Descrição</th>
+                        <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">{t('app.common.titleDescription')}</th>
                         <th className="hidden lg:table-cell px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">Categoria</th>
                         <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">Gravidade</th>
                         <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">Status</th>
-                        <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] text-right">Ação</th>
+                        <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] text-right">{t('app.common.action')}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-zinc-800/50">
@@ -2420,7 +2417,7 @@ export default function App() {
                                   handleDeleteReport(report.id);
                                 }}
                                 className="p-2 text-zinc-600 hover:text-red-400 transition-colors"
-                                title="Deletar Relatório"
+                                title="Eliminar Relatório"
                               >
                                 <Trash2 size={14} />
                               </button>
@@ -2452,7 +2449,7 @@ export default function App() {
                 className="space-y-6"
               >
                 <div>
-                  <h2 className="text-2xl font-black tracking-tighter">MEU RELATÓRIO DO DIA</h2>
+                  <h2 className="text-2xl font-black tracking-tighter">{t('app.tabs.myDailyReport')}</h2>
                   <p className="text-sm text-zinc-500">{new Date().toLocaleDateString('pt-BR')}</p>
                 </div>
 
@@ -2462,7 +2459,7 @@ export default function App() {
                       <Card className="border-primary/30 bg-primary/5">
                         <div className="text-center">
                           <p className="text-3xl font-black text-primary">{dailyReportPersonal.totalReports}</p>
-                          <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mt-2">Ocorrências Registradas</p>
+                          <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mt-2">Ocorrências Registadas</p>
                         </div>
                       </Card>
                       
@@ -2491,7 +2488,7 @@ export default function App() {
 
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-20 md:pb-0">
-                      <Card title="Distribuição por Categoria">
+                      <Card title={t('app.common.distributionByCategory')}>
                         <div className="space-y-3">
                           {Object.entries(dailyReportPersonal.byCategory).map(([cat, count]: [string, any]) => (
                             <div key={cat} className="flex items-center justify-between">
@@ -2510,7 +2507,7 @@ export default function App() {
                         </div>
                       </Card>
 
-                      <Card title="Distribuição por Gravidade">
+                      <Card title={t('app.common.distributionBySeverity')}>
                         <div className="space-y-3">
                           {Object.entries(dailyReportPersonal.byGravity).map(([gravity, count]: [string, any]) => {
                             const colors = { G1: 'bg-blue-500', G2: 'bg-yellow-500', G3: 'bg-orange-500', G4: 'bg-red-500' };
@@ -2559,7 +2556,7 @@ export default function App() {
                 ) : (
                   <div className="py-20 text-center">
                     <Calendar className="mx-auto text-zinc-800 mb-4" size={48} />
-                    <p className="text-zinc-500 font-bold uppercase tracking-widest text-xs">Nenhuma ocorrência registrada hoje</p>
+                    <p className="text-zinc-500 font-bold uppercase tracking-widest text-xs">Nenhuma ocorrência registada hoje</p>
                   </div>
                 )}
               </motion.div>
@@ -2574,7 +2571,7 @@ export default function App() {
                 className="space-y-6"
               >
                 <div>
-                  <h2 className="text-2xl font-black tracking-tighter">DIA DA EQUIPE</h2>
+                  <h2 className="text-2xl font-black tracking-tighter">DIA DA EQUIPA</h2>
                   <p className="text-sm text-zinc-500">{new Date().toLocaleDateString('pt-BR')}</p>
                 </div>
 
@@ -2584,7 +2581,7 @@ export default function App() {
                       <Card className="border-primary/30 bg-primary/5">
                         <div className="text-center">
                           <p className="text-3xl font-black text-primary">{dailyReportTeam.totalReports}</p>
-                          <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mt-2">Ocorrências da Equipe</p>
+                          <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mt-2">Ocorrências da Equipa</p>
                         </div>
                       </Card>
                       
@@ -2630,7 +2627,7 @@ export default function App() {
                         </div>
                       </Card>
 
-                      <Card title="Distribuição por Categoria">
+                      <Card title={t('app.common.distributionByCategory')}>
                         <div className="space-y-3">
                           {Object.entries(dailyReportTeam.byCategory).map(([cat, count]: [string, any]) => (
                             <div key={cat} className="flex items-center justify-between">
@@ -2641,7 +2638,7 @@ export default function App() {
                         </div>
                       </Card>
 
-                      <Card title="Distribuição por Gravidade">
+                      <Card title={t('app.common.distributionBySeverity')}>
                         <div className="space-y-3">
                           {Object.entries(dailyReportTeam.byGravity).map(([gravity, count]: [string, any]) => {
                             const colors = { G1: 'bg-blue-500', G2: 'bg-yellow-500', G3: 'bg-orange-500', G4: 'bg-red-500' };
@@ -2682,7 +2679,7 @@ export default function App() {
                 ) : (
                   <div className="py-20 text-center">
                     <Users className="mx-auto text-zinc-800 mb-4" size={48} />
-                    <p className="text-zinc-500 font-bold uppercase tracking-widest text-xs">Nenhuma ocorrência da equipe registrada hoje</p>
+                    <p className="text-zinc-500 font-bold uppercase tracking-widest text-xs">Nenhuma ocorrência da equipa registada hoje</p>
                   </div>
                 )}
               </motion.div>
@@ -2698,11 +2695,11 @@ export default function App() {
               >
                 <div>
                   <h2 className="text-2xl font-black tracking-tighter">ALERTAS</h2>
-                  <p className="text-sm text-zinc-500">Gerencie alertas para toda a equipe</p>
+                  <p className="text-sm text-zinc-500">Gira alertas para toda a equipa</p>
                 </div>
 
                 {currentUser?.permissions?.create_alerts && (
-                  <Card title="Criar Novo Alerta" subtitle="Criar alertas para toda a equipe">
+                  <Card title="Criar Novo Alerta" subtitle="Criar alertas para toda a equipa">
                     <form onSubmit={handleCreateAlert} className="space-y-4 mt-4">
                       <div>
                         <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest block mb-2">Título do Alerta</label>
@@ -2796,7 +2793,7 @@ export default function App() {
                                 onClick={() => handleDeleteAlert(alert.id)}
                                 className="flex-1 text-[9px] font-bold px-2 py-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-300 rounded border border-red-500/30 transition-colors uppercase tracking-tighter"
                               >
-                                Deletar
+                                Eliminar
                               </button>
                             </div>
                           )}
@@ -2817,8 +2814,8 @@ export default function App() {
                 className="space-y-6 pb-20 md:pb-0"
               >
                 <div>
-                  <h2 className="text-2xl font-black tracking-tighter">PARAMETRIZAÇÃO</h2>
-                  <p className="text-sm text-zinc-500">Configurações globais do sistema e relatórios PDF.</p>
+                  <h2 className="text-2xl font-black tracking-tighter">{t('app.tabs.parametrization')}</h2>
+                  <p className="text-sm text-zinc-500">{t('app.tabs.parametrizationSubtitle')}</p>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -2841,7 +2838,7 @@ export default function App() {
                         });
                         toast.success("Identidade visual salva!");
                         fetchData();
-                      } catch (err) { toast.error("Erro ao salvar identidade"); }
+                      } catch (err) { toast.error("Erro ao guardar identidade"); }
                     }} className="space-y-4 mt-4">
                       <div className="space-y-2">
                         <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">URL do Logotipo (PNG/JPG)</label>
@@ -2873,7 +2870,7 @@ export default function App() {
                         />
                       </div>
                       <button type="submit" className="w-full py-3 bg-primary text-black rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-primary/90 transition-all shadow-lg shadow-primary/20">
-                        Salvar Identidade
+                        Guardar Identidade
                       </button>
                     </form>
                   </Card>
@@ -2897,7 +2894,7 @@ export default function App() {
                         });
                         toast.success("Parâmetros operacionais salvos!");
                         fetchData();
-                      } catch (err) { toast.error("Erro ao salvar parâmetros"); }
+                      } catch (err) { toast.error("Erro ao guardar parâmetros"); }
                     }} className="space-y-6 mt-4">
                       <div className="space-y-2">
                         <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Setores Disponíveis (Separados por vírgula)</label>
@@ -2932,7 +2929,7 @@ export default function App() {
                       </div>
 
                       <button type="submit" className="w-full py-3 bg-zinc-100 text-black rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-white transition-all">
-                        Salvar Parâmetros Ativos
+                        Guardar Parâmetros Ativos
                       </button>
                     </form>
                   </Card>
@@ -2955,8 +2952,8 @@ export default function App() {
               >
                 <div className="flex items-center justify-between">
                   <div>
-                    <h2 className="text-2xl font-black tracking-tighter">GESTÃO DE PESSOAL</h2>
-                    <p className="text-sm text-zinc-500">Administração de agentes e níveis de acesso.</p>
+                    <h2 className="text-2xl font-black tracking-tighter">{t('app.tabs.staffManagement')}</h2>
+                    <p className="text-sm text-zinc-500">{t('app.tabs.staffManagementSubtitle')}</p>
                   </div>
                   <button 
                     onClick={() => {
@@ -3074,17 +3071,17 @@ export default function App() {
                       <div className="space-y-3">
                         {[
                           { name: 'view_dashboard', label: 'Acesso ao Dashboard', desc: 'Visualização de estatísticas e gráficos.' },
-                          { name: 'view_reports', label: 'Visualizar Ocorrências', desc: 'Acesso ao log de registros operacionais.' },
-                          { name: 'create_reports', label: 'Registrar Ocorrências', desc: 'Permissão para enviar novos relatos.' },
+                          { name: 'view_reports', label: 'Visualizar Ocorrências', desc: 'Acesso ao log de registos operacionais.' },
+                          { name: 'create_reports', label: 'Registar Ocorrências', desc: 'Permissão para enviar novos relatos.' },
                           { name: 'conclude_reports', label: 'Finalizar Ocorrências', desc: 'Permissão para fechar/concluir ocorrências.' },
                           { name: 'view_daily_reports', label: 'Visualizar Relatórios Diários', desc: 'Acesso aos relatórios consolidados do dia.' },
-                          { name: 'view_team_daily', label: 'Visualizar Dia da Equipe', desc: 'Ver relatórios consolidados de toda a equipe.' },
-                          { name: 'create_alerts', label: 'Criar Alertas', desc: 'Permissão para criar alertas para a equipe.' },
-                          { name: 'edit_own_alerts', label: 'Editar Alertas Próprios', desc: 'Editar e deletar alertas que você criou.' },
+                          { name: 'view_team_daily', label: 'Visualizar Dia da Equipa', desc: 'Ver relatórios consolidados de toda a equipa.' },
+                          { name: 'create_alerts', label: 'Criar Alertas', desc: 'Permissão para criar alertas para a equipa.' },
+                          { name: 'edit_own_alerts', label: 'Editar Alertas Próprios', desc: 'Editar e eliminar alertas que criou.' },
                           { name: 'view_audit_logs', label: 'Auditoria de Logs', desc: 'Visualização de logs e histórico do sistema.' },
-                          { name: 'manage_users', label: 'Gestão de Usuários', desc: 'Permite criar, editar e remover agentes.' },
+                          { name: 'manage_users', label: 'Gestão de Utilizadores', desc: 'Permite criar, editar e remover agentes.' },
                           { name: 'manage_permissions', label: 'Gestão de Permissões', desc: 'Configuração de privilégios e roles.' },
-                          { name: 'manage_settings', label: 'Configurações de Sistema', desc: 'Acesso às chaves de integração e sistema.' },
+                          { name: 'manage_settings', label: 'Definições de Sistema', desc: 'Acesso às chaves de integração e sistema.' },
                           { name: 'export_reports', label: 'Exportar Relatórios', desc: 'Permissão para exportar relatórios em diversos formatos.' },
                           { name: 'view_personal_reports', label: 'Meus Relatórios', desc: 'Acesso aos seus relatórios pessoais.' },
                           { name: 'view_personal_daily', label: 'Meu Dia', desc: 'Ver consolidado pessoal do dia.' },
@@ -3141,16 +3138,16 @@ export default function App() {
                 className="space-y-8"
               >
                 <div>
-                  <h2 className="text-2xl font-black tracking-tighter">CONFIGURAÇÕES DO SISTEMA</h2>
-                  <p className="text-sm text-zinc-500">Integrações e parâmetros globais de segurança.</p>
+                  <h2 className="text-2xl font-black tracking-tighter">{t('app.tabs.systemSettings')}</h2>
+                  <p className="text-sm text-zinc-500">{t('app.tabs.systemSettingsSubtitle')}</p>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  <Card title="🔔 Notificações" subtitle="Configure email, Telegram e relatórios agendados" className="lg:col-span-2">
+                  <Card title="Notificações" subtitle="Configure email, Telegram e relatórios agendados" className="lg:col-span-2">
                     <div className="space-y-6">
                       {/* Email SMTP Section */}
                       <div className="border-b border-zinc-800 pb-6">
-                        <h3 className="text-sm font-black text-zinc-200 mb-4">📧 Email SMTP</h3>
+                        <h3 className="text-sm font-black text-zinc-200 mb-4">Email SMTP</h3>
                         <form onSubmit={async (e) => {
                           e.preventDefault();
                           const formData = new FormData(e.currentTarget);
@@ -3164,7 +3161,7 @@ export default function App() {
                                   { key: 'email_sender_name', value: formData.get('email_sender_name'), description: 'Nome do remetente' },
                                   { key: 'smtp_host', value: formData.get('smtp_host'), description: 'Host SMTP' },
                                   { key: 'smtp_port', value: formData.get('smtp_port'), description: 'Porta SMTP' },
-                                  { key: 'smtp_user', value: formData.get('smtp_user'), description: 'Usuário SMTP' },
+                                  { key: 'smtp_user', value: formData.get('smtp_user'), description: 'Utilizador SMTP' },
                                   { key: 'smtp_password', value: formData.get('smtp_password'), description: 'Senha SMTP' }
                                 ]
                               }),
@@ -3173,7 +3170,7 @@ export default function App() {
                             toast.success("Email configurado!");
                             fetchData();
                           } catch (err) {
-                            toast.error("Erro ao salvar");
+                            toast.error("Erro ao guardar");
                           }
                         }} className="space-y-3">
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -3198,7 +3195,7 @@ export default function App() {
                           </div>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div className="space-y-1">
-                              <label className="text-[9px] font-black text-zinc-500 uppercase">Usuário</label>
+                              <label className="text-[9px] font-black text-zinc-500 uppercase">Utilizador</label>
                               <input name="smtp_user" defaultValue={systemSettings.find(s => s.key === 'smtp_user')?.value || ''} className="w-full bg-zinc-800 border border-zinc-700 rounded py-2 px-3 text-sm focus:outline-none focus:border-primary" />
                             </div>
                             <div className="space-y-1">
@@ -3206,13 +3203,13 @@ export default function App() {
                               <input name="smtp_password" type="password" defaultValue={systemSettings.find(s => s.key === 'smtp_password')?.value || ''} className="w-full bg-zinc-800 border border-zinc-700 rounded py-2 px-3 text-sm focus:outline-none focus:border-primary" />
                             </div>
                           </div>
-                          <button type="submit" className="w-full py-2 bg-primary/20 hover:bg-primary/30 text-primary rounded text-[9px] font-black uppercase transition-all">Salvar Email</button>
+                          <button type="submit" className="w-full py-2 bg-primary/20 hover:bg-primary/30 text-primary rounded text-[9px] font-black uppercase transition-all">Guardar Email</button>
                         </form>
                       </div>
 
                       {/* Telegram Section */}
                       <div className="border-b border-zinc-800 pb-6">
-                        <h3 className="text-sm font-black text-zinc-200 mb-4">📱 Telegram</h3>
+                        <h3 className="text-sm font-black text-zinc-200 mb-4">Telegram</h3>
                         <form onSubmit={async (e) => {
                           e.preventDefault();
                           const formData = new FormData(e.currentTarget);
@@ -3232,7 +3229,7 @@ export default function App() {
                             toast.success("Telegram configurado!");
                             fetchData();
                           } catch (err) {
-                            toast.error("Erro ao salvar");
+                            toast.error("Erro ao guardar");
                           }
                         }} className="space-y-3">
                           <div className="space-y-1">
@@ -3270,14 +3267,14 @@ export default function App() {
                               if (data.status === 'ok') toast.success("Enviado!");
                               else toast.error("Falha: " + data.message);
                             }} className="py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded text-[9px] font-black uppercase transition-all">Testar</button>
-                            <button type="submit" className="py-2 bg-primary/20 hover:bg-primary/30 text-primary rounded text-[9px] font-black uppercase transition-all">Salvar Telegram</button>
+                            <button type="submit" className="py-2 bg-primary/20 hover:bg-primary/30 text-primary rounded text-[9px] font-black uppercase transition-all">Guardar Telegram</button>
                           </div>
                         </form>
                       </div>
 
                       {/* Scheduled Reports Section */}
                       <div>
-                        <h3 className="text-sm font-black text-zinc-200 mb-4">📨 Relatórios Agendados</h3>
+                        <h3 className="text-sm font-black text-zinc-200 mb-4">Relatórios Agendados</h3>
                         <form onSubmit={async (e) => {
                           e.preventDefault();
                           const formData = new FormData(e.currentTarget);
@@ -3308,7 +3305,7 @@ export default function App() {
                             toast.success("Relatórios configurados!");
                             fetchData();
                           } catch (err) {
-                            toast.error("Erro ao salvar");
+                            toast.error("Erro ao guardar");
                           }
                         }} className="space-y-4">
                           <div className="flex items-center justify-between">
@@ -3341,7 +3338,7 @@ export default function App() {
                                 { id: 'daily_incidents', label: 'Incidentes' },
                                 { id: 'alerts_g4', label: 'Críticos (G4)' },
                                 { id: 'alerts_g3', label: 'Altos (G3)' },
-                                { id: 'active_users', label: 'Usuários' },
+                                { id: 'active_users', label: 'Utilizadores' },
                                 { id: 'security_stats', label: 'Estatísticas' }
                               ].map(item => (
                                 <label key={item.id} className="flex items-center gap-2 cursor-pointer">
@@ -3351,13 +3348,13 @@ export default function App() {
                               ))}
                             </div>
                           </div>
-                          <button type="submit" className="w-full py-2 bg-primary hover:opacity-90 text-black rounded text-[9px] font-black uppercase transition-all">Salvar Relatórios</button>
+                          <button type="submit" className="w-full py-2 bg-primary hover:opacity-90 text-black rounded text-[9px] font-black uppercase transition-all">Guardar Relatórios</button>
                         </form>
                       </div>
                     </div>
                   </Card>
 
-                  <Card title="Parâmetros de Auditoria" subtitle="Configurações de relatórios e logs">
+                  <Card title="Parâmetros de Auditoria" subtitle="Definições de relatórios e logs">
                     <div className="space-y-6">
                       <div className="flex items-center justify-between">
                         <div>
@@ -3402,7 +3399,7 @@ export default function App() {
                           toast.success("Interface atualizada! Recarregando...");
                           setTimeout(() => window.location.reload(), 1500);
                         } catch (err) {
-                          toast.error("Erro ao salvar personalização");
+                          toast.error("Erro ao guardar personalização");
                         }
                       }} className="space-y-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -3476,11 +3473,7 @@ export default function App() {
                     </form>
                   </Card>
 
-                  <Card title="Preferências de Idioma" subtitle="Selecione o idioma da interface">
-                    <LanguageSwitcher />
-                  </Card>
-
-                  <Card title="Backup & Restauração" subtitle="Gerencie backups do banco de dados" className="lg:col-span-2">
+                  <Card title="Backup & Restauração" subtitle="Gira backups da base de dados" className="lg:col-span-2">
                     <div className="space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
@@ -3507,7 +3500,7 @@ export default function App() {
                             }}
                             className="w-full py-2.5 bg-primary hover:bg-primary/90 text-black rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-primary/20"
                           >
-                            ⬇️ Baixar Backup Agora
+                            Baixar Backup Agora
                           </button>
                         </div>
                         <div>
@@ -3544,18 +3537,18 @@ export default function App() {
                             onClick={() => document.getElementById('backup-file')?.click()}
                             className="w-full py-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all"
                           >
-                            📁 Selecionar Arquivo
+                            Selecionar Arquivo
                           </button>
                         </div>
                       </div>
                       <div className="bg-zinc-800/30 border border-zinc-700/30 rounded-lg p-3">
-                        <p className="text-[10px] text-zinc-400 font-bold uppercase">⚠️ Aviso Importante:</p>
+                        <p className="text-[10px] text-zinc-400 font-bold uppercase">Aviso Importante:</p>
                         <p className="text-[10px] text-zinc-500 mt-1">Fazer backup regularmente é recomendado. Um backup automático é feito diariamente no servidor.</p>
                       </div>
                     </div>
                   </Card>
 
-                  <Card title="Versioning & Atualizações" subtitle="Gerencie versões e atualizações" className="lg:col-span-2">
+                  <Card title="Versioning & Atualizações" subtitle="Gira versões e atualizações" className="lg:col-span-2">
                     <form onSubmit={async (e) => {
                       e.preventDefault();
                       const formData = new FormData(e.currentTarget);
@@ -3571,15 +3564,15 @@ export default function App() {
                           body: JSON.stringify({ settings }),
                           credentials: 'include'
                         });
-                        toast.success("Configuração de versioning salva!");
+                        toast.success("Configuração de versionamento guardada!");
                         fetchData();
                       } catch (err) {
-                        toast.error("Erro ao salvar configurações");
+                        toast.error("Erro ao guardar definições");
                       }
                     }} className="space-y-6">
                       <div className="bg-zinc-800/30 border border-zinc-700/30 rounded-lg p-4">
                         <p className="text-xs font-black text-zinc-300 uppercase">Versão Atual: v1.0.0</p>
-                        <p className="text-[10px] text-zinc-500 mt-1">Status: ✅ Atualizado</p>
+                        <p className="text-[10px] text-zinc-500 mt-1">Status: OK. Atualizado</p>
                       </div>
 
                       <div className="space-y-2">
@@ -3614,18 +3607,18 @@ export default function App() {
                             // Simulated check - will be replaced with actual GitHub API
                             setTimeout(() => {
                               toast.dismiss();
-                              toast.success("Sistema está atualizado ✓");
+                              toast.success("Sistema está atualizado");
                             }, 1500);
                           }}
                           className="flex-1 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all"
                         >
-                          🔍 Verificar Agora
+                          Verificar Agora
                         </button>
                         <button 
                           type="submit"
                           className="flex-1 py-2.5 bg-primary hover:opacity-90 text-primary-foreground rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-primary/20"
                         >
-                          Salvar
+                          Guardar
                         </button>
                       </div>
                     </form>
@@ -3649,7 +3642,7 @@ export default function App() {
             >
               <form onSubmit={handleCreateReport} className="flex flex-col h-full">
                 <div className="p-6 border-b border-zinc-800 flex items-center justify-between bg-zinc-900/20">
-                  <h3 className="text-xl font-black tracking-tighter uppercase">Registrar Ocorrência</h3>
+                  <h3 className="text-xl font-black tracking-tighter uppercase">Registar Ocorrência</h3>
                   <button type="button" onClick={closeNewReportModal} className="text-zinc-500 hover:text-white transition-colors">
                     <XCircle size={24} />
                   </button>
@@ -3931,7 +3924,7 @@ export default function App() {
                                 onClick={() => setNewReport({...newReport, fotos: newReport.fotos.filter((_, i) => i !== idx)})}
                                 className="text-[10px] font-bold text-red-500 hover:text-red-400 transition-colors"
                               >
-                                ✕ REMOVER
+                                OK REMOVER
                               </button>
                             </div>
                             <input 
@@ -4137,7 +4130,7 @@ export default function App() {
                     type="submit"
                     className="flex-1 bg-primary hover:bg-primary/90 text-black font-black text-[10px] px-6 py-2.5 rounded-lg transition-all uppercase tracking-widest shadow-lg shadow-primary/20"
                   >
-                    Salvar Alterações
+                    Guardar Alterações
                   </button>
                 </div>
               </form>
@@ -4329,7 +4322,7 @@ export default function App() {
                         />
                       ) : (
                         <div className="bg-amber-500/5 border border-amber-500/20 p-4 rounded-xl">
-                           <p className="text-sm text-zinc-300 leading-relaxed italic">"{selectedReport.acao_imediata || 'Nenhuma ação registrada'}"</p>
+                           <p className="text-sm text-zinc-300 leading-relaxed italic">"{selectedReport.acao_imediata || 'Nenhuma ação registada'}"</p>
                         </div>
                       )}
                     </div>
@@ -4439,7 +4432,7 @@ export default function App() {
                                 onClick={() => setEditingReportData({...editingReportData, fotos: editingReportData.fotos.filter((_, i) => i !== idx)})}
                                 className="text-[10px] font-bold text-red-500 hover:text-red-400 transition-colors"
                               >
-                                ✕
+                                OK
                               </button>
                             </div>
                             <input 
@@ -4561,7 +4554,7 @@ export default function App() {
                           onClick={handleSaveReportEdits}
                           className="flex-1 sm:flex-none bg-blue-600 hover:bg-blue-500 text-white font-black text-[10px] px-8 py-2.5 rounded-lg transition-all uppercase tracking-widest shadow-lg shadow-blue-900/20"
                         >
-                          Salvar Alterações
+                          Guardar Alterações
                         </button>
                       </>
                     ) : (
@@ -4636,7 +4629,7 @@ export default function App() {
                             className="bg-red-600/10 hover:bg-red-600 text-red-500 hover:text-white border border-red-500/20 font-black text-[10px] px-6 py-2.5 rounded-lg transition-all uppercase tracking-widest flex items-center justify-center gap-2"
                           >
                             <Trash2 size={14} />
-                            Deletar
+                            Eliminar
                           </button>
                         )}
                       </div>
@@ -4715,11 +4708,11 @@ export default function App() {
                       <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Idioma Preferido</label>
                       <select 
                         className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
-                        value={(newUser as any).preferred_language || 'pt-BR'}
+                        value={normalizeLanguage((newUser as any).preferred_language || 'pt')}
                         onChange={(e) => setNewUser({...newUser, preferred_language: e.target.value} as any)}
                       >
-                        <option value="pt-BR">Português (BR)</option>
-                        <option value="en-US">English (US)</option>
+                        <option value="pt">Portugues</option>
+                        <option value="en">English</option>
                       </select>
                     </div>
                     <div className="space-y-2">
@@ -4736,7 +4729,7 @@ export default function App() {
                 </div>
                 <div className="p-6 bg-zinc-900/20 border-t border-zinc-800 flex justify-end gap-3">
                   <button type="button" onClick={() => setIsNewUserModalOpen(false)} className="px-6 py-2.5 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white transition-colors">Cancelar</button>
-                  <button type="submit" className="bg-zinc-100 hover:bg-white text-black font-black text-[10px] px-8 py-2.5 rounded-lg transition-all uppercase tracking-widest shadow-lg shadow-white/10">Salvar Agente</button>
+                  <button type="submit" className="bg-zinc-100 hover:bg-white text-black font-black text-[10px] px-8 py-2.5 rounded-lg transition-all uppercase tracking-widest shadow-lg shadow-white/10">Guardar Agente</button>
                 </div>
               </form>
             </motion.div>
@@ -4821,7 +4814,7 @@ export default function App() {
                 <SidebarItem icon={FileText} label="Meus Relatos" active={activeTab === 'personal_reports'} onClick={() => { setActiveTab('personal_reports'); setIsMobileMenuOpen(false); }} />
                 <SidebarItem icon={Calendar} label="Meu Dia" active={activeTab === 'daily_report_personal'} onClick={() => { setActiveTab('daily_report_personal'); setIsMobileMenuOpen(false); }} />
                 {currentUser.permissions?.view_team_daily && (
-                  <SidebarItem icon={Users} label="Equipe" active={activeTab === 'daily_report_team'} onClick={() => { setActiveTab('daily_report_team'); setIsMobileMenuOpen(false); }} />
+                  <SidebarItem icon={Users} label="Equipa" active={activeTab === 'daily_report_team'} onClick={() => { setActiveTab('daily_report_team'); setIsMobileMenuOpen(false); }} />
                 )}
                 <SidebarItem icon={AlertTriangle} label="Alertas" active={activeTab === 'alerts'} onClick={() => { setActiveTab('alerts'); setIsMobileMenuOpen(false); }} />
                 {currentUser.permissions?.manage_users === true && (
@@ -4904,13 +4897,13 @@ export default function App() {
                   <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-black text-xs shrink-0 mt-0.5">1</div>
                   <div>
                     <p className="text-sm font-black text-white">Abra o menu do Chrome</p>
-                    <p className="text-xs text-zinc-500 mt-0.5">Toque nos <strong className="text-zinc-300">3 pontos ⋮</strong> no canto superior direito do Chrome</p>
+                    <p className="text-xs text-zinc-500 mt-0.5">Toque nos <strong className="text-zinc-300">3 pontos (⋮)</strong> no canto superior direito do Chrome</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
                   <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-black text-xs shrink-0 mt-0.5">2</div>
                   <div>
-                    <p className="text-sm font-black text-white">Seleccione "Adicionar ao ecrã inicial"</p>
+                    <p className="text-sm font-black text-white">Selecione "Adicionar ao ecrã inicial"</p>
                     <p className="text-xs text-zinc-500 mt-0.5">Pode também aparecer como <strong className="text-zinc-300">"Instalar aplicação"</strong> ou <strong className="text-zinc-300">"Adicionar ao início"</strong></p>
                   </div>
                 </div>
@@ -4951,6 +4944,7 @@ export default function App() {
     </div>
   );
 }
+
 
 
 

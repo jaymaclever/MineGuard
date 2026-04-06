@@ -1,4 +1,4 @@
-import Database from "better-sqlite3";
+﻿import Database from "better-sqlite3";
 import fs from "fs";
 import path from "path";
 import { chromium } from "playwright-core";
@@ -197,7 +197,8 @@ ensureArchiveInfrastructure();
 
 function normalizeDateInput(value?: string) {
   if (!value) {
-    return new Date().toISOString().slice(0, 10);
+    const today = db.prepare("SELECT DATE('now', 'localtime') AS date").get() as { date: string };
+    return today.date;
   }
 
   const parsed = new Date(value);
@@ -321,7 +322,7 @@ function buildSnapshot(reportDate: string, generatedBy: number | null = null): D
         r.timestamp
       FROM reports r
       JOIN users u ON u.id = r.agente_id
-      WHERE DATE(r.timestamp) = ?
+      WHERE DATE(r.timestamp, 'localtime') = ?
       ORDER BY datetime(r.timestamp) DESC, r.gravidade DESC
     `
     )
@@ -330,7 +331,7 @@ function buildSnapshot(reportDate: string, generatedBy: number | null = null): D
   const uniqueSectors = new Set(reports.map((report) => report.setor || "Nao informado"));
   const uniqueAgents = new Set(reports.map((report) => report.agente_id));
   const criticalReports = reports.filter((report) => report.gravidade === "G4").length;
-  const openReports = reports.filter((report) => report.status !== "Concluido" && report.status !== "Concluído").length;
+  const openReports = reports.filter((report) => report.status !== "Concluido" && report.status !== "ConcluÃ­do").length;
   const closedReports = reports.length - openReports;
   const previousDate = getPreviousDate(reportDate);
   const previousReports = db
@@ -338,7 +339,7 @@ function buildSnapshot(reportDate: string, generatedBy: number | null = null): D
       `
       SELECT agente_id, gravidade, status, setor
       FROM reports
-      WHERE DATE(timestamp) = ?
+      WHERE DATE(timestamp, 'localtime') = ?
     `
     )
     .all(previousDate) as Array<{
@@ -351,7 +352,7 @@ function buildSnapshot(reportDate: string, generatedBy: number | null = null): D
   const previousUniqueAgents = new Set(previousReports.map((report) => report.agente_id));
   const previousCriticalReports = previousReports.filter((report) => report.gravidade === "G4").length;
   const previousOpenReports = previousReports.filter(
-    (report) => report.status !== "Concluido" && report.status !== "Concluído"
+    (report) => report.status !== "Concluido" && report.status !== "ConcluÃ­do"
   ).length;
   const reportPhotoQuery = db.prepare(
     `
@@ -863,7 +864,7 @@ function buildDailyReportHtml(snapshot: DailyReportSnapshot) {
     <div class="page">
       <section class="hero">
         <div>
-          <div class="eyebrow">MineGuard · Relatorio Diario</div>
+          <div class="eyebrow">MineGuard Â· Relatorio Diario</div>
           <h1>${escapeHtml(snapshot.title)}</h1>
           <p>Consolidado profissional para acompanhamento operacional, auditoria e exportacao executiva.</p>
         </div>
@@ -1018,7 +1019,7 @@ function buildDailyReportPdfHtml(snapshot: DailyReportSnapshot) {
         <section class="evidence-block">
           <div class="evidence-heading">
             <strong>${escapeHtml(report.titulo?.trim() || report.descricao.slice(0, 80))}</strong>
-            <span>${escapeHtml(report.categoria)} � ${escapeHtml(report.gravidade)} � ${escapeHtml(report.setor || "Nao informado")}</span>
+            <span>${escapeHtml(report.categoria)} · ${escapeHtml(report.gravidade)} · ${escapeHtml(report.setor || "Nao informado")}</span>
           </div>
           <div class="evidence-grid">${figures}</div>
         </section>
@@ -1295,7 +1296,7 @@ function buildDailyReportPdfHtml(snapshot: DailyReportSnapshot) {
       <header class="letterhead">
         <div class="letterhead-grid">
           <div>
-            <div class="eyebrow">MineGuard � Documento Operacional</div>
+            <div class="eyebrow">MineGuard · Documento Operacional</div>
             <h1>${escapeHtml(snapshot.title)}</h1>
             <div class="subtitle">Relatorio diario em formato institucional A4 para emissao, auditoria, arquivo e distribuicao interna.</div>
           </div>
@@ -1374,7 +1375,7 @@ function buildDailyReportPdfHtml(snapshot: DailyReportSnapshot) {
       </section>
 
       <div class="footer-note">
-        <span>MineGuard � Documento institucional de uso interno</span>
+        <span>MineGuard · Documento institucional de uso interno</span>
         <span>Formato A4 preparado para impressao, assinatura e arquivo</span>
       </div>
     </div>
@@ -1421,7 +1422,7 @@ async function buildPdfBuffer(snapshot: DailyReportSnapshot) {
       `,
       footerTemplate: `
         <div style="width:100%; font-size:8px; color:#64748b; padding:0 12mm; font-family:Segoe UI, Arial, sans-serif; display:flex; justify-content:space-between; align-items:center;">
-          <span>MineGuard · Relatorio Diario</span>
+          <span>MineGuard Â· Relatorio Diario</span>
           <span>Pagina <span class="pageNumber"></span> de <span class="totalPages"></span></span>
         </div>
       `,
@@ -1901,6 +1902,7 @@ export async function exportDailyReportsBatch(ids: number[], format: "html" | "p
     buffer,
   };
 }
+
 
 
 

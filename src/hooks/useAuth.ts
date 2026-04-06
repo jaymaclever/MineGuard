@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { User } from '../types';
 import { toast } from 'sonner';
-import i18n from '../i18n';
+import i18n, { normalizeLanguage } from '../i18n';
 
 export const useAuth = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -44,7 +44,9 @@ export const useAuth = () => {
         const user = await res.json();
         setCurrentUser(user);
         if (user.preferred_language) {
-          i18n.changeLanguage(user.preferred_language);
+          const normalized = normalizeLanguage(user.preferred_language);
+          i18n.changeLanguage(normalized);
+          localStorage.setItem('language', normalized);
         }
       }
     } catch (err) {

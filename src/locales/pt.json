@@ -1,0 +1,190 @@
+{
+  "header": {
+    "dashboard": "Painel",
+    "reports": "Ocorrências",
+    "users": "Utilizadores",
+    "settings": "Definições",
+    "logout": "Sair"
+  },
+  "sidebar": {
+    "dashboard": "Painel",
+    "operationalReports": "Relatórios Operacionais",
+    "dailyReports": "Relatórios Diários",
+    "management": "Gestão",
+    "users": "Utilizadores",
+    "permissions": "Permissões",
+    "audit": "Auditoria",
+    "settings": "Definições"
+  },
+  "dashboard": {
+    "title": "Painel",
+    "totalReports": "Total de Ocorrências",
+    "totalUsers": "Total de Utilizadores",
+    "recentIncidents": "Incidentes Recentes",
+    "reportsByCategory": "Ocorrências por Categoria",
+    "reportsBySeverity": "Ocorrências por Gravidade",
+    "last7Days": "Últimos 7 dias"
+  },
+  "reports": {
+    "title": "Ocorrências",
+    "newReport": "Nova Ocorrência",
+    "allReports": "Todas as Ocorrências",
+    "myReports": "Minhas Ocorrências",
+    "teamReports": "Ocorrências da Equipa",
+    "dailyReports": "Relatórios Diários",
+    "viewDetails": "Ver Detalhes",
+    "downloadPDF": "Baixar PDF",
+    "print": "Imprimir"
+  },
+  "forms": {
+    "reportTitle": "Título da Ocorrência",
+    "category": "Categoria",
+    "severity": "Gravidade",
+    "description": "Descrição",
+    "location": "Localização",
+    "coordinates": "Coordenadas",
+    "photos": "Fotos",
+    "witnesses": "Testemunhas",
+    "riskPotential": "Potencial de Risco",
+    "immediateAction": "Ação Imediata",
+    "submit": "Enviar",
+    "cancel": "Cancelar"
+  },
+  "filters": {
+    "filterBy": "Filtrar por",
+    "searchBy": "Pesquisar por",
+    "dateRange": "Intervalo de Datas",
+    "fromDate": "Data Inicial",
+    "toDate": "Data Final",
+    "category": "Categoria",
+    "severity": "Gravidade",
+    "status": "Status",
+    "agent": "Agente",
+    "apply": "Aplicar",
+    "clear": "Limpar"
+  },
+  "pagination": {
+    "page": "Página",
+    "of": "de",
+    "itemsPerPage": "Itens por página",
+    "previous": "Anterior",
+    "next": "Próximo"
+  },
+  "status": {
+    "open": "Aberto",
+    "closed": "Concluído",
+    "pending": "Pendente",
+    "inProgress": "Em andamento"
+  },
+  "severity": {
+    "G1": "G1 - Baixa",
+    "G2": "G2 - Média",
+    "G3": "G3 - Alta",
+    "G4": "G4 - Crítica"
+  },
+  "categories": {
+    "valores": "Valores",
+    "perimetro": "Perímetro",
+    "logistica": "Logística",
+    "safety": "Segurança",
+    "manutencao": "Manutenção",
+    "informativo": "Informativo",
+    "operativo": "Operativo"
+  },
+  "settings": {
+    "title": "Definições",
+    "appName": "Nome da Aplicação",
+    "appSlogan": "Slogan",
+    "theme": "Tema",
+    "color": "Cor",
+    "language": "Idioma",
+    "backup": "Backup",
+    "backupNow": "Fazer backup agora",
+    "restoreBackup": "Restaurar backup",
+    "githubUrl": "URL do GitHub",
+    "checkUpdates": "Verificar atualizações"
+  },
+  "messages": {
+    "success": "Operação concluída com sucesso",
+    "error": "Erro ao processar operação",
+    "loading": "A carregar...",
+    "noData": "Nenhum dado disponível"
+  },
+  "app": {
+    "actions": {
+      "newOccurrence": "Nova Ocorrência"
+    },
+    "sidebar": {
+      "dashboard": "Dashboard",
+      "occurrences": "Ocorrências",
+      "dailyReports": "Relatórios Diários",
+      "myReports": "Meus Relatórios",
+      "myDay": "Meu Dia",
+      "teamDay": "Dia da Equipa",
+      "alerts": "Alertas",
+      "staffManagement": "Gestão de Pessoal",
+      "permissionsRoles": "Permissões e Roles",
+      "settings": "Definições",
+      "parametrization": "Parametrização"
+    },
+    "dashboard": {
+      "commandCenter": "CENTRAL DE COMANDO",
+      "realtimeOverview": "Visão geral em tempo real",
+      "today": "HOJE",
+      "last7days": "7 DIAS",
+      "last30days": "30 DIAS",
+      "customRange": "INTERVALO",
+      "selectRangeDates": "Selecione as duas datas do intervalo",
+      "invalidRange": "A data inicial não pode ser maior que a data final",
+      "totalOccurrences": "Total Ocorrências",
+      "g4Level": "Nível G4 (Crítico)",
+      "activeAgents": "Agentes em Sistema",
+      "operationality": "Operacionalidade",
+      "operationsMap": "Mapa de Operações",
+      "operationsMapSubtitle": "Localização em tempo real das ocorrências registadas",
+      "latestOccurrences": "Últimas Ocorrências"
+    },
+    "tabs": {
+      "occurrencesLog": "LOG DE OCORRÊNCIAS",
+      "occurrencesLogSubtitle": "Histórico completo de registos operacionais.",
+      "myReports": "MEUS RELATÓRIOS",
+      "myReportsSubtitle": "Histórico pessoal de ocorrências registadas.",
+      "myDailyReport": "MEU RELATÓRIO DO DIA",
+      "parametrization": "PARAMETRIZAÇÃO",
+      "parametrizationSubtitle": "Definições globais do sistema e relatórios PDF.",
+      "staffManagement": "GESTÃO DE PESSOAL",
+      "staffManagementSubtitle": "Administração de agentes e níveis de acesso.",
+      "systemSettings": "DEFINIÇÕES DO SISTEMA",
+      "systemSettingsSubtitle": "Integrações e parâmetros globais de segurança."
+    },
+    "common": {
+      "distributionByCategory": "Distribuição por Categoria",
+      "distributionBySeverity": "Distribuição por Gravidade",
+      "titleDescription": "Título / Descrição",
+      "action": "Ação"
+    },
+    "reports": {
+      "errors": {
+        "loadDetails": "Erro ao carregar detalhes da ocorrência"
+      },
+      "validation": {
+        "titleRequired": "Informe o título da ocorrência.",
+        "descriptionRequired": "Descreva a ocorrência para continuar.",
+        "safetyRequired": "Nos relatórios Safety, preencha o tipo de incidente e o uso de EPI.",
+        "descriptionEmpty": "A descrição da ocorrência não pode ficar vazia."
+      },
+      "sending": {
+        "capturingLocation": "Capturando localização e preparando transmissão...",
+        "locationCaptured": "Localização capturada. Enviando relatório...",
+        "usingMapLocation": "Usando localização do mapa como referência...",
+        "success": "Relatório enviado com sucesso",
+        "error": "Erro ao enviar relatório",
+        "connectionError": "Erro de conexão com o servidor"
+      },
+      "edit": {
+        "success": "Ocorrência atualizada com sucesso!",
+        "saveError": "Erro ao guardar alterações"
+      }
+    }
+  }
+}

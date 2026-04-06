@@ -1045,7 +1045,7 @@ async function startServer() {
   });
 
   // --- Hierarchical Reports API ---
-  app.patch("/api/reports/:id/status", authenticate, (req: any, res) => {
+  app.patch("/api/reports/:id(\\d+)/status", authenticate, (req: any, res) => {
     const { id } = req.params;
     const { status } = req.body;
 
@@ -1078,7 +1078,7 @@ async function startServer() {
   });
 
   // Edit report (update description and/or photo) - only for open reports
-  app.patch("/api/reports/:id", authenticate, upload.array("fotos", 20), (req: any, res) => {
+  app.patch("/api/reports/:id(\\d+)", authenticate, upload.array("fotos", 20), (req: any, res) => {
     const { id } = req.params;
     const {
       titulo,
@@ -1174,7 +1174,7 @@ async function startServer() {
     }
   });
 
-  app.get("/api/reports/:id", authenticate, checkPermission('view_reports'), (req: any, res) => {
+  app.get("/api/reports/:id(\\d+)", authenticate, checkPermission('view_reports'), (req: any, res) => {
     try {
       const { id } = req.params;
       const report = db.prepare(`
@@ -1196,7 +1196,7 @@ async function startServer() {
     }
   });
 
-  app.delete("/api/reports/:id", authenticate, checkPermission('conclude_reports'), (req: any, res) => {
+  app.delete("/api/reports/:id(\\d+)", authenticate, checkPermission('conclude_reports'), (req: any, res) => {
     try {
       const { id } = req.params;
       
@@ -1419,6 +1419,7 @@ async function startServer() {
       reports.forEach((report) => {
         report.photos = db.prepare("SELECT * FROM report_photos WHERE report_id = ?").all(report.id);
       });
+      console.log(`[API personal] user=${userId} start=${startDate || "-"} end=${endDate || "-"} total=${reports.length}`);
       res.json(reports);
     } catch (err: any) {
       res.status(500).json({ status: "error", message: err.message });
@@ -1429,12 +1430,11 @@ async function startServer() {
   app.get("/api/reports/daily-personal", authenticate, (req: any, res) => {
     try {
       const userId = req.user.id;
-      const today = new Date().toISOString().split('T')[0];
       
       const reports = db.prepare(`
         SELECT r.* FROM reports r 
-        WHERE r.agente_id = ? AND DATE(r.timestamp) = ?
-      `).all(userId, today) as any[];
+        WHERE r.agente_id = ? AND DATE(r.timestamp, 'localtime') = DATE('now', 'localtime')
+      `).all(userId) as any[];
 
       const summary = {
         totalReports: reports.length,
@@ -1448,6 +1448,7 @@ async function startServer() {
         summary.byCategory[r.categoria] = (summary.byCategory[r.categoria] || 0) + 1;
       });
 
+      console.log(`[API daily-personal] user=${userId} total=${summary.totalReports}`);
       res.json(summary);
     } catch (err: any) {
       res.status(500).json({ status: "error", message: err.message });
@@ -1457,8 +1458,8 @@ async function startServer() {
   // Daily Report Team - Team's consolidated daily report (for supervisors/managers)
   app.get("/api/reports/daily-team", authenticate, (req: any, res) => {
     try {
-      const userWeight = req.user.peso || 0;
-      const today = new Date().toISOString().split('T')[0];
+      const userRole = req.user.nivel_hierarquico;
+      const userWeight = (db.prepare("SELECT peso FROM role_weights WHERE nivel_hierarquico = ?").get(userRole) as any)?.peso || 0;
 
       // Get reports from team members (lower weight = lower hierarchy)
       const reports = db.prepare(`
@@ -1466,8 +1467,8 @@ async function startServer() {
         FROM reports r
         JOIN users u ON r.agente_id = u.id
         JOIN role_weights rw ON u.nivel_hierarquico = rw.nivel_hierarquico
-        WHERE rw.peso < ? AND DATE(r.timestamp) = ?
-      `).all(userWeight, today) as any[];
+        WHERE rw.peso < ? AND DATE(r.timestamp, 'localtime') = DATE('now', 'localtime')
+      `).all(userWeight) as any[];
 
       const summary = {
         totalReports: reports.length,
@@ -1483,6 +1484,7 @@ async function startServer() {
         summary.byAgent[r.agente_nome] = (summary.byAgent[r.agente_nome] || 0) + 1;
       });
 
+      console.log(`[API daily-team] role=${userRole} weight=${userWeight} total=${summary.totalReports}`);
       res.json(summary);
     } catch (err: any) {
       res.status(500).json({ status: "error", message: err.message });
@@ -1550,6 +1552,15 @@ async function startServer() {
           console.error("Erro ao inserir na fila do Telegram:", queueErr);
         }
       }
+
+      // Keep the current daily archive in sync with newly created reports.
+      try {
+        const today = db.prepare("SELECT DATE('now', 'localtime') AS date").get() as { date: string };
+        generateDailyReport({ date: today.date, generatedBy: req.user?.id ?? null });
+      } catch (dailyErr) {
+        console.error("Erro ao atualizar relatorio diario apos nova ocorrencia:", dailyErr);
+      }
+
       res.json({ status: "success", id: result.lastInsertRowid, report: newReport });
     } catch (err: any) {
       res.status(500).json({ status: "error", message: err.message });

@@ -1,0 +1,579 @@
+[2m06:49:35[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "./locales/pt.json" from "src/i18n.ts". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/i18n.ts[39m:3:15
+[33m  1  |  import i18n from "i18next";
+  2  |  import { initReactI18next } from "react-i18next";
+  3  |  import pt from "./locales/pt.json";
+     |                  ^
+  4  |  import en from "./locales/en.json";
+  5  |  export const normalizeLanguage = (value) => {[39m
+[2m06:49:35[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "./locales/pt.json" from "src/i18n.ts". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/i18n.ts[39m:3:15
+[33m  1  |  import i18n from "i18next";
+  2  |  import { initReactI18next } from "react-i18next";
+  3  |  import pt from "./locales/pt.json";
+     |                  ^
+  4  |  import en from "./locales/en.json";
+  5  |  export const normalizeLanguage = (value) => {[39m
+[2m06:49:35[22m [31m[1m[vite][22m[39m [31mInternal server error: Failed to resolve import "./locales/pt.json" from "src/i18n.ts". Does the file exist?[39m
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/i18n.ts[39m:3:15
+[33m  1  |  import i18n from "i18next";
+  2  |  import { initReactI18next } from "react-i18next";
+  3  |  import pt from "./locales/pt.json";
+     |                  ^
+  4  |  import en from "./locales/en.json";
+  5  |  export const normalizeLanguage = (value) => {[39m
+      at TransformPluginContext._formatLog (C:\Users\admin\Vodoo\MineGuard\node_modules\vite\dist\node\chunks\dep-D4NMHUTW.js:42528:41)
+      at TransformPluginContext.error (C:\Users\admin\Vodoo\MineGuard\node_modules\vite\dist\node\chunks\dep-D4NMHUTW.js:42525:16)
+      at normalizeUrl (C:\Users\admin\Vodoo\MineGuard\node_modules\vite\dist\node\chunks\dep-D4NMHUTW.js:40504:23)
+      at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at async <anonymous> (C:\Users\admin\Vodoo\MineGuard\node_modules\vite\dist\node\chunks\dep-D4NMHUTW.js:40623:37)
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (C:\Users\admin\Vodoo\MineGuard\node_modules\vite\dist\node\chunks\dep-D4NMHUTW.js:40550:7)
+      at async EnvironmentPluginContainer.transform (C:\Users\admin\Vodoo\MineGuard\node_modules\vite\dist\node\chunks\dep-D4NMHUTW.js:42323:18)
+      at async loadAndTransform (C:\Users\admin\Vodoo\MineGuard\node_modules\vite\dist\node\chunks\dep-D4NMHUTW.js:35739:27)
+      at async viteTransformMiddleware (C:\Users\admin\Vodoo\MineGuard\node_modules\vite\dist\node\chunks\dep-D4NMHUTW.js:37254:24)
+[2m06:49:59[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "./locales/en.json" from "src/i18n.ts". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/i18n.ts[39m:4:15
+[33m  2  |  import { initReactI18next } from "react-i18next";
+  3  |  import pt from "./locales/pt.json";
+  4  |  import en from "./locales/en.json";
+     |                  ^
+  5  |  export const normalizeLanguage = (value) => {
+  6  |    const raw = (value || "").toLowerCase();[39m
+[2m06:49:59[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "./locales/en.json" from "src/i18n.ts". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/i18n.ts[39m:4:15
+[33m  2  |  import { initReactI18next } from "react-i18next";
+  3  |  import pt from "./locales/pt.json";
+  4  |  import en from "./locales/en.json";
+     |                  ^
+  5  |  export const normalizeLanguage = (value) => {
+  6  |    const raw = (value || "").toLowerCase();[39m
+[2m06:49:59[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "./locales/en.json" from "src/i18n.ts". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/i18n.ts[39m:4:15
+[33m  2  |  import { initReactI18next } from "react-i18next";
+  3  |  import pt from "./locales/pt.json";
+  4  |  import en from "./locales/en.json";
+     |                  ^
+  5  |  export const normalizeLanguage = (value) => {
+  6  |    const raw = (value || "").toLowerCase();[39m
+[2m06:49:59[22m [31m[1m[vite][22m[39m [31mInternal server error: Failed to resolve import "./locales/en.json" from "src/i18n.ts". Does the file exist?[39m
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/i18n.ts[39m:4:15
+[33m  2  |  import { initReactI18next } from "react-i18next";
+  3  |  import pt from "./locales/pt.json";
+  4  |  import en from "./locales/en.json";
+     |                  ^
+  5  |  export const normalizeLanguage = (value) => {
+  6  |    const raw = (value || "").toLowerCase();[39m
+      at TransformPluginContext._formatLog (C:\Users\admin\Vodoo\MineGuard\node_modules\vite\dist\node\chunks\dep-D4NMHUTW.js:42528:41)
+      at TransformPluginContext.error (C:\Users\admin\Vodoo\MineGuard\node_modules\vite\dist\node\chunks\dep-D4NMHUTW.js:42525:16)
+      at normalizeUrl (C:\Users\admin\Vodoo\MineGuard\node_modules\vite\dist\node\chunks\dep-D4NMHUTW.js:40504:23)
+      at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at async <anonymous> (C:\Users\admin\Vodoo\MineGuard\node_modules\vite\dist\node\chunks\dep-D4NMHUTW.js:40623:37)
+      at async Promise.all (index 3)
+      at async TransformPluginContext.transform (C:\Users\admin\Vodoo\MineGuard\node_modules\vite\dist\node\chunks\dep-D4NMHUTW.js:40550:7)
+      at async EnvironmentPluginContainer.transform (C:\Users\admin\Vodoo\MineGuard\node_modules\vite\dist\node\chunks\dep-D4NMHUTW.js:42323:18)
+      at async loadAndTransform (C:\Users\admin\Vodoo\MineGuard\node_modules\vite\dist\node\chunks\dep-D4NMHUTW.js:35739:27)
+      at async viteTransformMiddleware (C:\Users\admin\Vodoo\MineGuard\node_modules\vite\dist\node\chunks\dep-D4NMHUTW.js:37254:24)
+[2m06:52:51[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Users\admin\Vodoo\MineGuard\src\App.tsx: Unexpected token (313:0)
+
+[0m [90m 311 |[31m   )[33m;[31m
+ [90m 312 |[31m }[33m;[31m
+[31m[1m>[22m[31m[90m 313 |[31m }[33m;[31m
+ [90m     |[31m [31m[1m^[22m[31m
+ [90m 314 |[31m
+ [90m 315 |[31m [36mconst[31m [33mPaginationControls[31m [33m=[31m ({ currentPage[33m,[31m totalPages[33m,[31m onPageChange }[33m:[31m { currentPage[33m:[31m number[33m,[31m totalPages[33m:[31m number[33m,[31m onPageChange[33m:[31m (page[33m:[31m number) [33m=>[31m [36mvoid[31m }) [33m=>[31m {
+ [90m 316 |[31m   [36mreturn[31m ([0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/App.tsx[39m:313:0
+[33m  316|    return (
+  317|      <div className="flex items-center justify-between py-4 px-6 bg-zinc-900/30 border-t border-zinc-800/50">
+  318|        <div className="text-sm text-zinc-400">
+     |                               ^
+  319|          Página <span className="font-bold text-zinc-200">{currentPage}</span> de <span className="font-bold text-zinc-200">{totalPages}</span>
+  320|        </div>[39m
+      at toParseError (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parse-error.ts:95:45)
+      at raise (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\tokenizer\index.ts:1504:19)
+      at unexpected (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\tokenizer\index.ts:1544:16)
+      at parseExprAtom (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:1358:22)
+      at parseExprAtom (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:583:22)
+      at parseExprSubscripts (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:742:23)
+      at parseUpdate (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:721:21)
+      at parseMaybeUnary (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:683:23)
+      at parseMaybeUnary (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3893:20)
+      at parseMaybeUnaryOrPrivate (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:417:14)
+      at parseExprOps (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:429:23)
+      at parseMaybeConditional (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:384:23)
+      at parseMaybeAssign (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:301:21)
+      at parseMaybeAssign (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3764:22)
+      at parseExpressionBase (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:226:23)
+      at callback (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:217:39)
+      at allowInAnd (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:3192:16)
+      at parseExpression (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:217:17)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:688:23)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3220:20)
+      at parseStatementLike (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:482:17)
+      at parseModuleItem (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:419:17)
+      at parseBlockOrModuleBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1443:16)
+      at parseBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1417:10)
+      at parseProgram (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:229:10)
+      at parseTopLevel (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:203:25)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\index.ts:83:25)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:4354:20)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\index.ts:86:38)
+      at parser (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\parser\index.ts:29:19)
+      at parser.next (<anonymous>)
+      at normalizeFile (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transformation\normalize-file.ts:50:24)
+      at normalizeFile.next (<anonymous>)
+      at run (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transformation\index.ts:41:36)
+      at run.next (<anonymous>)
+      at transform (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transform.ts:29:20)
+      at transform.next (<anonymous>)
+      at step (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:261:32)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:273:13
+      at async.call.result.err.err (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:223:11)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:189:28
+      at <anonymous> (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\gensync-utils\async.ts:90:7)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:113:33
+      at step (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:287:14)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:273:13
+      at async.call.result.err.err (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:223:11)
+[2m06:52:51[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: C:\Users\admin\Vodoo\MineGuard\src\App.tsx: Unexpected token (313:0)
+
+[0m [90m 311 |[39m   )[33m;[39m
+ [90m 312 |[39m }[33m;[39m
+[31m[1m>[22m[39m[90m 313 |[39m }[33m;[39m
+ [90m     |[39m [31m[1m^[22m[39m
+ [90m 314 |[39m
+ [90m 315 |[39m [36mconst[39m [33mPaginationControls[39m [33m=[39m ({ currentPage[33m,[39m totalPages[33m,[39m onPageChange }[33m:[39m { currentPage[33m:[39m number[33m,[39m totalPages[33m:[39m number[33m,[39m onPageChange[33m:[39m (page[33m:[39m number) [33m=>[39m [36mvoid[39m }) [33m=>[39m {
+ [90m 316 |[39m   [36mreturn[39m ([0m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/App.tsx[39m:313:0
+[33m  316|    return (
+  317|      <div className="flex items-center justify-between py-4 px-6 bg-zinc-900/30 border-t border-zinc-800/50">
+  318|        <div className="text-sm text-zinc-400">
+     |                               ^
+  319|          Página <span className="font-bold text-zinc-200">{currentPage}</span> de <span className="font-bold text-zinc-200">{totalPages}</span>
+  320|        </div>[39m
+[2m06:52:51[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Users\admin\Vodoo\MineGuard\src\App.tsx: Unexpected token (313:0)
+
+[0m [90m 311 |[31m   )[33m;[31m
+ [90m 312 |[31m }[33m;[31m
+[31m[1m>[22m[31m[90m 313 |[31m }[33m;[31m
+ [90m     |[31m [31m[1m^[22m[31m
+ [90m 314 |[31m
+ [90m 315 |[31m [36mconst[31m [33mPaginationControls[31m [33m=[31m ({ currentPage[33m,[31m totalPages[33m,[31m onPageChange }[33m:[31m { currentPage[33m:[31m number[33m,[31m totalPages[33m:[31m number[33m,[31m onPageChange[33m:[31m (page[33m:[31m number) [33m=>[31m [36mvoid[31m }) [33m=>[31m {
+ [90m 316 |[31m   [36mreturn[31m ([0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/App.tsx[39m:313:0
+[33m  316|    return (
+  317|      <div className="flex items-center justify-between py-4 px-6 bg-zinc-900/30 border-t border-zinc-800/50">
+  318|        <div className="text-sm text-zinc-400">
+     |                               ^
+  319|          Página <span className="font-bold text-zinc-200">{currentPage}</span> de <span className="font-bold text-zinc-200">{totalPages}</span>
+  320|        </div>[39m
+      at toParseError (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parse-error.ts:95:45)
+      at raise (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\tokenizer\index.ts:1504:19)
+      at unexpected (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\tokenizer\index.ts:1544:16)
+      at parseExprAtom (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:1358:22)
+      at parseExprAtom (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:583:22)
+      at parseExprSubscripts (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:742:23)
+      at parseUpdate (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:721:21)
+      at parseMaybeUnary (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:683:23)
+      at parseMaybeUnary (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3893:20)
+      at parseMaybeUnaryOrPrivate (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:417:14)
+      at parseExprOps (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:429:23)
+      at parseMaybeConditional (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:384:23)
+      at parseMaybeAssign (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:301:21)
+      at parseMaybeAssign (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3764:22)
+      at parseExpressionBase (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:226:23)
+      at callback (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:217:39)
+      at allowInAnd (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:3192:16)
+      at parseExpression (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:217:17)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:688:23)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3220:20)
+      at parseStatementLike (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:482:17)
+      at parseModuleItem (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:419:17)
+      at parseBlockOrModuleBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1443:16)
+      at parseBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1417:10)
+      at parseProgram (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:229:10)
+      at parseTopLevel (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:203:25)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\index.ts:83:25)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:4354:20)
+      at parse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\index.ts:86:38)
+      at parser (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\parser\index.ts:29:19)
+      at parser.next (<anonymous>)
+      at normalizeFile (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transformation\normalize-file.ts:50:24)
+      at normalizeFile.next (<anonymous>)
+      at run (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transformation\index.ts:41:36)
+      at run.next (<anonymous>)
+      at transform (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\transform.ts:29:20)
+      at transform.next (<anonymous>)
+      at step (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:261:32)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:273:13
+      at async.call.result.err.err (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:223:11)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:189:28
+      at <anonymous> (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\core\src\gensync-utils\async.ts:90:7)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:113:33
+      at step (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:287:14)
+      at C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:273:13
+      at async.call.result.err.err (C:\Users\admin\Vodoo\MineGuard\node_modules\gensync\index.js:223:11)
+[2m06:53:46[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: C:\Users\admin\Vodoo\MineGuard\src\App.tsx: Unexpected token (699:6)
+
+[0m [90m 697 |[39m       [33m.[39mthen(res [33m=>[39m res[33m.[39mok [33m?[39m res[33m.[39mjson() [33m:[39m [36mnull[39m)
+ [90m 698 |[39m       [33m.[39mthen(user [33m=>[39m {
+[31m[1m>[22m[39m[90m 699 |[39m       [33m.[39mthen(user [33m=>[39m {
+ [90m     |[39m       [31m[1m^[22m[39m
+ [90m 700 |[39m         [36mif[39m (user) {
+ [90m 701 |[39m           setCurrentUser(user)[33m;[39m
+ [90m 702 |[39m           [36mconst[39m preferredLang [33m=[39m normalizeLanguage((user [36mas[39m any)[33m.[39mpreferred_language [33m||[39m [32m'pt'[39m)[33m;[39m[0m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/App.tsx[39m:699:6
+[33m  716|                id: '2',
+  717|                title: 'Dica de Segurança',
+  718|                message: 'Lembre-se de registrar todas as alterações de turno.',
+     |                          ^
+  719|                timestamp: new Date(Date.now() - 3600000).toISOString(),
+  720|                read: false,[39m
+[2m06:53:46[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Users\admin\Vodoo\MineGuard\src\App.tsx: Unexpected token (699:6)
+
+[0m [90m 697 |[31m       [33m.[31mthen(res [33m=>[31m res[33m.[31mok [33m?[31m res[33m.[31mjson() [33m:[31m [36mnull[31m)
+ [90m 698 |[31m       [33m.[31mthen(user [33m=>[31m {
+[31m[1m>[22m[31m[90m 699 |[31m       [33m.[31mthen(user [33m=>[31m {
+ [90m     |[31m       [31m[1m^[22m[31m
+ [90m 700 |[31m         [36mif[31m (user) {
+ [90m 701 |[31m           setCurrentUser(user)[33m;[31m
+ [90m 702 |[31m           [36mconst[31m preferredLang [33m=[31m normalizeLanguage((user [36mas[31m any)[33m.[31mpreferred_language [33m||[31m [32m'pt'[31m)[33m;[31m[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/App.tsx[39m:699:6
+[33m  716|                id: '2',
+  717|                title: 'Dica de Segurança',
+  718|                message: 'Lembre-se de registrar todas as alterações de turno.',
+     |                          ^
+  719|                timestamp: new Date(Date.now() - 3600000).toISOString(),
+  720|                read: false,[39m
+      at toParseError (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parse-error.ts:95:45)
+      at raise (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\tokenizer\index.ts:1504:19)
+      at unexpected (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\tokenizer\index.ts:1544:16)
+      at parseExprAtom (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:1358:22)
+      at parseExprAtom (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:583:22)
+      at parseExprSubscripts (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:742:23)
+      at parseUpdate (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:721:21)
+      at parseMaybeUnary (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:683:23)
+      at parseMaybeUnary (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3893:20)
+      at parseMaybeUnaryOrPrivate (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:417:14)
+      at parseExprOps (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:429:23)
+      at parseMaybeConditional (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:384:23)
+      at parseMaybeAssign (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:301:21)
+      at parseMaybeAssign (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3764:22)
+      at parseExpressionBase (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:226:23)
+      at callback (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:217:39)
+      at allowInAnd (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:3192:16)
+      at parseExpression (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:217:17)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:688:23)
+      at parseStatementContent (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3220:20)
+      at parseStatementLike (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:482:17)
+      at parseStatementListItem (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:431:17)
+      at parseBlockOrModuleBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1444:16)
+      at parseBlockBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1417:10)
+      at parseBlock (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\statement.ts:1385:10)
+      at parseFunctionBody (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:2621:24)
+      at parseArrowExpression (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:2562:10)
+      at parseExprAtom (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:1349:25)
+      at parseExprAtom (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:583:22)
+      at parseExprSubscripts (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:742:23)
+      at parseUpdate (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:721:21)
+      at parseMaybeUnary (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:683:23)
+      at parseMaybeUnary (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3893:20)
+      at parseMaybeUnaryOrPrivate (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:417:14)
+      at parseExprOps (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:429:23)
+      at parseMaybeConditional (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:384:23)
+      at parseMaybeAssign (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:301:21)
+      at parseMaybeAssign (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3764:22)
+      at callback (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:257:12)
+      at allowInAnd (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:3197:12)
+      at parseMaybeAssignAllowIn (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:256:17)
+      at parseMaybeAssignAllowInOrVoidPattern (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:3311:17)
+      at parseExprListItem (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:2793:18)
+      at parseCallExpressionArguments (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:1042:14)
+      at parseCoverCallAndAsyncArrowHead (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:922:29)
+      at parseSubscript (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:804:19)
+      at parseSubscript (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:2809:20)
+      at parseSubscripts (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:763:19)
+      at parseExprSubscripts (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:748:17)
+      at parseUpdate (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:721:21)
+[2m07:02:24[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Users\admin\Vodoo\MineGuard\src\App.tsx: Unexpected token (3153:34)
+
+[0m [90m 3151 |[31m
+ [90m 3152 |[31m                 [33m<[31m[33mdiv[31m className[33m=[31m[32m"grid grid-cols-1 lg:grid-cols-2 gap-8"[31m[33m>[31m
+[31m[1m>[22m[31m[90m 3153 |[31m                   [33m<[31m[33mCard[31m title[33m=[31m[32m"�Y"[31m[32m" Notificações"[31m subtitle[33m=[31m[32m"Configure email, Telegram e relatórios agendados"[31m className[33m=[31m[32m"lg:col-span-2"[31m[33m>[31m
+ [90m      |[31m                                   [31m[1m^[22m[31m
+ [90m 3154 |[31m                     [33m<[31m[33mdiv[31m className[33m=[31m[32m"space-y-6"[31m[33m>[31m
+ [90m 3155 |[31m                       {[90m/* Email SMTP Section */[31m}
+ [90m 3156 |[31m                       [33m<[31m[33mdiv[31m className[33m=[31m[32m"border-b border-zinc-800 pb-6"[31m[33m>[31m[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/App.tsx[39m:3153:34
+[33m  3191|                              </div>
+  3192|                            </div>
+  3193|                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+     |        ^
+  3194|                              <div className="space-y-1">
+  3195|                                <label className="text-[9px] font-black text-zinc-500 uppercase">Host SMTP</label>[39m
+      at toParseError (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parse-error.ts:95:45)
+      at raise (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\tokenizer\index.ts:1504:19)
+      at unexpected (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\tokenizer\index.ts:1544:16)
+      at jsxParseIdentifier (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:278:14)
+      at jsxParseNamespacedName (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:288:25)
+      at jsxParseAttribute (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:413:24)
+      at jsxParseOpeningElementAfterName (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:440:30)
+      at jsxParseOpeningElementAfterName (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:4215:20)
+      at jsxParseOpeningElementAt (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:430:19)
+      at jsxParseElementAt (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:470:35)
+      at jsxParseElementAt (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:483:34)
+      at jsxParseElementAt (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:483:34)
+      at jsxParseElement (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:559:19)
+      at parseExprAtom (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:573:21)
+      at parseExprSubscripts (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:742:23)
+      at parseUpdate (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:721:21)
+      at parseMaybeUnary (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:683:23)
+      at parseMaybeUnary (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3893:20)
+      at parseMaybeUnaryOrPrivate (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:417:14)
+      at parseExprOps (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:429:23)
+      at parseMaybeConditional (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:384:23)
+      at parseMaybeAssign (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:301:21)
+      at fn (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3745:23)
+      at tryParse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\util.ts:174:20)
+      at parseMaybeAssign (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3744:20)
+      at callback (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:257:12)
+      at allowInAnd (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:3197:12)
+      at parseMaybeAssignAllowIn (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:256:17)
+      at parseMaybeAssignAllowInOrVoidPattern (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:3311:17)
+      at parseParenAndDistinguishExpression (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:1825:16)
+      at parseExprAtom (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:1170:21)
+      at parseExprAtom (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:583:22)
+      at parseExprSubscripts (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:742:23)
+      at parseUpdate (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:721:21)
+      at parseMaybeUnary (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:683:23)
+      at parseMaybeUnary (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3893:20)
+      at parseMaybeUnaryOrPrivate (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:417:14)
+      at parseExprOpBaseRightExpr (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:597:12)
+      at parseExprOpRightExpr (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:582:21)
+      at parseExprOp (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:513:27)
+      at parseExprOp (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:2872:20)
+      at parseExprOp (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:534:21)
+      at parseExprOp (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:2872:20)
+      at parseExprOps (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:435:17)
+      at parseMaybeConditional (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:384:23)
+      at parseMaybeAssign (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:301:21)
+      at parseMaybeAssign (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3764:22)
+      at parseExpressionBase (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:226:23)
+      at callback (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:217:39)
+      at allowInAnd (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:3197:12)
+[2m07:02:24[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: C:\Users\admin\Vodoo\MineGuard\src\App.tsx: Unexpected token (3153:34)
+
+[0m [90m 3151 |[39m
+ [90m 3152 |[39m                 [33m<[39m[33mdiv[39m className[33m=[39m[32m"grid grid-cols-1 lg:grid-cols-2 gap-8"[39m[33m>[39m
+[31m[1m>[22m[39m[90m 3153 |[39m                   [33m<[39m[33mCard[39m title[33m=[39m[32m"�Y"[39m[32m" Notificações"[39m subtitle[33m=[39m[32m"Configure email, Telegram e relatórios agendados"[39m className[33m=[39m[32m"lg:col-span-2"[39m[33m>[39m
+ [90m      |[39m                                   [31m[1m^[22m[39m
+ [90m 3154 |[39m                     [33m<[39m[33mdiv[39m className[33m=[39m[32m"space-y-6"[39m[33m>[39m
+ [90m 3155 |[39m                       {[90m/* Email SMTP Section */[39m}
+ [90m 3156 |[39m                       [33m<[39m[33mdiv[39m className[33m=[39m[32m"border-b border-zinc-800 pb-6"[39m[33m>[39m[0m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/App.tsx[39m:3153:34
+[33m  3191|                              </div>
+  3192|                            </div>
+  3193|                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+     |        ^
+  3194|                              <div className="space-y-1">
+  3195|                                <label className="text-[9px] font-black text-zinc-500 uppercase">Host SMTP</label>[39m
+[2m07:02:24[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Users\admin\Vodoo\MineGuard\src\App.tsx: Unexpected token (3153:34)
+
+[0m [90m 3151 |[31m
+ [90m 3152 |[31m                 [33m<[31m[33mdiv[31m className[33m=[31m[32m"grid grid-cols-1 lg:grid-cols-2 gap-8"[31m[33m>[31m
+[31m[1m>[22m[31m[90m 3153 |[31m                   [33m<[31m[33mCard[31m title[33m=[31m[32m"�Y"[31m[32m" Notificações"[31m subtitle[33m=[31m[32m"Configure email, Telegram e relatórios agendados"[31m className[33m=[31m[32m"lg:col-span-2"[31m[33m>[31m
+ [90m      |[31m                                   [31m[1m^[22m[31m
+ [90m 3154 |[31m                     [33m<[31m[33mdiv[31m className[33m=[31m[32m"space-y-6"[31m[33m>[31m
+ [90m 3155 |[31m                       {[90m/* Email SMTP Section */[31m}
+ [90m 3156 |[31m                       [33m<[31m[33mdiv[31m className[33m=[31m[32m"border-b border-zinc-800 pb-6"[31m[33m>[31m[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/App.tsx[39m:3153:34
+[33m  3191|                              </div>
+  3192|                            </div>
+  3193|                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+     |        ^
+  3194|                              <div className="space-y-1">
+  3195|                                <label className="text-[9px] font-black text-zinc-500 uppercase">Host SMTP</label>[39m
+      at toParseError (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parse-error.ts:95:45)
+      at raise (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\tokenizer\index.ts:1504:19)
+      at unexpected (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\tokenizer\index.ts:1544:16)
+      at jsxParseIdentifier (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:278:14)
+      at jsxParseNamespacedName (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:288:25)
+      at jsxParseAttribute (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:413:24)
+      at jsxParseOpeningElementAfterName (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:440:30)
+      at jsxParseOpeningElementAfterName (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:4215:20)
+      at jsxParseOpeningElementAt (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:430:19)
+      at jsxParseElementAt (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:470:35)
+      at jsxParseElementAt (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:483:34)
+      at jsxParseElementAt (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:483:34)
+      at jsxParseElement (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:559:19)
+      at parseExprAtom (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:573:21)
+      at parseExprSubscripts (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:742:23)
+      at parseUpdate (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:721:21)
+      at parseMaybeUnary (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:683:23)
+      at parseMaybeUnary (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3893:20)
+      at parseMaybeUnaryOrPrivate (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:417:14)
+      at parseExprOps (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:429:23)
+      at parseMaybeConditional (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:384:23)
+      at parseMaybeAssign (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:301:21)
+      at fn (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3745:23)
+      at tryParse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\util.ts:174:20)
+      at parseMaybeAssign (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3744:20)
+      at callback (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:257:12)
+      at allowInAnd (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:3197:12)
+      at parseMaybeAssignAllowIn (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:256:17)
+      at parseMaybeAssignAllowInOrVoidPattern (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:3311:17)
+      at parseParenAndDistinguishExpression (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:1825:16)
+      at parseExprAtom (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:1170:21)
+      at parseExprAtom (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:583:22)
+      at parseExprSubscripts (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:742:23)
+      at parseUpdate (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:721:21)
+      at parseMaybeUnary (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:683:23)
+      at parseMaybeUnary (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3893:20)
+      at parseMaybeUnaryOrPrivate (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:417:14)
+      at parseExprOpBaseRightExpr (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:597:12)
+      at parseExprOpRightExpr (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:582:21)
+      at parseExprOp (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:513:27)
+      at parseExprOp (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:2872:20)
+      at parseExprOp (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:534:21)
+      at parseExprOp (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:2872:20)
+      at parseExprOps (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:435:17)
+      at parseMaybeConditional (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:384:23)
+      at parseMaybeAssign (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:301:21)
+      at parseMaybeAssign (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3764:22)
+      at parseExpressionBase (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:226:23)
+      at callback (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:217:39)
+      at allowInAnd (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:3197:12)
+[2m07:02:51[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: C:\Users\admin\Vodoo\MineGuard\src\App.tsx: Unexpected character '�'. (4911:119)
+
+[0m [90m 4909 |[39m                   [33m<[39m[33mdiv[39m[33m>[39m
+ [90m 4910 |[39m                     [33m<[39m[33mp[39m className[33m=[39m[32m"text-sm font-black text-white"[39m[33m>[39m[33mAbra[39m o menu [36mdo[39m [33mChrome[39m[33m<[39m[33m/[39m[33mp[39m[33m>[39m
+[31m[1m>[22m[39m[90m 4911 |[39m                     [33m<[39m[33mp[39m className[33m=[39m[32m"text-xs text-zinc-500 mt-0.5"[39m[33m>[39m[33mToque[39m nos [33m<[39m[33mstrong[39m className[33m=[39m[32m"text-zinc-300"[39m[33m>[39m[35m3[39m pontos �[33m<[39m�[33m<[39m[33m/[39m[33mstrong[39m[33m>[39m no canto superior direito [36mdo[39m [33mChrome[39m[33m<[39m[33m/[39m[33mp[39m[33m>[39m
+ [90m      |[39m                                                                                                                        [31m[1m^[22m[39m
+ [90m 4912 |[39m                   [33m<[39m[33m/[39m[33mdiv[39m[33m>[39m
+ [90m 4913 |[39m                 [33m<[39m[33m/[39m[33mdiv[39m[33m>[39m
+ [90m 4914 |[39m                 [33m<[39m[33mdiv[39m className[33m=[39m[32m"flex items-start gap-4"[39m[33m>[39m[0m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/App.tsx[39m:4911:119
+[2m07:02:51[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Users\admin\Vodoo\MineGuard\src\App.tsx: Unexpected character '�'. (4911:119)
+
+[0m [90m 4909 |[31m                   [33m<[31m[33mdiv[31m[33m>[31m
+ [90m 4910 |[31m                     [33m<[31m[33mp[31m className[33m=[31m[32m"text-sm font-black text-white"[31m[33m>[31m[33mAbra[31m o menu [36mdo[31m [33mChrome[31m[33m<[31m[33m/[31m[33mp[31m[33m>[31m
+[31m[1m>[22m[31m[90m 4911 |[31m                     [33m<[31m[33mp[31m className[33m=[31m[32m"text-xs text-zinc-500 mt-0.5"[31m[33m>[31m[33mToque[31m nos [33m<[31m[33mstrong[31m className[33m=[31m[32m"text-zinc-300"[31m[33m>[31m[35m3[31m pontos �[33m<[31m�[33m<[31m[33m/[31m[33mstrong[31m[33m>[31m no canto superior direito [36mdo[31m [33mChrome[31m[33m<[31m[33m/[31m[33mp[31m[33m>[31m
+ [90m      |[31m                                                                                                                        [31m[1m^[22m[31m
+ [90m 4912 |[31m                   [33m<[31m[33m/[31m[33mdiv[31m[33m>[31m
+ [90m 4913 |[31m                 [33m<[31m[33m/[31m[33mdiv[31m[33m>[31m
+ [90m 4914 |[31m                 [33m<[31m[33mdiv[31m className[33m=[31m[32m"flex items-start gap-4"[31m[33m>[31m[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/App.tsx[39m:4911:119
+      at toParseError (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parse-error.ts:95:45)
+      at raise (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\tokenizer\index.ts:1504:19)
+      at getTokenFromCode (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\tokenizer\index.ts:1059:16)
+      at getTokenFromCode (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:631:13)
+      at getTokenFromCode (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:4138:13)
+      at nextToken (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\tokenizer\index.ts:279:10)
+      at next (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\tokenizer\index.ts:122:10)
+      at jsxParseElementAt (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:478:20)
+      at jsxParseElementAt (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:483:34)
+      at jsxParseElementAt (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:483:34)
+      at jsxParseElementAt (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:483:34)
+      at jsxParseElementAt (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:483:34)
+      at jsxParseElementAt (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:483:34)
+      at jsxParseElementAt (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:483:34)
+      at jsxParseElement (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:559:19)
+      at parseExprAtom (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:573:21)
+      at parseExprSubscripts (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:742:23)
+      at parseUpdate (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:721:21)
+      at parseMaybeUnary (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:683:23)
+      at parseMaybeUnary (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3893:20)
+      at parseMaybeUnaryOrPrivate (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:417:14)
+      at parseExprOps (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:429:23)
+      at parseMaybeConditional (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:384:23)
+      at parseMaybeAssign (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:301:21)
+      at fn (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3745:23)
+      at tryParse (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\util.ts:174:20)
+      at parseMaybeAssign (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3744:20)
+      at callback (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:257:12)
+      at allowInAnd (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:3197:12)
+      at parseMaybeAssignAllowIn (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:256:17)
+      at parseMaybeAssignAllowInOrVoidPattern (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:3311:17)
+      at parseParenAndDistinguishExpression (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:1825:16)
+      at parseExprAtom (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:1170:21)
+      at parseExprAtom (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\jsx\index.ts:583:22)
+      at parseExprSubscripts (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:742:23)
+      at parseUpdate (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:721:21)
+      at parseMaybeUnary (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:683:23)
+      at parseMaybeUnary (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3893:20)
+      at parseMaybeUnaryOrPrivate (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:417:14)
+      at parseExprOpBaseRightExpr (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:597:12)
+      at parseExprOpRightExpr (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:582:21)
+      at parseExprOp (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:513:27)
+      at parseExprOp (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:2872:20)
+      at parseExprOps (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:435:17)
+      at parseMaybeConditional (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:384:23)
+      at parseMaybeAssign (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:301:21)
+      at parseMaybeAssign (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\plugins\typescript\index.ts:3764:22)
+      at parseExpressionBase (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:226:23)
+      at callback (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:217:39)
+      at allowInAnd (C:\Users\admin\Vodoo\MineGuard\node_modules\@babel\parser\src\parser\expression.ts:3197:12)
+[2m07:17:37[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "./locales/pt.json" from "src/i18n.ts". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/i18n.ts[39m:3:15
+[33m  1  |  import i18n from "i18next";
+  2  |  import { initReactI18next } from "react-i18next";
+  3  |  import pt from "./locales/pt.json";
+     |                  ^
+  4  |  import en from "./locales/en.json";
+  5  |  export const normalizeLanguage = (value) => {[39m
+[2m07:17:37[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "./locales/pt.json" from "src/i18n.ts". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/i18n.ts[39m:3:15
+[33m  1  |  import i18n from "i18next";
+  2  |  import { initReactI18next } from "react-i18next";
+  3  |  import pt from "./locales/pt.json";
+     |                  ^
+  4  |  import en from "./locales/en.json";
+  5  |  export const normalizeLanguage = (value) => {[39m
+[2m07:17:37[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "./locales/pt.json" from "src/i18n.ts". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/i18n.ts[39m:3:15
+[33m  1  |  import i18n from "i18next";
+  2  |  import { initReactI18next } from "react-i18next";
+  3  |  import pt from "./locales/pt.json";
+     |                  ^
+  4  |  import en from "./locales/en.json";
+  5  |  export const normalizeLanguage = (value) => {[39m
+[2m07:17:37[22m [31m[1m[vite][22m[39m [31mInternal server error: Failed to resolve import "./locales/pt.json" from "src/i18n.ts". Does the file exist?[39m
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/admin/Vodoo/MineGuard/src/i18n.ts[39m:3:15
+[33m  1  |  import i18n from "i18next";
+  2  |  import { initReactI18next } from "react-i18next";
+  3  |  import pt from "./locales/pt.json";
+     |                  ^
+  4  |  import en from "./locales/en.json";
+  5  |  export const normalizeLanguage = (value) => {[39m
+      at TransformPluginContext._formatLog (C:\Users\admin\Vodoo\MineGuard\node_modules\vite\dist\node\chunks\dep-D4NMHUTW.js:42528:41)
+      at TransformPluginContext.error (C:\Users\admin\Vodoo\MineGuard\node_modules\vite\dist\node\chunks\dep-D4NMHUTW.js:42525:16)
+      at normalizeUrl (C:\Users\admin\Vodoo\MineGuard\node_modules\vite\dist\node\chunks\dep-D4NMHUTW.js:40504:23)
+      at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at async <anonymous> (C:\Users\admin\Vodoo\MineGuard\node_modules\vite\dist\node\chunks\dep-D4NMHUTW.js:40623:37)
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (C:\Users\admin\Vodoo\MineGuard\node_modules\vite\dist\node\chunks\dep-D4NMHUTW.js:40550:7)
+      at async EnvironmentPluginContainer.transform (C:\Users\admin\Vodoo\MineGuard\node_modules\vite\dist\node\chunks\dep-D4NMHUTW.js:42323:18)
+      at async loadAndTransform (C:\Users\admin\Vodoo\MineGuard\node_modules\vite\dist\node\chunks\dep-D4NMHUTW.js:35739:27)
+      at async viteTransformMiddleware (C:\Users\admin\Vodoo\MineGuard\node_modules\vite\dist\node\chunks\dep-D4NMHUTW.js:37254:24)
