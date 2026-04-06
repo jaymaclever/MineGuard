@@ -453,28 +453,28 @@ export const DailyReportsWorkspaceTab: React.FC<Props> = ({ canGenerate, canExpo
         <Card
           title="Arquivo Diário"
           subtitle="Pesquisa operacional, filtros por intervalo e seleção do relatório base."
-          className="h-fit"
+          className="h-fit rounded-[2rem] border border-zinc-800/70"
           action={
             <div className="flex flex-wrap items-center gap-2">
               {canExport && (
                 <>
                   <button
                     onClick={() => handleBatchExport('html')}
-                    className="inline-flex items-center gap-2 rounded-lg border border-zinc-700 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-zinc-300 transition hover:border-primary/50 hover:text-primary"
+                    className="inline-flex items-center gap-2 rounded-xl border border-zinc-700 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-zinc-300 transition hover:border-primary/50 hover:text-primary"
                   >
                     <FileText size={14} />
                     HTML Lote
                   </button>
                   <button
                     onClick={() => handleBatchExport('pdf')}
-                    className="inline-flex items-center gap-2 rounded-lg border border-zinc-700 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-zinc-300 transition hover:border-primary/50 hover:text-primary"
+                    className="inline-flex items-center gap-2 rounded-xl border border-zinc-700 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-zinc-300 transition hover:border-primary/50 hover:text-primary"
                   >
                     <Download size={14} />
                     PDF Lote
                   </button>
                   <button
                     onClick={() => handleBatchExport('xlsx')}
-                    className="inline-flex items-center gap-2 rounded-lg border border-zinc-700 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-zinc-300 transition hover:border-primary/50 hover:text-primary"
+                    className="inline-flex items-center gap-2 rounded-xl border border-zinc-700 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-zinc-300 transition hover:border-primary/50 hover:text-primary"
                   >
                     <FileSpreadsheet size={14} />
                     XLSX Lote
@@ -483,7 +483,7 @@ export const DailyReportsWorkspaceTab: React.FC<Props> = ({ canGenerate, canExpo
               )}
               <button
                 onClick={() => loadList(false)}
-                className="inline-flex items-center gap-2 rounded-lg border border-zinc-700 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-zinc-300 transition hover:border-primary/50 hover:text-primary"
+                className="inline-flex items-center gap-2 rounded-xl border border-zinc-700 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-zinc-300 transition hover:border-primary/50 hover:text-primary"
               >
                 <RefreshCw size={14} />
                 Atualizar
