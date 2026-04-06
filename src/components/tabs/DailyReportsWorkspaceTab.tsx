@@ -168,6 +168,7 @@ export const DailyReportsWorkspaceTab: React.FC<Props> = ({ canGenerate, canExpo
   const [loadingList, setLoadingList] = useState(true);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const hasActiveFilters = Boolean(search.trim() || from || to);
 
   const aggregate = useMemo(() => {
     return items.reduce(
@@ -492,6 +493,33 @@ export const DailyReportsWorkspaceTab: React.FC<Props> = ({ canGenerate, canExpo
           }
         >
           <div className="space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                {hasActiveFilters && (
+                  <span className="rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-primary">
+                    filtros ativos
+                  </span>
+                )}
+                {selectedIds.length > 0 && (
+                  <span className="rounded-full border border-zinc-700 bg-zinc-900/70 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-zinc-200">
+                    {selectedIds.length} selecionado(s)
+                  </span>
+                )}
+              </div>
+              {hasActiveFilters && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearch('');
+                    setFrom('');
+                    setTo('');
+                  }}
+                  className="rounded-full border border-zinc-700 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-zinc-400 transition hover:border-zinc-600 hover:text-zinc-200"
+                >
+                  limpar pesquisa
+                </button>
+              )}
+            </div>
             <div className="relative">
               <Search size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" />
               <input
@@ -525,8 +553,9 @@ export const DailyReportsWorkspaceTab: React.FC<Props> = ({ canGenerate, canExpo
 
             <div className="space-y-3">
               {loadingList && (
-                <div className="flex items-center justify-center rounded-2xl border border-dashed border-zinc-800 py-12 text-zinc-500">
+                <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-zinc-800 py-12 text-zinc-500">
                   <Loader2 className="animate-spin" size={18} />
+                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-500">a carregar arquivo diário</p>
                 </div>
               )}
 
@@ -622,8 +651,9 @@ export const DailyReportsWorkspaceTab: React.FC<Props> = ({ canGenerate, canExpo
           )}
 
           {loadingDetail && (
-            <Card className="flex min-h-[420px] items-center justify-center">
+            <Card className="flex min-h-[420px] flex-col items-center justify-center gap-3">
               <Loader2 size={24} className="animate-spin text-zinc-500" />
+              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-500">a preparar preview executivo</p>
             </Card>
           )}
 
@@ -802,7 +832,7 @@ export const DailyReportsWorkspaceTab: React.FC<Props> = ({ canGenerate, canExpo
                     </div>
                     <div className="rounded-2xl border border-zinc-800/60 bg-zinc-950/40 px-4 py-4">
                       <p className="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-500">Função</p>
-                      <p className="mt-3 text-lg font-black text-zinc-100">{selectedReport.approval.approvedByRole || 'Nao informada'}</p>
+                      <p className="mt-3 text-lg font-black text-zinc-100">{selectedReport.approval.approvedByRole || 'Não informada'}</p>
                     </div>
                     <div className="rounded-2xl border border-zinc-800/60 bg-zinc-950/40 px-4 py-4">
                       <p className="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-500">Assinado em</p>
@@ -857,8 +887,8 @@ export const DailyReportsWorkspaceTab: React.FC<Props> = ({ canGenerate, canExpo
                           <p className="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-500">Contexto</p>
                           <div className="mt-3 space-y-2 text-zinc-300">
                             <p><span className="text-zinc-500">Agente:</span> {report.agente_nome}</p>
-                            <p><span className="text-zinc-500">Setor:</span> {report.setor || 'Nao informado'}</p>
-                            <p><span className="text-zinc-500">Equipamento:</span> {report.equipamento || 'Nao informado'}</p>
+                            <p><span className="text-zinc-500">Setor:</span> {report.setor || 'Não informado'}</p>
+                            <p><span className="text-zinc-500">Equipamento:</span> {report.equipamento || 'Não informado'}</p>
                           </div>
                         </div>
                       </div>

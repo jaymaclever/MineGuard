@@ -36,9 +36,16 @@ export interface Report {
   photos?: ReportPhoto[];
   coords_lat: number;
   coords_lng: number;
-  status: 'Aberto' | 'Concluído';
+  status: 'Aberto' | 'Concluído' | 'Aprovado';
   timestamp: string;
   metadata?: any;
+  setor?: string;
+  pessoas_envolvidas?: string;
+  equipamento?: string;
+  acao_imediata?: string;
+  requer_investigacao?: boolean;
+  testemunhas?: string;
+  potencial_risco?: string;
 }
 
 export interface Notification {
@@ -54,7 +61,7 @@ export interface Notification {
 export interface Stats {
   totalReports: number;
   totalUsers: number;
-  reportsByCategory: { name: string, value: number }[];
-  reportsBySeverity: { name: string, value: number }[];
-  reportsLast7Days: { date: string, count: number }[];
+  reportsByCategory: { name: string; value: number }[];
+  reportsBySeverity: { name: string; value: number }[];
+  reportsLast7Days: { date: string; count: number }[];
 }

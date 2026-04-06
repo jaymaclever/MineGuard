@@ -52,6 +52,8 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({
   onEditReport,
   onDeleteReport,
 }) => {
+  const hasActiveFilters = Boolean(filterCategory || filterSeverity || filterStatus || filterDateFrom || filterDateTo || filterAgent);
+
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
       <div className="space-y-4">
@@ -64,11 +66,17 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({
             <h2 className="mt-4 text-3xl font-black tracking-tight text-white">Ocorrências</h2>
             <p className="mt-2 text-sm text-zinc-500">Histórico completo, filtros e ações rápidas sobre o registo operacional.</p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <div className="rounded-2xl border border-zinc-800/70 bg-zinc-950/50 px-4 py-3">
               <p className="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-500">Resultados</p>
               <p className="mt-1 text-2xl font-black text-white">{reports.length}</p>
             </div>
+            {hasActiveFilters && (
+              <div className="rounded-2xl border border-primary/20 bg-primary/10 px-4 py-3">
+                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-primary/80">Leitura ativa</p>
+                <p className="mt-1 text-sm font-black text-white">Filtros aplicados</p>
+              </div>
+            )}
             <a href="/api/reports/export" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-2xl border border-zinc-800/70 bg-zinc-950/50 px-4 py-3 text-[10px] font-black uppercase tracking-[0.18em] text-zinc-300 transition-colors hover:border-primary/40 hover:text-white">
               <Download size={16} />
               Exportar
@@ -77,9 +85,16 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({
         </div>
 
         <div className="space-y-5 rounded-[1.75rem] border border-zinc-800/70 bg-[linear-gradient(180deg,rgba(20,21,27,0.92),rgba(10,10,13,0.96))] p-5">
-          <div>
-            <h3 className="text-sm font-black uppercase tracking-[0.18em] text-zinc-100">Filtros avançados</h3>
-            <p className="mt-1 text-xs text-zinc-500">Ajusta o recorte operacional por categoria, gravidade, agente e intervalo.</p>
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h3 className="text-sm font-black uppercase tracking-[0.18em] text-zinc-100">Filtros avançados</h3>
+              <p className="mt-1 text-xs text-zinc-500">Ajusta o recorte operacional por categoria, gravidade, agente e intervalo.</p>
+            </div>
+            {hasActiveFilters && (
+              <span className="inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-primary">
+                filtros ativos
+              </span>
+            )}
           </div>
 
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-7">
@@ -163,6 +178,7 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({
                       <div className="flex flex-col items-center gap-4 text-zinc-500">
                         <Search size={48} strokeWidth={1} className="opacity-20" />
                         <p className="text-xs font-black uppercase tracking-[0.3em]">Nenhuma ocorrência encontrada</p>
+                        <p className="max-w-md text-sm text-zinc-600">Experimente remover filtros ou registar uma nova ocorrência para alimentar o histórico operacional.</p>
                       </div>
                     </td>
                   </tr>
@@ -184,7 +200,7 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({
                               <img src={report.fotos_path} alt="Evidência" className="h-full w-full object-cover" />
                             </div>
                           )}
-                          <div className="flex flex-col">
+                          <div className="flex min-w-0 flex-col">
                             <span className="text-xs font-black uppercase tracking-tight text-zinc-100">{report.titulo || 'Sem título'}</span>
                             <p className="mt-0.5 line-clamp-1 text-[11px] text-zinc-500">{report.descricao}</p>
                           </div>
@@ -206,10 +222,10 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-1">
-                          <button onClick={(e) => { e.stopPropagation(); onEditReport(report); }} className="p-2 text-zinc-600 transition-colors hover:text-blue-400" title="Editar">
+                          <button onClick={(e) => { e.stopPropagation(); onEditReport(report); }} className="rounded-lg p-2 text-zinc-600 transition-colors hover:bg-blue-500/10 hover:text-blue-400" title="Editar">
                             <Edit2 size={14} />
                           </button>
-                          <button onClick={(e) => { e.stopPropagation(); onDeleteReport(report.id); }} className="p-2 text-zinc-600 transition-colors hover:text-red-400" title="Eliminar">
+                          <button onClick={(e) => { e.stopPropagation(); onDeleteReport(report.id); }} className="rounded-lg p-2 text-zinc-600 transition-colors hover:bg-red-500/10 hover:text-red-400" title="Eliminar">
                             <Trash2 size={14} />
                           </button>
                           <ChevronRight size={18} className="ml-2 text-zinc-600 transition-colors group-hover:text-white" />
@@ -228,6 +244,7 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({
             <div className="p-8 text-center">
               <Search size={30} className="mx-auto text-zinc-700" />
               <p className="mt-3 text-xs font-black uppercase tracking-[0.24em] text-zinc-400">Nenhuma ocorrência encontrada</p>
+              <p className="mt-2 text-sm text-zinc-600">Ajuste os filtros ou registe uma nova ocorrência.</p>
             </div>
           ) : (
             reports.map((report) => (
