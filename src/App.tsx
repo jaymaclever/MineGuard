@@ -48,6 +48,11 @@ import {
 import { Toaster, toast } from 'sonner';
 import { cn } from './lib/utils';
 import { DailyReportsWorkspaceTab } from './components/tabs/DailyReportsWorkspaceTab';
+import { CommandCenterTab } from './components/tabs/CommandCenterTab';
+import { CriticalOccurrencesTab } from './components/tabs/CriticalOccurrencesTab';
+import { TimelineTab } from './components/tabs/TimelineTab';
+import { EvidenceLibraryTab } from './components/tabs/EvidenceLibraryTab';
+import { ShiftsTab } from './components/tabs/ShiftsTab';
 import { io } from 'socket.io-client';
 import { normalizeLanguage } from './i18n';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
@@ -140,14 +145,16 @@ const SidebarItem = ({ icon: Icon, label, active, onClick }: { icon: any, label:
   <button 
     onClick={onClick}
     className={cn(
-      "w-full flex items-center gap-2.5 px-5 py-3.5 text-[12px] font-bold uppercase tracking-[0.14em] transition-all duration-300 relative group",
+      "w-full flex items-center gap-3 rounded-2xl px-4 py-3 text-[11px] font-black uppercase tracking-[0.16em] transition-all duration-300 relative group text-left overflow-hidden",
       active 
-        ? "text-primary bg-primary/5" 
-        : "text-zinc-500 hover:text-zinc-200 hover:bg-white/5"
+        ? "text-primary bg-primary/8 shadow-[inset_0_0_0_1px_rgba(249,115,22,0.12)]" 
+        : "text-zinc-500 hover:text-zinc-100 hover:bg-white/[0.03]"
     )}
   >
-    {active && <motion.div layoutId="active-nav" className="absolute left-0 w-1 h-2/3 bg-primary rounded-r-full" />}
-    <Icon size={18} className={cn("transition-transform group-hover:scale-110", active ? "text-primary glow-amber" : "text-zinc-600")} />
+    {active && <motion.div layoutId="active-nav" className="absolute left-0 top-1/2 h-8 w-1 -translate-y-1/2 rounded-r-full bg-primary" />}
+    <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border transition-all", active ? "border-primary/20 bg-primary/12 text-primary shadow-[0_0_30px_rgba(249,115,22,0.12)]" : "border-zinc-800/80 bg-zinc-900/60 text-zinc-600 group-hover:border-zinc-700 group-hover:text-zinc-200")}>
+      <Icon size={18} className={cn("transition-transform group-hover:scale-110", active && "glow-amber")} />
+    </div>
     <span className="truncate text-left leading-tight">{label}</span>
   </button>
 );
@@ -398,7 +405,42 @@ export default function App() {
   const { t } = useTranslation();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const activeTabStorageKey = 'mineguard_active_tab';
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'reports' | 'users' | 'permissions' | 'daily_reports' | 'personal_reports' | 'daily_report_personal' | 'daily_report_team' | 'alerts' | 'settings' | 'parametrization'>(() => (localStorage.getItem(activeTabStorageKey) as 'dashboard' | 'reports' | 'users' | 'permissions' | 'daily_reports' | 'personal_reports' | 'daily_report_personal' | 'daily_report_team' | 'alerts' | 'settings' | 'parametrization') || 'dashboard');
+  const [activeTab, setActiveTab] = useState<
+    'dashboard' |
+    'command_center' |
+    'critical_occurrences' |
+    'timeline' |
+    'evidence_library' |
+    'shifts' |
+    'reports' |
+    'users' |
+    'permissions' |
+    'daily_reports' |
+    'personal_reports' |
+    'daily_report_personal' |
+    'daily_report_team' |
+    'alerts' |
+    'settings' |
+    'parametrization'
+  >(() => (
+    localStorage.getItem(activeTabStorageKey) as
+      'dashboard' |
+      'command_center' |
+      'critical_occurrences' |
+      'timeline' |
+      'evidence_library' |
+      'shifts' |
+      'reports' |
+      'users' |
+      'permissions' |
+      'daily_reports' |
+      'personal_reports' |
+      'daily_report_personal' |
+      'daily_report_team' |
+      'alerts' |
+      'settings' |
+      'parametrization'
+  ) || 'dashboard');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
   const [filterSeverity, setFilterSeverity] = useState('');
@@ -1407,6 +1449,25 @@ export default function App() {
   };
 
   const COLORS = ['#f97316', '#3b82f6', '#10b981', '#ef4444', '#a855f7', '#eab308'];
+  const activeViewMeta: Record<string, { title: string; subtitle: string }> = {
+    dashboard: { title: t('app.sidebar.dashboard'), subtitle: t('app.dashboard.realtimeOverview') },
+    command_center: { title: 'Centro de Comando', subtitle: 'Prioridades operacionais, alertas e atalhos do turno.' },
+    critical_occurrences: { title: 'Ocorrências Críticas', subtitle: 'Priorização de G3 e G4 com foco na resposta.' },
+    timeline: { title: 'Linha do Tempo', subtitle: 'Leitura cronológica da atividade recente.' },
+    evidence_library: { title: 'Biblioteca de Evidências', subtitle: 'Consulta visual das fotografias associadas às ocorrências.' },
+    shifts: { title: 'Turnos', subtitle: 'Carga operacional do turno e atividade da equipa.' },
+    reports: { title: t('app.sidebar.occurrences'), subtitle: 'Registos operacionais, filtros e histórico consolidado.' },
+    daily_reports: { title: t('app.sidebar.dailyReports'), subtitle: 'Geração, pesquisa e exportação dos relatórios diários.' },
+    personal_reports: { title: t('app.sidebar.myReports'), subtitle: 'Acompanhamento pessoal dos teus registos.' },
+    daily_report_personal: { title: t('app.sidebar.myDay'), subtitle: 'Resumo pessoal do dia de operação.' },
+    daily_report_team: { title: t('app.sidebar.teamDay'), subtitle: 'Visão consolidada do dia da equipa.' },
+    alerts: { title: t('app.sidebar.alerts'), subtitle: 'Comunicação operacional e avisos prioritários.' },
+    users: { title: t('app.sidebar.staffManagement'), subtitle: 'Gestão de utilizadores, funções e acesso.' },
+    permissions: { title: t('app.sidebar.permissionsRoles'), subtitle: 'Perfis, hierarquia e matriz de permissões.' },
+    settings: { title: t('app.sidebar.settings'), subtitle: 'Integrações, notificações e ajustes do sistema.' },
+    parametrization: { title: t('app.sidebar.parametrization'), subtitle: 'Comportamentos operacionais e identidade do produto.' },
+  };
+  const currentViewMeta = activeViewMeta[activeTab] || activeViewMeta.dashboard;
 
   if (isLoading) {
     return (
@@ -1444,7 +1505,7 @@ export default function App() {
   }
 
   return (
-    <div className={cn("flex h-screen bg-[var(--bg-main)] text-[var(--text-main)] font-sans selection:bg-primary/30 relative overflow-hidden transition-all duration-700", focusMode && "brightness-50 sepia-[.4] hue-rotate-[-10deg] saturate-[1.5] contrast-125")}>
+    <div className={cn("app-shell flex h-screen bg-[var(--bg-main)] text-[var(--text-main)] font-sans selection:bg-primary/30 relative overflow-hidden transition-all duration-700", focusMode && "brightness-50 sepia-[.4] hue-rotate-[-10deg] saturate-[1.5] contrast-125")}>
       <div className="absolute inset-0 industrial-grid opacity-[0.03] pointer-events-none" />
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[50vh] bg-gradient-to-b from-primary/10 to-transparent opacity-30 pointer-events-none" />
       
@@ -1452,33 +1513,40 @@ export default function App() {
       
       {/* Sidebar */}
       <aside className={cn(
-        "hidden md:flex flex-col bg-[var(--bg-sidebar)] no-print border-r border-[var(--border)] transition-all duration-300",
-        publicSettings.app_layout === 'compact' ? "w-20" : "w-72",
+        "app-sidebar hidden md:flex flex-col no-print border-r border-[var(--border)] transition-all duration-300",
+        publicSettings.app_layout === 'compact' ? "w-24" : "w-[21rem]",
         focusMode && "!hidden"
       )}>
         <div className={cn(
-          "p-6 flex items-center gap-3 border-b border-[var(--border)]",
+          "p-6 flex items-center gap-4 border-b border-[var(--border)]",
           publicSettings.app_layout === 'compact' && "justify-center p-4"
         )}>
-          <div className="w-9 h-9 bg-primary rounded-lg flex items-center justify-center shadow-lg shadow-primary/20 shrink-0">
+          <div className="w-11 h-11 bg-primary rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20 shrink-0">
             <Shield className="text-primary-foreground" size={22} strokeWidth={2.5} />
           </div>
           {publicSettings.app_layout !== 'compact' && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-              <h1 className="font-black tracking-tighter text-xl leading-none uppercase">{publicSettings.app_name}</h1>
-              <p className="text-[10px] text-[var(--text-muted)] font-bold tracking-[0.2em] mt-1 uppercase">{publicSettings.app_slogan}</p>
+              <h1 className="font-black tracking-tighter text-2xl leading-none uppercase">{publicSettings.app_name}</h1>
+              <p className="text-[10px] text-[var(--text-muted)] font-bold tracking-[0.26em] mt-1 uppercase">{publicSettings.app_slogan}</p>
             </motion.div>
           )}
         </div>
         
-        <nav className="flex-1 mt-6 px-2 space-y-1">
+        <nav className="custom-scrollbar flex-1 overflow-y-auto px-3 py-5 space-y-1">
+          {publicSettings.app_layout !== 'compact' && <p className="nav-section-label">Operação</p>}
           {currentUser.permissions?.view_dashboard === true && <SidebarItem icon={Activity} label={publicSettings.app_layout === 'compact' ? "" : t('app.sidebar.dashboard')} active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} />}
+          {currentUser.permissions?.view_dashboard === true && <SidebarItem icon={Shield} label={publicSettings.app_layout === 'compact' ? "" : 'Centro de Comando'} active={activeTab === 'command_center'} onClick={() => setActiveTab('command_center')} />}
+          {currentUser.permissions?.view_reports === true && <SidebarItem icon={AlertTriangle} label={publicSettings.app_layout === 'compact' ? "" : 'Ocorrências Críticas'} active={activeTab === 'critical_occurrences'} onClick={() => setActiveTab('critical_occurrences')} />}
+          {currentUser.permissions?.view_dashboard === true && <SidebarItem icon={Clock} label={publicSettings.app_layout === 'compact' ? "" : 'Linha do Tempo'} active={activeTab === 'timeline'} onClick={() => setActiveTab('timeline')} />}
+          {currentUser.permissions?.view_reports === true && <SidebarItem icon={Camera} label={publicSettings.app_layout === 'compact' ? "" : 'Biblioteca de Evidências'} active={activeTab === 'evidence_library'} onClick={() => setActiveTab('evidence_library')} />}
+          {currentUser.permissions?.view_team_daily && <SidebarItem icon={Users} label={publicSettings.app_layout === 'compact' ? "" : 'Turnos'} active={activeTab === 'shifts'} onClick={() => setActiveTab('shifts')} />}
           {currentUser.permissions?.view_reports === true && <SidebarItem icon={FileText} label={publicSettings.app_layout === 'compact' ? "" : t('app.sidebar.occurrences')} active={activeTab === 'reports'} onClick={() => setActiveTab('reports')} />}
           {currentUser.permissions?.view_daily_reports === true && <SidebarItem icon={Calendar} label={publicSettings.app_layout === 'compact' ? "" : t('app.sidebar.dailyReports')} active={activeTab === 'daily_reports'} onClick={() => setActiveTab('daily_reports')} />}
           <SidebarItem icon={FileText} label={publicSettings.app_layout === 'compact' ? "" : t('app.sidebar.myReports')} active={activeTab === 'personal_reports'} onClick={() => setActiveTab('personal_reports')} />
           <SidebarItem icon={Calendar} label={publicSettings.app_layout === 'compact' ? "" : t('app.sidebar.myDay')} active={activeTab === 'daily_report_personal'} onClick={() => setActiveTab('daily_report_personal')} />
           {currentUser.permissions?.view_team_daily && <SidebarItem icon={Users} label={publicSettings.app_layout === 'compact' ? "" : t('app.sidebar.teamDay')} active={activeTab === 'daily_report_team'} onClick={() => setActiveTab('daily_report_team')} />}
           <SidebarItem icon={AlertTriangle} label={publicSettings.app_layout === 'compact' ? "" : t('app.sidebar.alerts')} active={activeTab === 'alerts'} onClick={() => setActiveTab('alerts')} />
+          {(currentUser.permissions?.manage_users === true || currentUser.permissions?.manage_permissions === true || currentUser.permissions?.manage_settings === true) && publicSettings.app_layout !== 'compact' && <p className="nav-section-label mt-6">Administração</p>}
           {currentUser.permissions?.manage_users === true && <SidebarItem icon={Users} label={publicSettings.app_layout === 'compact' ? "" : t('app.sidebar.staffManagement')} active={activeTab === 'users'} onClick={() => setActiveTab('users')} />}
           {currentUser.permissions?.manage_permissions === true && <SidebarItem icon={Lock} label={publicSettings.app_layout === 'compact' ? "" : t('app.sidebar.permissionsRoles')} active={activeTab === 'permissions'} onClick={() => setActiveTab('permissions')} />}
           {currentUser.permissions?.manage_settings === true && <SidebarItem icon={SettingsIcon} label={publicSettings.app_layout === 'compact' ? '' : t('app.sidebar.settings')} active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} />}
@@ -1487,7 +1555,7 @@ export default function App() {
 
         <div className="p-4 mt-auto border-t border-[var(--border)]">
           <div className={cn(
-            "flex items-center gap-3 p-3 rounded-xl bg-zinc-900/40 border border-zinc-800/50 group cursor-pointer hover:border-zinc-700 transition-all",
+            "flex items-center gap-3 p-3 rounded-2xl bg-zinc-950/60 border border-zinc-800/70 group cursor-pointer hover:border-zinc-700 transition-all",
             publicSettings.app_layout === 'compact' && "justify-center p-2"
           )}>
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center text-sm font-black text-black shadow-inner shrink-0">
@@ -1511,12 +1579,18 @@ export default function App() {
       {/* Main Content */}
       <main className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <header className="h-16 border-b border-[var(--border)] flex items-center justify-between px-4 md:px-8 bg-[var(--bg-card)]/80 backdrop-blur-md z-40 transition-all no-print">
-          <div className="flex items-center gap-3">
+        <header className="app-header border-b border-[var(--border)] z-40 transition-all no-print">
+          <div className="section-shell flex items-center justify-between gap-3 px-4 py-3 md:px-8 md:py-4">
+          <div className="flex items-center gap-3 min-w-0">
             <div className="md:hidden w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-lg shadow-primary/20 shrink-0">
               <Shield className="text-black" size={18} strokeWidth={3} />
             </div>
-            <div className="hidden md:flex items-center gap-4 flex-1 max-w-xl">
+            <div className="min-w-0">
+              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-zinc-500">{publicSettings.app_name}</p>
+              <h1 className="truncate text-sm font-black uppercase tracking-[0.08em] text-white md:text-xl">{currentViewMeta.title}</h1>
+              <p className="hidden max-w-xl truncate text-xs text-zinc-500 md:block">{currentViewMeta.subtitle}</p>
+            </div>
+            <div className="hidden xl:flex items-center gap-4 flex-1 max-w-xl ml-4">
               <div className="relative w-full group">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] group-focus-within:text-primary transition-colors" size={16} />
                 <input 
@@ -1528,14 +1602,11 @@ export default function App() {
                 />
               </div>
             </div>
-            <div className="md:hidden">
-              <h1 className="text-xs font-black tracking-tighter uppercase line-clamp-1">{publicSettings.app_name}</h1>
-            </div>
           </div>
           
-          <div className="flex items-center gap-2 md:gap-4">
+          <div className="flex items-center gap-2 md:gap-4 shrink-0">
             {/* Network Status Indicator */}
-            <div className="hidden sm:flex items-center gap-2 px-2 py-1 rounded-lg bg-zinc-900/50 border border-zinc-800/50" title={isOnline ? "Conexão Segura e Sincronizada" : "Modo Offline (Gravando Localmente)"}>
+            <div className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-xl bg-zinc-900/60 border border-zinc-800/60" title={isOnline ? "Conexão Segura e Sincronizada" : "Modo Offline (Gravando Localmente)"}>
               <div className={cn("w-2 h-2 rounded-full", isOnline ? "bg-green-500 animate-pulse" : "bg-orange-500")} />
               <span className={cn("text-[10px] font-bold uppercase tracking-widest", isOnline ? "text-green-500" : "text-orange-500")}>
                 {isOnline ? "Online" : "Offline / L"}
@@ -1545,7 +1616,7 @@ export default function App() {
             {/* Focus Mode Toggle */}
             <button 
               onClick={() => setFocusMode(!focusMode)}
-              className={cn("hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all shadow-sm", focusMode ? "bg-red-500/10 border-red-500/30 text-red-500" : "bg-zinc-900/50 border-zinc-800/50 text-zinc-500 hover:text-zinc-300")}
+              className={cn("hidden md:flex items-center gap-2 px-3 py-2 rounded-xl border transition-all shadow-sm", focusMode ? "bg-red-500/10 border-red-500/30 text-red-500" : "bg-zinc-900/50 border-zinc-800/50 text-zinc-500 hover:text-zinc-300")}
               title="Modo Operação Noturna"
             >
               <Activity size={12} className={focusMode ? "animate-pulse" : ""} />
@@ -1679,7 +1750,7 @@ export default function App() {
               </AnimatePresence>
             </div>
 
-            <div className="h-6 w-[1px] bg-[var(--border)] mx-2" />
+            <div className="hidden md:block h-8 w-[1px] bg-[var(--border)] mx-1" />
             {currentUser.permissions?.create_reports !== false && (
               <motion.button 
                 whileHover={{ scale: 1.02, boxShadow: '0 0 20px rgba(249, 115, 22, 0.3)' }}
@@ -1693,10 +1764,12 @@ export default function App() {
               </motion.button>
             )}
           </div>
+          </div>
         </header>
 
         {/* Content Area */}
-        <div className="flex-1 overflow-auto p-4 md:p-8 pb-24 md:pb-8 custom-scrollbar">
+        <div className="app-content flex-1 overflow-auto custom-scrollbar">
+          <div className="section-shell p-4 pb-28 md:p-8 md:pb-8">
           <AnimatePresence mode="wait">
             {activeTab === 'dashboard' && (
               <motion.div 
@@ -1706,16 +1779,24 @@ export default function App() {
                 exit={{ opacity: 0, y: -10 }}
                 className="space-y-8"
               >
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div>
-                    <h2 className="text-2xl md:text-3xl font-black tracking-tighter">{t('app.dashboard.commandCenter')}</h2>
-                    <p className="text-[10px] md:text-sm text-zinc-500 mt-1 uppercase font-bold tracking-widest md:normal-case md:font-normal">{t('app.dashboard.realtimeOverview')}</p>
-                  </div>
-                  <div className="flex items-center gap-2 bg-zinc-900/50 p-1 rounded-xl border border-zinc-800/50 self-start md:self-auto">
-                    <button onClick={() => setDashboardRange('today')} className={cn("px-3 py-1.5 text-[10px] font-bold rounded-lg transition-all", dashboardRange === 'today' ? "bg-zinc-800 text-zinc-100" : "text-zinc-500 hover:text-zinc-300")}>{t('app.dashboard.today')}</button>
-                    <button onClick={() => setDashboardRange('7days')} className={cn("px-3 py-1.5 text-[10px] font-bold rounded-lg transition-all", dashboardRange === '7days' ? "bg-zinc-800 text-zinc-100" : "text-zinc-500 hover:text-zinc-300")}>{t('app.dashboard.last7days')}</button>
-                    <button onClick={() => setDashboardRange('30days')} className={cn("px-3 py-1.5 text-[10px] font-bold rounded-lg transition-all", dashboardRange === '30days' ? "bg-zinc-800 text-zinc-100" : "text-zinc-500 hover:text-zinc-300")}>{t('app.dashboard.last30days')}</button>
-                    <button onClick={() => setIsDashboardRangeModalOpen(true)} className={cn("px-3 py-1.5 text-[10px] font-bold rounded-lg transition-all", dashboardRange === 'custom' ? "bg-zinc-800 text-zinc-100" : "text-zinc-500 hover:text-zinc-300")}>{dashboardRange === 'custom' ? dashboardCustomRangeLabel : t('app.dashboard.customRange')}</button>
+                <div className="overflow-hidden rounded-[2rem] border border-zinc-800/70 bg-[radial-gradient(circle_at_top_left,rgba(249,115,22,0.14),transparent_28%),linear-gradient(180deg,rgba(23,24,30,0.92),rgba(10,10,13,0.96))] p-5 md:p-7">
+                  <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
+                    <div className="max-w-3xl">
+                      <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.24em] text-primary">
+                        <Activity size={12} />
+                        Sala de situação
+                      </div>
+                      <h2 className="mt-4 text-3xl font-black tracking-tight text-white md:text-4xl">{t('app.dashboard.commandCenter')}</h2>
+                      <p className="mt-3 text-sm text-zinc-400 md:text-base">{t('app.dashboard.realtimeOverview')}</p>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2 self-start xl:self-auto">
+                      <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-zinc-800/70 bg-black/20 p-1.5">
+                        <button onClick={() => setDashboardRange('today')} className={cn("rounded-xl px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] transition-all", dashboardRange === 'today' ? "bg-primary text-black shadow-lg shadow-primary/20" : "text-zinc-500 hover:bg-zinc-900/70 hover:text-zinc-200")}>{t('app.dashboard.today')}</button>
+                        <button onClick={() => setDashboardRange('7days')} className={cn("rounded-xl px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] transition-all", dashboardRange === '7days' ? "bg-primary text-black shadow-lg shadow-primary/20" : "text-zinc-500 hover:bg-zinc-900/70 hover:text-zinc-200")}>{t('app.dashboard.last7days')}</button>
+                        <button onClick={() => setDashboardRange('30days')} className={cn("rounded-xl px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] transition-all", dashboardRange === '30days' ? "bg-primary text-black shadow-lg shadow-primary/20" : "text-zinc-500 hover:bg-zinc-900/70 hover:text-zinc-200")}>{t('app.dashboard.last30days')}</button>
+                        <button onClick={() => setIsDashboardRangeModalOpen(true)} className={cn("rounded-xl px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] transition-all", dashboardRange === 'custom' ? "bg-primary text-black shadow-lg shadow-primary/20" : "text-zinc-500 hover:bg-zinc-900/70 hover:text-zinc-200")}>{dashboardRange === 'custom' ? dashboardCustomRangeLabel : t('app.dashboard.customRange')}</button>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -2011,6 +2092,44 @@ export default function App() {
               </motion.div>
             )}
 
+            {activeTab === 'command_center' && (
+              <CommandCenterTab
+                stats={stats}
+                reports={reports}
+                alerts={alerts}
+                currentUser={currentUser}
+                setActiveTab={setActiveTab}
+                setSelectedReport={setSelectedReport}
+                setIsNewReportModalOpen={setIsNewReportModalOpen}
+              />
+            )}
+
+            {activeTab === 'critical_occurrences' && (
+              <CriticalOccurrencesTab
+                reports={reports}
+                setSelectedReport={setSelectedReport}
+              />
+            )}
+
+            {activeTab === 'timeline' && (
+              <TimelineTab
+                reports={reports}
+                alerts={alerts}
+                setSelectedReport={setSelectedReport}
+              />
+            )}
+
+            {activeTab === 'evidence_library' && (
+              <EvidenceLibraryTab
+                reports={reports}
+                setSelectedReport={setSelectedReport}
+              />
+            )}
+
+            {activeTab === 'shifts' && (
+              <ShiftsTab reports={reports} />
+            )}
+
             {activeTab === 'reports' && (
               <motion.div 
                 key="reports"
@@ -2020,23 +2139,37 @@ export default function App() {
                 className="space-y-6"
               >
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                     <div>
-                      <h2 className="text-2xl font-black tracking-tighter">{t('app.tabs.occurrencesLog')}</h2>
-                      <p className="text-sm text-zinc-500">{t('app.tabs.occurrencesLogSubtitle')}</p>
+                      <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.22em] text-primary">
+                        <FileText size={12} />
+                        Log operacional
+                      </div>
+                      <h2 className="mt-4 text-3xl font-black tracking-tight text-white">{t('app.tabs.occurrencesLog')}</h2>
+                      <p className="mt-2 text-sm text-zinc-500">{t('app.tabs.occurrencesLogSubtitle')}</p>
                     </div>
-                    <a href="/api/reports/export" target="_blank" rel="noopener noreferrer" className="p-2 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-400 hover:text-white transition-colors flex items-center justify-center">
-                      <Download size={16} />
-                    </a>
+                    <div className="flex items-center gap-3">
+                      <div className="rounded-2xl border border-zinc-800/70 bg-zinc-950/50 px-4 py-3">
+                        <p className="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-500">Resultados</p>
+                        <p className="mt-1 text-2xl font-black text-white">{reports.length}</p>
+                      </div>
+                      <a href="/api/reports/export" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-2xl border border-zinc-800/70 bg-zinc-950/50 px-4 py-3 text-[10px] font-black uppercase tracking-[0.18em] text-zinc-300 transition-colors hover:border-primary/40 hover:text-white">
+                        <Download size={16} />
+                        Exportar
+                      </a>
+                    </div>
                   </div>
 
-                  <div className="bg-zinc-900/20 border border-zinc-800/50 rounded-lg p-4 space-y-4">
-                    <h3 className="text-sm font-bold text-zinc-200">Filtros Avançados</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                  <div className="rounded-[1.75rem] border border-zinc-800/70 bg-[linear-gradient(180deg,rgba(20,21,27,0.92),rgba(10,10,13,0.96))] p-5 space-y-5">
+                    <div>
+                      <h3 className="text-sm font-black uppercase tracking-[0.18em] text-zinc-100">Filtros Avançados</h3>
+                      <p className="mt-1 text-xs text-zinc-500">Ajusta o recorte operacional por categoria, gravidade, agente e intervalo.</p>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-7 gap-3">
                       <div className="space-y-1">
                         <label className="text-[10px] font-black text-zinc-500 uppercase">Categoria</label>
                         <select 
-                          className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-primary"
+                          className="w-full rounded-xl border border-zinc-800/80 bg-zinc-950/70 px-3 py-2.5 text-xs text-zinc-200 focus:outline-none focus:border-primary"
                           value={filterCategory}
                           onChange={(e) => setFilterCategory(e.target.value)}
                         >
@@ -2053,7 +2186,7 @@ export default function App() {
                       <div className="space-y-1">
                         <label className="text-[10px] font-black text-zinc-500 uppercase">Gravidade</label>
                         <select 
-                          className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-primary"
+                          className="w-full rounded-xl border border-zinc-800/80 bg-zinc-950/70 px-3 py-2.5 text-xs text-zinc-200 focus:outline-none focus:border-primary"
                           value={filterSeverity}
                           onChange={(e) => setFilterSeverity(e.target.value)}
                         >
@@ -2067,7 +2200,7 @@ export default function App() {
                       <div className="space-y-1">
                         <label className="text-[10px] font-black text-zinc-500 uppercase">Status</label>
                         <select 
-                          className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-primary"
+                          className="w-full rounded-xl border border-zinc-800/80 bg-zinc-950/70 px-3 py-2.5 text-xs text-zinc-200 focus:outline-none focus:border-primary"
                           value={filterStatus}
                           onChange={(e) => setFilterStatus(e.target.value)}
                         >
@@ -2080,7 +2213,7 @@ export default function App() {
                         <label className="text-[10px] font-black text-zinc-500 uppercase">Data Inicial</label>
                         <input 
                           type="date"
-                          className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-primary"
+                          className="w-full rounded-xl border border-zinc-800/80 bg-zinc-950/70 px-3 py-2.5 text-xs text-zinc-200 focus:outline-none focus:border-primary"
                           value={filterDateFrom}
                           onChange={(e) => setFilterDateFrom(e.target.value)}
                         />
@@ -2089,7 +2222,7 @@ export default function App() {
                         <label className="text-[10px] font-black text-zinc-500 uppercase">Data Final</label>
                         <input 
                           type="date"
-                          className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-primary"
+                          className="w-full rounded-xl border border-zinc-800/80 bg-zinc-950/70 px-3 py-2.5 text-xs text-zinc-200 focus:outline-none focus:border-primary"
                           value={filterDateTo}
                           onChange={(e) => setFilterDateTo(e.target.value)}
                         />
@@ -2097,7 +2230,7 @@ export default function App() {
                       <div className="space-y-1">
                         <label className="text-[10px] font-black text-zinc-500 uppercase">Agente</label>
                         <select 
-                          className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-primary"
+                          className="w-full rounded-xl border border-zinc-800/80 bg-zinc-950/70 px-3 py-2.5 text-xs text-zinc-200 focus:outline-none focus:border-primary"
                           value={filterAgent}
                           onChange={(e) => setFilterAgent(e.target.value)}
                         >
@@ -2117,7 +2250,7 @@ export default function App() {
                             setFilterDateTo('');
                             setFilterAgent('');
                           }}
-                          className="w-full py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all"
+                          className="w-full rounded-xl border border-zinc-800/80 bg-zinc-950/70 py-2.5 text-[10px] font-black uppercase tracking-[0.18em] text-zinc-300 transition-all hover:border-zinc-700 hover:bg-zinc-900"
                         >
                           Limpar Filtros
                         </button>
@@ -2126,11 +2259,11 @@ export default function App() {
                   </div>
                 </div>
 
-                <div className="glass-card rounded-2xl overflow-hidden mb-20 md:mb-0">
+                <div className="glass-card rounded-[2rem] overflow-hidden border border-zinc-800/70 mb-20 md:mb-0">
                   <div className="hidden md:block">
                     <table className="w-full text-left border-collapse">
                       <thead>
-                        <tr className="border-b border-zinc-800 bg-zinc-900/50">
+                        <tr className="border-b border-zinc-800/70 bg-zinc-950/80">
                           <th className="hidden md:table-cell px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">ID</th>
                           <th className="px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">{t('app.common.titleDescription')}</th>
                           <th className="hidden lg:table-cell px-6 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">Categoria</th>
@@ -2159,7 +2292,7 @@ export default function App() {
                               animate={{ opacity: 1, x: 0 }}
                               transition={{ delay: index * 0.03 }}
                               onClick={() => openReportDetails(report)}
-                              className="hover:bg-primary/5 hover:border-primary/20 transition-all group cursor-pointer active:scale-[0.99] border-zinc-800/40"
+                              className="group cursor-pointer border-zinc-800/40 transition-all hover:bg-white/[0.025] active:scale-[0.995]"
                             >
                             <td className="hidden md:table-cell px-6 py-4 font-mono text-xs text-zinc-500">#{report.id}</td>
                             <td className="px-6 py-4">
@@ -3627,6 +3760,7 @@ export default function App() {
               </motion.div>
             )}
           </AnimatePresence>
+          </div>
         </div>
       </main>
 
@@ -3638,11 +3772,14 @@ export default function App() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-[#0a0a0a] border border-zinc-800 w-full max-w-4xl h-full md:h-auto md:max-h-[92vh] md:rounded-2xl overflow-hidden shadow-2xl flex flex-col relative"
+              className="w-full max-w-5xl h-full md:h-auto md:max-h-[92vh] overflow-hidden border border-zinc-800 bg-[linear-gradient(180deg,rgba(17,18,22,0.98),rgba(9,9,11,0.98))] shadow-2xl flex flex-col relative md:rounded-[2rem]"
             >
               <form onSubmit={handleCreateReport} className="flex flex-col h-full">
-                <div className="p-6 border-b border-zinc-800 flex items-center justify-between bg-zinc-900/20">
-                  <h3 className="text-xl font-black tracking-tighter uppercase">Registar Ocorrência</h3>
+                <div className="flex items-center justify-between border-b border-zinc-800/70 bg-zinc-950/60 px-5 py-5 md:px-7">
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.22em] text-primary">Nova ocorrência</p>
+                    <h3 className="mt-2 text-xl font-black tracking-tight uppercase text-white">Registar Ocorrência</h3>
+                  </div>
                   <button type="button" onClick={closeNewReportModal} className="text-zinc-500 hover:text-white transition-colors">
                     <XCircle size={24} />
                   </button>
@@ -4201,15 +4338,15 @@ export default function App() {
               initial={{ opacity: 0, y: 50, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 50, scale: 0.98 }}
-              className="bg-[#0a0a0a] border-zinc-800 md:border md:rounded-3xl w-full max-w-5xl h-full md:h-[90vh] overflow-hidden flex flex-col shadow-2xl relative"
+              className="w-full max-w-6xl h-full overflow-hidden border-zinc-800 bg-[linear-gradient(180deg,rgba(17,18,22,0.98),rgba(9,9,11,0.98))] flex flex-col shadow-2xl relative md:h-[90vh] md:rounded-[2rem] md:border"
             >
-              <div className="p-6 border-b border-zinc-800 flex items-center justify-between bg-zinc-900/20">
+              <div className="flex items-center justify-between border-b border-zinc-800/70 bg-zinc-950/60 px-5 py-5 md:px-7">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center text-primary">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary">
                     <FileText size={20} />
                   </div>
                   <div>
-                    <h3 className="text-xl font-black tracking-tighter uppercase">Detalhes da Ocorrência</h3>
+                    <h3 className="text-xl font-black tracking-tight uppercase">Detalhes da Ocorrência</h3>
                     <p className="text-[10px] text-zinc-500 font-bold tracking-widest uppercase">ID #{selectedReport.id} • {new Date(selectedReport.timestamp).toLocaleString()}</p>
                   </div>
                 </div>
@@ -4738,7 +4875,7 @@ export default function App() {
       </AnimatePresence>
 
       {/* Bottom Navigation (Mobile) */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 glass no-print flex items-center justify-between px-6 z-50 safe-bottom">
+      <nav className="md:hidden fixed bottom-3 left-3 right-3 h-16 glass no-print flex items-center justify-between px-5 rounded-[1.75rem] z-50 safe-bottom shadow-2xl shadow-black/30">
         <button 
           onClick={() => setActiveTab('dashboard')} 
           className={cn(
@@ -4764,7 +4901,7 @@ export default function App() {
         <motion.button 
           whileTap={{ scale: 0.85 }}
           onClick={() => setIsNewReportModalOpen(true)} 
-          className="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-black shadow-lg shadow-primary/30 -mt-10 border-4 border-[var(--bg-main)] glow-amber"
+          className="w-14 h-14 bg-primary rounded-full flex items-center justify-center text-black shadow-lg shadow-primary/30 -mt-12 border-4 border-[var(--bg-main)] glow-amber"
         >
           <Plus size={24} strokeWidth={4} />
         </motion.button>
@@ -4811,6 +4948,13 @@ export default function App() {
             >
               <div className="w-12 h-1 bg-zinc-800 rounded-full mx-auto mb-8 opacity-20" />
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <SidebarItem icon={Shield} label="Centro de Comando" active={activeTab === 'command_center'} onClick={() => { setActiveTab('command_center'); setIsMobileMenuOpen(false); }} />
+                <SidebarItem icon={AlertTriangle} label="Ocorrências Críticas" active={activeTab === 'critical_occurrences'} onClick={() => { setActiveTab('critical_occurrences'); setIsMobileMenuOpen(false); }} />
+                <SidebarItem icon={Clock} label="Linha do Tempo" active={activeTab === 'timeline'} onClick={() => { setActiveTab('timeline'); setIsMobileMenuOpen(false); }} />
+                <SidebarItem icon={Camera} label="Biblioteca de Evidências" active={activeTab === 'evidence_library'} onClick={() => { setActiveTab('evidence_library'); setIsMobileMenuOpen(false); }} />
+                {currentUser.permissions?.view_team_daily && (
+                  <SidebarItem icon={Users} label="Turnos" active={activeTab === 'shifts'} onClick={() => { setActiveTab('shifts'); setIsMobileMenuOpen(false); }} />
+                )}
                 <SidebarItem icon={FileText} label="Meus Relatos" active={activeTab === 'personal_reports'} onClick={() => { setActiveTab('personal_reports'); setIsMobileMenuOpen(false); }} />
                 <SidebarItem icon={Calendar} label="Meu Dia" active={activeTab === 'daily_report_personal'} onClick={() => { setActiveTab('daily_report_personal'); setIsMobileMenuOpen(false); }} />
                 {currentUser.permissions?.view_team_daily && (
