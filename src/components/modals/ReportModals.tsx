@@ -1,6 +1,6 @@
-import React from 'react';
+﻿import React from 'react';
 import { motion } from 'motion/react';
-import { Camera, XCircle } from 'lucide-react';
+import { Camera, Images, XCircle } from 'lucide-react';
 import { Badge } from '../ui/LayoutComponents';
 import { cn } from '../../lib/utils';
 
@@ -48,7 +48,7 @@ interface NewReportModalProps {
 const wizardSteps = [
   { step: 1, label: 'Contexto', hint: 'O que aconteceu e onde' },
   { step: 2, label: 'Detalhes', hint: 'Impacto, pessoas e risco' },
-  { step: 3, label: 'Evidências', hint: 'Ação imediata e anexos' },
+  { step: 3, label: 'EvidÃªncias', hint: 'AÃ§Ã£o imediata e anexos' },
 ];
 
 const getConfiguredSectors = (settings: SettingItem[]) =>
@@ -91,8 +91,8 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({
             <form onSubmit={onSubmit} className="flex h-full flex-col">
               <div className="flex items-center justify-between border-b border-zinc-800/70 bg-zinc-950/60 px-5 py-5 md:px-7">
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.22em] text-primary">Nova ocorrência</p>
-                  <h3 className="mt-2 text-xl font-black uppercase tracking-tight text-white">Registar ocorrência</h3>
+                  <p className="text-[10px] font-black uppercase tracking-[0.22em] text-primary">Nova ocorrÃªncia</p>
+                  <h3 className="mt-2 text-xl font-black uppercase tracking-tight text-white">Registar ocorrÃªncia</h3>
                 </div>
                 <button type="button" onClick={onClose} className="text-zinc-500 transition-colors hover:text-white">
                   <XCircle size={24} />
@@ -143,11 +143,11 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({
 
                 <div className={cn('space-y-5', newReportStep !== 1 && 'hidden')}>
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Título da ocorrência</label>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">TÃ­tulo da ocorrÃªncia</label>
                     <input
                       type="text"
                       required
-                      placeholder="Ex: Intrusão Setor Norte"
+                      placeholder="Ex: IntrusÃ£o Setor Norte"
                       className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm focus:border-primary focus:outline-none"
                       value={newReport.titulo}
                       onChange={(event) => setNewReport((current: NewReportState) => ({ ...current, titulo: event.target.value }))}
@@ -168,12 +168,12 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({
                           }))
                         }
                       >
-                        <option value="Valores">Proteção de Valores</option>
-                        <option value="Perímetro">Perímetro</option>
+                        <option value="Valores">ProteÃ§Ã£o de Valores</option>
+                        <option value="PerÃ­metro">PerÃ­metro</option>
                         <option value="Safety">Safety (HSE)</option>
                         <option value="Operativo">Operativo</option>
-                        <option value="Logística">Logística</option>
-                        <option value="Manutenção">Manutenção de Planta</option>
+                        <option value="LogÃ­stica">LogÃ­stica</option>
+                        <option value="ManutenÃ§Ã£o">ManutenÃ§Ã£o de Planta</option>
                         <option value="Informativo">Informativo</option>
                       </select>
                     </div>
@@ -185,15 +185,15 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({
                         onChange={(event) => setNewReport((current: NewReportState) => ({ ...current, gravidade: event.target.value }))}
                       >
                         <option value="G1">G1 (Baixa)</option>
-                        <option value="G2">G2 (Média)</option>
+                        <option value="G2">G2 (MÃ©dia)</option>
                         <option value="G3">G3 (Alta)</option>
-                        <option value="G4">G4 (Crítica)</option>
+                        <option value="G4">G4 (CrÃ­tica)</option>
                       </select>
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Descrição da ocorrência</label>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">DescriÃ§Ã£o da ocorrÃªncia</label>
                     <textarea
                       required
                       className="min-h-[100px] w-full resize-none rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm focus:border-primary focus:outline-none"
@@ -221,9 +221,9 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({
                           }
                         >
                           <option value="">Selecione...</option>
-                          <option value="Queda">Queda de mesmo nível</option>
+                          <option value="Queda">Queda de mesmo nÃ­vel</option>
                           <option value="Esmagamento">Risco de esmagamento</option>
-                          <option value="Quimico">Derramamento químico</option>
+                          <option value="Quimico">Derramamento quÃ­mico</option>
                           <option value="Outro">Outro</option>
                         </select>
                       </div>
@@ -243,7 +243,7 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({
                           <option value="">Selecione...</option>
                           <option value="Total">Sim, todos adequados</option>
                           <option value="Parcial">Parcial / inadequado</option>
-                          <option value="Nenhum">Não estava a usar</option>
+                          <option value="Nenhum">NÃ£o estava a usar</option>
                         </select>
                       </div>
                     </div>
@@ -313,9 +313,9 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({
                       >
                         <option value="">Selecione...</option>
                         <option value="Baixo">Baixo</option>
-                        <option value="Médio">Médio</option>
+                        <option value="MÃ©dio">MÃ©dio</option>
                         <option value="Alto">Alto</option>
-                        <option value="Crítico">Crítico</option>
+                        <option value="CrÃ­tico">CrÃ­tico</option>
                       </select>
                     </div>
                   </div>
@@ -324,7 +324,7 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({
                     <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Testemunhas</label>
                     <input
                       type="text"
-                      placeholder="Nomes separados por vírgula"
+                      placeholder="Nomes separados por vÃ­rgula"
                       value={newReport.testemunhas}
                       onChange={(event) => setNewReport((current: NewReportState) => ({ ...current, testemunhas: event.target.value }))}
                       className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm focus:border-primary focus:outline-none"
@@ -334,7 +334,7 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({
 
                 <div className={cn('space-y-5', newReportStep !== 3 && 'hidden')}>
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Ação imediata tomada</label>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">AÃ§Ã£o imediata tomada</label>
                     <textarea
                       className="min-h-[60px] w-full resize-none rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm focus:border-primary focus:outline-none"
                       placeholder="O que foi feito no momento?"
@@ -353,13 +353,13 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({
                         className="h-5 w-5 cursor-pointer rounded border-zinc-700 bg-zinc-900 text-primary focus:ring-primary/20"
                       />
                       <label htmlFor="investigacao" className="flex-1 cursor-pointer text-sm font-bold text-zinc-300">
-                        Esta ocorrência requer investigação formal
+                        Esta ocorrÃªncia requer investigaÃ§Ã£o formal
                       </label>
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Galeria de evidências</label>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Galeria de evidÃªncias</label>
                     <div
                       className="relative mb-3 group"
                       onDragOver={(event) => {
@@ -381,15 +381,44 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({
                         multiple
                         className="hidden"
                         id="report-photos"
-                        onChange={(event) => addNewReportPhotos(Array.from(event.target.files || []))}
+                        onChange={(event) => {
+                          addNewReportPhotos(Array.from(event.target.files || []));
+                          event.currentTarget.value = '';
+                        }}
                       />
-                      <label
-                        htmlFor="report-photos"
-                        className="flex w-full cursor-pointer items-center justify-center gap-3 rounded-xl border-2 border-dashed border-zinc-800 bg-zinc-900 py-6 transition-all hover:border-primary/50 hover:bg-zinc-900/50"
-                      >
-                        <Camera className="text-zinc-500 transition-colors group-hover:text-primary" size={24} />
-                        <span className="text-xs font-bold text-zinc-500 group-hover:text-zinc-300">Clique ou arraste múltiplas fotos aqui</span>
-                      </label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        className="hidden"
+                        id="report-camera"
+                        onChange={(event) => {
+                          addNewReportPhotos(Array.from(event.target.files || []));
+                          event.currentTarget.value = '';
+                        }}
+                      />
+                      <div className="rounded-xl border-2 border-dashed border-zinc-800 bg-zinc-900 py-5 transition-all hover:border-primary/50 hover:bg-zinc-900/50">
+                        <div className="flex flex-col items-center gap-3 px-4 text-center">
+                          <Camera className="text-zinc-500 transition-colors group-hover:text-primary" size={24} />
+                          <span className="text-xs font-bold text-zinc-500 group-hover:text-zinc-300">Arraste fotografias aqui ou escolha uma das opções abaixo</span>
+                          <div className="flex w-full flex-col gap-2 sm:flex-row">
+                            <label
+                              htmlFor="report-photos"
+                              className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl border border-zinc-700 bg-zinc-950/80 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-zinc-300 transition-all hover:border-primary/50 hover:text-white"
+                            >
+                              <Images size={16} />
+                              Importar fotografias
+                            </label>
+                            <label
+                              htmlFor="report-camera"
+                              className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl border border-primary/30 bg-primary/10 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-primary transition-all hover:bg-primary/15"
+                            >
+                              <Camera size={16} />
+                              Tirar fotografia
+                            </label>
+                          </div>
+                        </div>
+                      </div>
                     </div>
 
                     {newReport.fotos.length > 0 && (
@@ -413,7 +442,7 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({
                             </div>
                             <input
                               type="text"
-                              placeholder="Legenda/descrição desta foto..."
+                              placeholder="Legenda/descrição desta fotografia..."
                               value={photo.caption}
                               onChange={(event) =>
                                 setNewReport((current: NewReportState) => {
@@ -440,7 +469,7 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({
                 )}
                 {newReportStep < 3 && (
                   <button type="button" onClick={onNextStep} className="w-full rounded-lg bg-primary px-8 py-2.5 text-[10px] font-black uppercase tracking-widest text-black transition-all hover:bg-primary/90 sm:w-auto">
-                    Próximo
+                    PrÃ³ximo
                   </button>
                 )}
                 <button
@@ -454,7 +483,7 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({
                   Visualizar
                 </button>
                 <button type="submit" className="w-full rounded-lg bg-primary px-8 py-3 text-[10px] font-black uppercase tracking-widest text-black shadow-lg shadow-primary/20 transition-all hover:bg-primary/90 sm:w-auto">
-                  Transmitir relatório
+                  Transmitir relatÃ³rio
                 </button>
               </div>
             </form>
@@ -471,7 +500,7 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({
             className="w-full max-w-3xl overflow-hidden rounded-2xl border border-zinc-800 bg-[#0a0a0a] shadow-2xl"
           >
             <div className="flex items-center justify-between border-b border-zinc-800 bg-zinc-900/20 p-6">
-              <h3 className="text-xl font-black uppercase tracking-tighter">Visualização da ocorrência</h3>
+              <h3 className="text-xl font-black uppercase tracking-tighter">VisualizaÃ§Ã£o da ocorrÃªncia</h3>
               <button type="button" onClick={onClosePreview} className="text-zinc-500 transition-colors hover:text-white">
                 <XCircle size={24} />
               </button>
@@ -479,8 +508,8 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({
 
             <div className="max-h-[75vh] space-y-6 overflow-y-auto p-4 sm:p-6">
               <div>
-                <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-zinc-500">Título</p>
-                <p className="text-lg font-bold text-zinc-100">{newReport.titulo || 'Sem título'}</p>
+                <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-zinc-500">TÃ­tulo</p>
+                <p className="text-lg font-bold text-zinc-100">{newReport.titulo || 'Sem tÃ­tulo'}</p>
               </div>
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -497,8 +526,8 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({
               </div>
 
               <div>
-                <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-zinc-500">Descrição</p>
-                <p className="rounded bg-zinc-900/50 p-3 text-sm leading-relaxed text-zinc-300">{newReport.descricao || 'Sem descrição'}</p>
+                <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-zinc-500">DescriÃ§Ã£o</p>
+                <p className="rounded bg-zinc-900/50 p-3 text-sm leading-relaxed text-zinc-300">{newReport.descricao || 'Sem descriÃ§Ã£o'}</p>
               </div>
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -525,7 +554,7 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({
 
               {newReport.acao_imediata && (
                 <div>
-                  <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-zinc-500">Ação imediata</p>
+                  <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-zinc-500">AÃ§Ã£o imediata</p>
                   <p className="rounded bg-zinc-900/50 p-2 text-sm text-zinc-300">{newReport.acao_imediata}</p>
                 </div>
               )}
@@ -546,13 +575,13 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({
 
               {newReport.requer_investigacao && (
                 <div className="rounded border border-red-800/50 bg-red-900/20 p-3">
-                  <p className="text-sm font-bold text-red-400">Requer investigação formal</p>
+                  <p className="text-sm font-bold text-red-400">Requer investigaÃ§Ã£o formal</p>
                 </div>
               )}
 
               {newReport.fotos.length > 0 && (
                 <div>
-                  <p className="mb-3 text-[10px] font-black uppercase tracking-widest text-zinc-500">Evidências ({newReport.fotos.length})</p>
+                  <p className="mb-3 text-[10px] font-black uppercase tracking-widest text-zinc-500">EvidÃªncias ({newReport.fotos.length})</p>
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     {newReport.fotos.map((photo, index) => (
                       <div key={`${photo.file.name}-${index}`} className="space-y-1">
@@ -579,3 +608,4 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({
     </>
   );
 };
+

@@ -1330,7 +1330,7 @@ export default function App() {
   };
 
   const handleDeleteUser = async (id: number) => {
-    if (!confirm("Deseja realmente excluir este utilizador?")) return;
+    if (!confirm("Deseja realmente eliminar este utilizador?")) return;
     try {
       const res = await fetch(`/api/users/${id}`, { method: 'DELETE', credentials: 'include' });
       if (res.ok) {
@@ -2887,7 +2887,7 @@ export default function App() {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-sm font-bold text-zinc-200">Geração Automática</p>
-                          <p className="text-[10px] text-zinc-500">Relatório diário às 06:00 AM.</p>
+                          <p className="text-[10px] text-zinc-500">Relatório diário às 06:00.</p>
                         </div>
                         <div className="w-10 h-5 bg-primary rounded-full relative">
                           <div className="absolute right-1 top-1 w-3 h-3 bg-black rounded-full" />
@@ -2903,18 +2903,18 @@ export default function App() {
                     </div>
                   </Card>
 
-                  <Card title="Personalização da UI" subtitle="Altere a aparência global do sistema" className="lg:col-span-2">
+                  <Card title="Personalização da interface" subtitle="Altere a aparência global do sistema" className="lg:col-span-2">
                     <form 
                       key={publicSettings.app_name + publicSettings.app_theme_mode + publicSettings.app_theme_palette}
                       onSubmit={async (e) => {
                         e.preventDefault();
                         const formData = new FormData(e.currentTarget);
                         const settings = [
-                          { key: 'app_name', value: formData.get('app_name'), description: 'Nome da Aplicação' },
-                          { key: 'app_slogan', value: formData.get('app_slogan'), description: 'Slogan da Aplicação' },
-                          { key: 'app_theme_mode', value: formData.get('app_theme_mode'), description: 'Modo do Tema (light/dark)' },
-                          { key: 'app_theme_palette', value: formData.get('app_theme_palette'), description: 'Paleta de Cores' },
-                          { key: 'app_layout', value: formData.get('app_layout'), description: 'Layout do Sistema' }
+                          { key: 'app_name', value: formData.get('app_name'), description: 'Nome da aplicação' },
+                          { key: 'app_slogan', value: formData.get('app_slogan'), description: 'Slogan da aplicação' },
+                          { key: 'app_theme_mode', value: formData.get('app_theme_mode'), description: 'Modo do tema (light/dark)' },
+                          { key: 'app_theme_palette', value: formData.get('app_theme_palette'), description: 'Paleta de cores' },
+                          { key: 'app_layout', value: formData.get('app_layout'), description: 'Layout do sistema' }
                         ];
                         
                         try {
@@ -2924,7 +2924,7 @@ export default function App() {
                             body: JSON.stringify({ settings }),
                             credentials: 'include'
                           });
-                          toast.success("Interface atualizada! Recarregando...");
+                          toast.success("Interface atualizada. A recarregar...");
                           setTimeout(() => window.location.reload(), 1500);
                         } catch (err) {
                           toast.error("Erro ao guardar personalização");
@@ -2932,7 +2932,7 @@ export default function App() {
                       }} className="space-y-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                          <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Nome do App</label>
+                          <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Nome da aplicação</label>
                           <input 
                             name="app_name"
                             type="text"
@@ -2941,7 +2941,7 @@ export default function App() {
                           />
                         </div>
                         <div className="space-y-2">
-                          <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Slogan</label>
+                          <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Slogan da aplicação</label>
                           <input 
                             name="app_slogan"
                             type="text"
@@ -2953,24 +2953,24 @@ export default function App() {
 
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div className="space-y-2">
-                          <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Modo Visual</label>
+                          <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Modo do tema</label>
                           <select 
                             name="app_theme_mode"
                             defaultValue={publicSettings.app_theme_mode}
                             className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
                           >
-                            <option value="dark">Modo Escuro (Dark)</option>
-                            <option value="light">Modo Claro (Light)</option>
+                            <option value="dark">Escuro</option>
+                            <option value="light">Claro</option>
                           </select>
                         </div>
                         <div className="space-y-2">
-                          <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Paleta de Cores</label>
+                          <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Paleta de cores</label>
                           <select 
                             name="app_theme_palette"
                             defaultValue={publicSettings.app_theme_palette}
                             className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
                           >
-                            <option value="orange">Laranja (Padrão)</option>
+                            <option value="orange">Laranja (padrão)</option>
                             <option value="blue">Azul Corporativo</option>
                             <option value="green">Verde Operacional</option>
                             <option value="red">Vermelho Alerta</option>
@@ -2978,13 +2978,13 @@ export default function App() {
                           </select>
                         </div>
                         <div className="space-y-2">
-                          <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Layout Base</label>
+                          <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Layout do sistema</label>
                           <select 
                             name="app_layout"
                             defaultValue={publicSettings.app_layout}
                             className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
                           >
-                            <option value="default">Padrão (Sidebar)</option>
+                            <option value="default">Padrão (barra lateral)</option>
                             <option value="compact">Compacto</option>
                           </select>
                         </div>
@@ -2995,18 +2995,18 @@ export default function App() {
                           type="submit"
                           className="px-8 py-2.5 bg-primary hover:opacity-90 text-primary-foreground rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-primary/20"
                         >
-                          Aplicar Nova Identidade
+                          Aplicar identidade visual
                         </button>
                       </div>
                     </form>
                   </Card>
 
-                  <Card title="Backup & Restauração" subtitle="Gira backups da base de dados" className="lg:col-span-2">
+                  <Card title="Backup e Restauro" subtitle="Gira cópias de segurança da base de dados" className="lg:col-span-2">
                     <div className="space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <p className="text-sm font-bold text-zinc-200 mb-3">Fazer Backup</p>
-                          <p className="text-[10px] text-zinc-500 mb-3">Fazer download do banco de dados completo</p>
+                          <p className="text-sm font-bold text-zinc-200 mb-3">Criar cópia de segurança</p>
+                          <p className="text-[10px] text-zinc-500 mb-3">Descarregar a base de dados completa</p>
                           <button 
                             onClick={async () => {
                               try {
@@ -3020,20 +3020,20 @@ export default function App() {
                                   document.body.appendChild(a);
                                   a.click();
                                   window.URL.revokeObjectURL(url);
-                                  toast.success("Backup baixado com sucesso!");
+                                  toast.success("Cópia de segurança descarregada com sucesso!");
                                 }
                               } catch (err) {
-                                toast.error("Erro ao fazer backup");
+                                toast.error("Erro ao criar a cópia de segurança");
                               }
                             }}
                             className="w-full py-2.5 bg-primary hover:bg-primary/90 text-black rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-primary/20"
                           >
-                            Baixar Backup Agora
+                            Descarregar agora
                           </button>
                         </div>
                         <div>
-                          <p className="text-sm font-bold text-zinc-200 mb-3">Restaurar Backup</p>
-                          <p className="text-[10px] text-zinc-500 mb-3">Restaurar dados a partir de um arquivo de backup</p>
+                          <p className="text-sm font-bold text-zinc-200 mb-3">Restaurar cópia de segurança</p>
+                          <p className="text-[10px] text-zinc-500 mb-3">Restaurar dados a partir de um ficheiro de backup</p>
                           <input 
                             type="file"
                             id="backup-file"
@@ -3051,13 +3051,13 @@ export default function App() {
                                   credentials: 'include'
                                 });
                                 if (res.ok) {
-                                  toast.success("Backup restaurado! Recarregando...");
+                                  toast.success("Cópia de segurança restaurada. A recarregar...");
                                   setTimeout(() => window.location.reload(), 1500);
                                 } else {
-                                  toast.error("Erro ao restaurar backup");
+                                  toast.error("Erro ao restaurar a cópia de segurança");
                                 }
                               } catch (err) {
-                                toast.error("Erro ao restaurar backup");
+                                toast.error("Erro ao restaurar a cópia de segurança");
                               }
                             }}
                           />
@@ -3071,7 +3071,7 @@ export default function App() {
                       </div>
                       <div className="bg-zinc-800/30 border border-zinc-700/30 rounded-lg p-3">
                         <p className="text-[10px] text-zinc-400 font-bold uppercase">Aviso Importante:</p>
-                        <p className="text-[10px] text-zinc-500 mt-1">Fazer backup regularmente é recomendado. Um backup automático é feito diariamente no servidor.</p>
+                        <p className="text-[10px] text-zinc-500 mt-1">É recomendável criar cópias de segurança regularmente. Uma cópia automática é criada diariamente no servidor.</p>
                       </div>
                     </div>
                   </Card>
@@ -3387,7 +3387,7 @@ export default function App() {
                 </div>
                 <div>
                   <h3 className="text-base font-black uppercase tracking-tight text-white">Instalar MineGuard</h3>
-                  <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Como App no seu Telemóvel</p>
+                  <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Como app no seu telemóvel</p>
                 </div>
               </div>
               <div className="space-y-4">
@@ -3402,14 +3402,14 @@ export default function App() {
                   <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-black text-xs shrink-0 mt-0.5">2</div>
                   <div>
                     <p className="text-sm font-black text-white">Selecione "Adicionar ao ecrã inicial"</p>
-                    <p className="text-xs text-zinc-500 mt-0.5">Pode também aparecer como <strong className="text-zinc-300">"Instalar aplicação"</strong> ou <strong className="text-zinc-300">"Adicionar ao início"</strong></p>
+                    <p className="text-xs text-zinc-500 mt-0.5">Pode também aparecer como <strong className="text-zinc-300">"Instalar aplicação"</strong> ou <strong className="text-zinc-300">"Adicionar ao ecrã principal"</strong></p>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
                   <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-black text-xs shrink-0 mt-0.5">3</div>
                   <div>
                     <p className="text-sm font-black text-white">Confirme e pronto!</p>
-                    <p className="text-xs text-zinc-500 mt-0.5">O MineGuard aparecerá no seu ecrã inicial como uma app nativa.</p>
+                    <p className="text-xs text-zinc-500 mt-0.5">O MineGuard aparecerá no seu ecrã inicial como uma app instalada.</p>
                   </div>
                 </div>
               </div>
