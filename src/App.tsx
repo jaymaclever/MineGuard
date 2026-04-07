@@ -164,11 +164,39 @@ interface Stats {
 
 // --- UI Components ---
 
-const SidebarItem = ({ icon: Icon, label, active, onClick }: { icon: any, label: string, active?: boolean, onClick: () => void }) => (
+const SidebarItem = ({
+  icon: Icon,
+  label,
+  active,
+  onClick,
+  compact = false,
+  onHoverHint,
+}: {
+  icon: any,
+  label: string,
+  active?: boolean,
+  onClick: () => void,
+  compact?: boolean,
+  onHoverHint?: (payload: { label: string; top: number; left: number } | null) => void,
+}) => (
   <button 
     onClick={onClick}
+    onMouseEnter={(event) => {
+      if (!compact || !onHoverHint) return;
+      const rect = event.currentTarget.getBoundingClientRect();
+      onHoverHint({
+        label,
+        top: rect.top + rect.height / 2,
+        left: rect.right + 12,
+      });
+    }}
+    onMouseLeave={() => {
+      if (!compact || !onHoverHint) return;
+      onHoverHint(null);
+    }}
     className={cn(
       "w-full flex items-center gap-2.5 rounded-[1.15rem] px-3 py-2.5 text-[10px] font-black uppercase tracking-[0.11em] transition-all duration-300 relative group text-left overflow-hidden xl:px-3.5 xl:py-2.5",
+      compact && "justify-center px-2.5",
       active 
         ? "text-primary bg-primary/8 shadow-[inset_0_0_0_1px_rgba(249,115,22,0.12)]" 
         : "text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-white/[0.03]"
@@ -178,7 +206,7 @@ const SidebarItem = ({ icon: Icon, label, active, onClick }: { icon: any, label:
     <div className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-[1rem] border transition-all", active ? "border-primary/20 bg-primary/12 text-primary shadow-[0_0_30px_rgba(var(--primary-rgb),0.18)]" : "border-[var(--border)] bg-[var(--surface-1)] text-[var(--text-faint)] group-hover:border-[var(--border-strong)] group-hover:text-[var(--text-main)]")}>
       <Icon size={16} className={cn("transition-transform group-hover:scale-110", active && "glow-amber")} />
     </div>
-    <span className="sidebar-label min-w-0 flex-1 text-left leading-[1.1rem]">{label}</span>
+    {!compact && <span className="sidebar-label min-w-0 flex-1 text-left leading-[1.1rem]">{label}</span>}
   </button>
 );
 
@@ -523,6 +551,7 @@ export default function App() {
   const [focusMode, setFocusMode] = useState(false);
   const [newReportStep, setNewReportStep] = useState(1);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [compactSidebarHint, setCompactSidebarHint] = useState<{ label: string; top: number; left: number } | null>(null);
   const [isEditingReport, setIsEditingReport] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallBtn, setShowInstallBtn] = useState(false);
@@ -1964,23 +1993,23 @@ export default function App() {
         
         <nav className="custom-scrollbar flex-1 overflow-y-auto px-2.5 py-4 space-y-1">
           {publicSettings.app_layout !== 'compact' && <p className="nav-section-label">Operação</p>}
-          {currentUser.permissions?.view_dashboard === true && <SidebarItem icon={Activity} label={publicSettings.app_layout === 'compact' ? "" : t('app.sidebar.dashboard')} active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} />}
-          {currentUser.permissions?.view_dashboard === true && <SidebarItem icon={Shield} label={publicSettings.app_layout === 'compact' ? "" : 'Centro de Comando'} active={activeTab === 'command_center'} onClick={() => setActiveTab('command_center')} />}
-          {currentUser.permissions?.view_reports === true && <SidebarItem icon={AlertTriangle} label={publicSettings.app_layout === 'compact' ? "" : 'Ocorrências Críticas'} active={activeTab === 'critical_occurrences'} onClick={() => setActiveTab('critical_occurrences')} />}
-          {currentUser.permissions?.view_dashboard === true && <SidebarItem icon={Clock} label={publicSettings.app_layout === 'compact' ? "" : 'Linha do Tempo'} active={activeTab === 'timeline'} onClick={() => setActiveTab('timeline')} />}
-          {currentUser.permissions?.view_reports === true && <SidebarItem icon={Camera} label={publicSettings.app_layout === 'compact' ? "" : 'Biblioteca de Evidências'} active={activeTab === 'evidence_library'} onClick={() => setActiveTab('evidence_library')} />}
-          {currentUser.permissions?.view_team_daily && <SidebarItem icon={Users} label={publicSettings.app_layout === 'compact' ? "" : 'Turnos'} active={activeTab === 'shifts'} onClick={() => setActiveTab('shifts')} />}
-          {currentUser.permissions?.view_reports === true && <SidebarItem icon={FileText} label={publicSettings.app_layout === 'compact' ? "" : t('app.sidebar.occurrences')} active={activeTab === 'reports'} onClick={() => setActiveTab('reports')} />}
-          {currentUser.permissions?.view_daily_reports === true && <SidebarItem icon={Calendar} label={publicSettings.app_layout === 'compact' ? "" : t('app.sidebar.dailyReports')} active={activeTab === 'daily_reports'} onClick={() => setActiveTab('daily_reports')} />}
-          <SidebarItem icon={FileText} label={publicSettings.app_layout === 'compact' ? "" : t('app.sidebar.myReports')} active={activeTab === 'personal_reports'} onClick={() => setActiveTab('personal_reports')} />
-          <SidebarItem icon={Calendar} label={publicSettings.app_layout === 'compact' ? "" : t('app.sidebar.myDay')} active={activeTab === 'daily_report_personal'} onClick={() => setActiveTab('daily_report_personal')} />
-          {currentUser.permissions?.view_team_daily && <SidebarItem icon={Users} label={publicSettings.app_layout === 'compact' ? "" : t('app.sidebar.teamDay')} active={activeTab === 'daily_report_team'} onClick={() => setActiveTab('daily_report_team')} />}
-          <SidebarItem icon={AlertTriangle} label={publicSettings.app_layout === 'compact' ? "" : t('app.sidebar.alerts')} active={activeTab === 'alerts'} onClick={() => setActiveTab('alerts')} />
+          {currentUser.permissions?.view_dashboard === true && <SidebarItem icon={Activity} label={t('app.sidebar.dashboard')} active={activeTab === 'dashboard'} compact={publicSettings.app_layout === 'compact'} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('dashboard')} />}
+          {currentUser.permissions?.view_dashboard === true && <SidebarItem icon={Shield} label={'Centro de Comando'} active={activeTab === 'command_center'} compact={publicSettings.app_layout === 'compact'} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('command_center')} />}
+          {currentUser.permissions?.view_reports === true && <SidebarItem icon={AlertTriangle} label={'Ocorrências Críticas'} active={activeTab === 'critical_occurrences'} compact={publicSettings.app_layout === 'compact'} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('critical_occurrences')} />}
+          {currentUser.permissions?.view_dashboard === true && <SidebarItem icon={Clock} label={'Linha do Tempo'} active={activeTab === 'timeline'} compact={publicSettings.app_layout === 'compact'} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('timeline')} />}
+          {currentUser.permissions?.view_reports === true && <SidebarItem icon={Camera} label={'Biblioteca de Evidências'} active={activeTab === 'evidence_library'} compact={publicSettings.app_layout === 'compact'} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('evidence_library')} />}
+          {currentUser.permissions?.view_team_daily && <SidebarItem icon={Users} label={'Turnos'} active={activeTab === 'shifts'} compact={publicSettings.app_layout === 'compact'} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('shifts')} />}
+          {currentUser.permissions?.view_reports === true && <SidebarItem icon={FileText} label={t('app.sidebar.occurrences')} active={activeTab === 'reports'} compact={publicSettings.app_layout === 'compact'} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('reports')} />}
+          {currentUser.permissions?.view_daily_reports === true && <SidebarItem icon={Calendar} label={t('app.sidebar.dailyReports')} active={activeTab === 'daily_reports'} compact={publicSettings.app_layout === 'compact'} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('daily_reports')} />}
+          <SidebarItem icon={FileText} label={t('app.sidebar.myReports')} active={activeTab === 'personal_reports'} compact={publicSettings.app_layout === 'compact'} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('personal_reports')} />
+          <SidebarItem icon={Calendar} label={t('app.sidebar.myDay')} active={activeTab === 'daily_report_personal'} compact={publicSettings.app_layout === 'compact'} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('daily_report_personal')} />
+          {currentUser.permissions?.view_team_daily && <SidebarItem icon={Users} label={t('app.sidebar.teamDay')} active={activeTab === 'daily_report_team'} compact={publicSettings.app_layout === 'compact'} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('daily_report_team')} />}
+          <SidebarItem icon={AlertTriangle} label={t('app.sidebar.alerts')} active={activeTab === 'alerts'} compact={publicSettings.app_layout === 'compact'} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('alerts')} />
           {(currentUser.permissions?.manage_users === true || currentUser.permissions?.manage_permissions === true || canManageSystem) && publicSettings.app_layout !== 'compact' && <p className="nav-section-label mt-6">Administração</p>}
-          {currentUser.permissions?.manage_users === true && <SidebarItem icon={Users} label={publicSettings.app_layout === 'compact' ? "" : t('app.sidebar.staffManagement')} active={activeTab === 'users'} onClick={() => setActiveTab('users')} />}
-          {currentUser.permissions?.manage_permissions === true && <SidebarItem icon={Lock} label={publicSettings.app_layout === 'compact' ? "" : t('app.sidebar.permissionsRoles')} active={activeTab === 'permissions'} onClick={() => setActiveTab('permissions')} />}
-          {canManageSystem && <SidebarItem icon={SettingsIcon} label={publicSettings.app_layout === 'compact' ? '' : t('app.sidebar.settings')} active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} />}
-          {canManageSystem && <SidebarItem icon={SettingsIcon} label={publicSettings.app_layout === 'compact' ? '' : t('app.sidebar.parametrization')} active={activeTab === 'parametrization'} onClick={() => setActiveTab('parametrization')} />}
+          {currentUser.permissions?.manage_users === true && <SidebarItem icon={Users} label={t('app.sidebar.staffManagement')} active={activeTab === 'users'} compact={publicSettings.app_layout === 'compact'} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('users')} />}
+          {currentUser.permissions?.manage_permissions === true && <SidebarItem icon={Lock} label={t('app.sidebar.permissionsRoles')} active={activeTab === 'permissions'} compact={publicSettings.app_layout === 'compact'} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('permissions')} />}
+          {canManageSystem && <SidebarItem icon={SettingsIcon} label={t('app.sidebar.settings')} active={activeTab === 'settings'} compact={publicSettings.app_layout === 'compact'} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('settings')} />}
+          {canManageSystem && <SidebarItem icon={SettingsIcon} label={t('app.sidebar.parametrization')} active={activeTab === 'parametrization'} compact={publicSettings.app_layout === 'compact'} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('parametrization')} />}
         </nav>
 
         <div className="mt-auto border-t border-[var(--border)] p-3">
@@ -2005,6 +2034,26 @@ export default function App() {
           </div>
         </div>
       </aside>
+
+      <AnimatePresence>
+        {publicSettings.app_layout === 'compact' && compactSidebarHint && !focusMode && (
+          <motion.div
+            initial={{ opacity: 0, x: -8, scale: 0.98 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            exit={{ opacity: 0, x: -8, scale: 0.98 }}
+            transition={{ duration: 0.16 }}
+            className="pointer-events-none fixed z-[70] hidden md:block"
+            style={{ top: compactSidebarHint.top, left: compactSidebarHint.left, transform: 'translateY(-50%)' }}
+          >
+            <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-1)]/96 px-4 py-3 shadow-[0_18px_48px_rgba(0,0,0,0.22)] backdrop-blur-xl">
+              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-primary">Navegação</p>
+              <p className="mt-1 whitespace-nowrap text-xs font-black uppercase tracking-[0.08em] text-[var(--text-main)]">
+                {compactSidebarHint.label}
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col overflow-hidden">
