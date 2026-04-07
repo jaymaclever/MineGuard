@@ -1,70 +1,67 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { 
-  FileText, 
-  AlertTriangle, 
-  Clock, 
-  CheckCircle2, 
-  ChevronRight, 
-  Shield, 
-  Activity, 
-  Bell 
-} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { cn } from '../../lib/utils';
 import { Gravidade } from '../../types';
 
 export const SidebarItem = ({ icon: Icon, label, active, onClick }: { icon: any, label: string, active?: boolean, onClick: () => void }) => (
-  <button 
+  <button
     onClick={onClick}
     className={cn(
-      "w-full flex items-center gap-3 px-6 py-4 text-sm font-bold uppercase tracking-widest transition-all duration-300 relative group",
-      active 
-        ? "text-primary bg-primary/5" 
-        : "text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--surface-2)]"
+      'relative w-full group flex items-center gap-3 px-6 py-4 text-sm font-bold uppercase tracking-widest transition-all duration-300',
+      active
+        ? 'bg-primary/5 text-primary'
+        : 'text-[var(--text-muted)] hover:bg-[var(--surface-2)] hover:text-[var(--text-main)]'
     )}
   >
-    {active && <motion.div layoutId="active-nav" className="absolute left-0 w-1 h-2/3 bg-primary rounded-r-full" />}
-    <Icon size={18} className={cn("transition-transform group-hover:scale-110", active ? "text-primary glow-amber" : "text-[var(--text-faint)]")} />
+    {active && <motion.div layoutId="active-nav" className="absolute left-0 h-2/3 w-1 rounded-r-full bg-primary" />}
+    <Icon size={18} className={cn('transition-transform group-hover:scale-110', active ? 'text-primary glow-amber' : 'text-[var(--text-faint)]')} />
     <span className="truncate">{label}</span>
   </button>
 );
 
 export const Badge = ({ gravidade }: { gravidade: Gravidade }) => {
   const colors = {
-    G1: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
-    G2: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
-    G3: 'bg-primary/10 text-primary text-primary/90 border-primary/20',
-    G4: 'bg-red-500/10 text-red-500 border-red-500/20 animate-pulse-critical',
+    G1: 'border-blue-500/20 bg-blue-500/10 text-blue-400',
+    G2: 'border-yellow-500/20 bg-yellow-500/10 text-yellow-400',
+    G3: 'border-primary/20 bg-primary/10 text-primary',
+    G4: 'animate-pulse-critical border-red-500/20 bg-red-500/10 text-red-500',
   };
+
   return (
-    <span className={cn(
-      "px-3 py-1 rounded-full text-[9px] font-black border uppercase tracking-widest shadow-sm", 
-      colors[gravidade]
-    )}>
+    <span className={cn('rounded-full border px-3 py-1 text-[9px] font-black uppercase tracking-widest shadow-sm', colors[gravidade])}>
       {gravidade}
     </span>
   );
 };
 
-export const Card = ({ children, className, title, subtitle, action, onClick }: { children?: React.ReactNode, className?: string, title?: string, subtitle?: string, action?: React.ReactNode, key?: any, onClick?: () => void }) => (
-  <div 
+export const Card = ({
+  children,
+  className,
+  title,
+  subtitle,
+  action,
+  onClick,
+}: {
+  children?: React.ReactNode;
+  className?: string;
+  title?: string;
+  subtitle?: string;
+  action?: React.ReactNode;
+  key?: any;
+  onClick?: () => void;
+}) => (
+  <div
     onClick={onClick}
-    className={cn(
-      "glass-card rounded-2xl overflow-hidden group", 
-      onClick && "cursor-pointer hover:bg-[var(--surface-2)] active:scale-[0.99]",
-      className
-    )}
-    style={{
-      borderRadius: 'var(--template-card-radius)',
-    }}
+    className={cn('glass-card overflow-hidden rounded-2xl group', onClick && 'cursor-pointer hover:bg-[var(--surface-2)] active:scale-[0.99]', className)}
+    style={{ borderRadius: 'var(--template-card-radius)' }}
   >
     {(title || action) && (
-      <div className="p-4 md:p-6 border-b border-[var(--border)] flex items-center justify-between bg-[var(--surface-2)]/80">
+      <div className="flex items-center justify-between border-b border-[var(--border)] bg-[var(--surface-2)]/80 p-4 md:p-5">
         <div>
-          {title && <h3 className="text-xs font-black text-[var(--text-main)] uppercase tracking-[0.2em]">{title}</h3>}
-          {subtitle && <p className="text-[10px] text-[var(--text-muted)] mt-1 font-bold">{subtitle}</p>}
+          {title && <h3 className="text-xs font-black uppercase tracking-[0.2em] text-[var(--text-main)]">{title}</h3>}
+          {subtitle && <p className="mt-1 text-[10px] font-bold text-[var(--text-muted)]">{subtitle}</p>}
         </div>
         {action}
       </div>
@@ -85,24 +82,20 @@ export const LanguageSwitcher = () => {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
-        <button 
+        <button
           onClick={() => handleLanguageChange('pt-BR')}
           className={cn(
-            "py-3 px-4 rounded-lg font-bold uppercase text-[10px] tracking-widest transition-all",
-            i18n.language === 'pt-BR' 
-              ? "bg-primary text-black shadow-lg shadow-primary/20" 
-              : "bg-zinc-800 text-zinc-300 hover:bg-zinc-700"
+            'rounded-lg px-4 py-3 text-[10px] font-bold uppercase tracking-widest transition-all',
+            i18n.language === 'pt-BR' ? 'bg-primary text-black shadow-lg shadow-primary/20' : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'
           )}
         >
           Português (BR)
         </button>
-        <button 
+        <button
           onClick={() => handleLanguageChange('en-US')}
           className={cn(
-            "py-3 px-4 rounded-lg font-bold uppercase text-[10px] tracking-widest transition-all",
-            i18n.language === 'en-US' 
-              ? "bg-primary text-black shadow-lg shadow-primary/20" 
-              : "bg-zinc-800 text-zinc-300 hover:bg-zinc-700"
+            'rounded-lg px-4 py-3 text-[10px] font-bold uppercase tracking-widest transition-all',
+            i18n.language === 'en-US' ? 'bg-primary text-black shadow-lg shadow-primary/20' : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'
           )}
         >
           English (US)
@@ -113,24 +106,32 @@ export const LanguageSwitcher = () => {
   );
 };
 
-export const PaginationControls = ({ currentPage, totalPages, onPageChange }: { currentPage: number, totalPages: number, onPageChange: (page: number) => void }) => {
+export const PaginationControls = ({
+  currentPage,
+  totalPages,
+  onPageChange,
+}: {
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+}) => {
   return (
-    <div className="flex items-center justify-between py-4 px-6 bg-zinc-900/30 border-t border-zinc-800/50">
-      <div className="text-sm text-zinc-400">
-        Página <span className="font-bold text-zinc-200">{currentPage}</span> de <span className="font-bold text-zinc-200">{totalPages}</span>
+    <div className="flex items-center justify-between gap-3 border-t border-[var(--border)] bg-[var(--surface-2)]/80 px-4 py-3 md:px-5">
+      <div className="text-xs text-[var(--text-muted)] md:text-sm">
+        Página <span className="font-bold text-[var(--text-main)]">{currentPage}</span> de <span className="font-bold text-[var(--text-main)]">{totalPages}</span>
       </div>
       <div className="flex items-center gap-2">
-        <button 
+        <button
           onClick={() => onPageChange(Math.max(1, currentPage - 1))}
           disabled={currentPage === 1}
-          className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 disabled:bg-zinc-900 disabled:text-zinc-600 text-zinc-300 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all disabled:cursor-not-allowed"
+          className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)] px-3 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-[var(--text-main)] transition-all hover:border-[var(--border-strong)] hover:bg-[var(--surface-3)] disabled:cursor-not-allowed disabled:opacity-45"
         >
           ← Anterior
         </button>
-        <button 
+        <button
           onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
           disabled={currentPage === totalPages}
-          className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 disabled:bg-zinc-900 disabled:text-zinc-600 text-zinc-300 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all disabled:cursor-not-allowed"
+          className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)] px-3 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-[var(--text-main)] transition-all hover:border-[var(--border-strong)] hover:bg-[var(--surface-3)] disabled:cursor-not-allowed disabled:opacity-45"
         >
           Próximo →
         </button>

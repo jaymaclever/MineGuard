@@ -59,7 +59,7 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({
   const hasActiveFilters = Boolean(filterCategory || filterSeverity || filterStatus || filterDateFrom || filterDateTo || filterAgent);
 
   return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-5">
       <div className="space-y-4">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div className="space-y-3">
@@ -68,15 +68,15 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({
               Log operacional
             </div>
             <div className="space-y-2">
-              <h2 className="text-3xl font-black tracking-tight text-[var(--text-main)] uppercase">Ocorrências</h2>
+              <h2 className="text-2xl font-black uppercase tracking-tight text-[var(--text-main)] md:text-[2rem]">Ocorrências</h2>
               <p className="text-sm text-[var(--text-muted)]">Histórico completo, filtros e ações rápidas sobre o registo operacional.</p>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2.5">
             <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] px-4 py-3">
               <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">Resultados</p>
-              <p className="mt-1 text-2xl font-black text-[var(--text-main)]">{reports.length}</p>
+              <p className="mt-1 text-xl font-black text-[var(--text-main)]">{reports.length}</p>
             </div>
             {hasActiveFilters && (
               <div className="rounded-2xl border border-primary/20 bg-primary/10 px-4 py-3">
@@ -96,7 +96,7 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({
           </div>
         </div>
 
-        <div className="space-y-5 rounded-[1.75rem] border border-[var(--border)] bg-[var(--surface-1)] p-5">
+        <div className="space-y-4 rounded-[1.6rem] border border-[var(--border)] bg-[var(--surface-1)] p-4 md:p-5">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div className="space-y-1">
               <h3 className="text-sm font-black uppercase tracking-[0.18em] text-[var(--text-main)]">Filtros avançados</h3>
@@ -104,7 +104,7 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({
             </div>
             {hasActiveFilters && (
               <span className="inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-primary">
-                filtros ativos
+                Filtros ativos
               </span>
             )}
           </div>
@@ -134,7 +134,7 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({
               </select>
             </div>
             <div className="space-y-1">
-              <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Status</label>
+              <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Estado</label>
               <select className={selectClass} value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
                 <option value="">Todos</option>
                 <option value="Aberto">Aberto</option>
@@ -173,18 +173,18 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({
         </div>
       </div>
 
-      <div className="glass-card mb-20 overflow-hidden rounded-[2rem] border border-[var(--border)] md:mb-0">
+      <div className="glass-card mb-20 overflow-hidden rounded-[1.75rem] border border-[var(--border)] md:mb-0">
         <div className="hidden md:block">
           <table className="w-full border-collapse text-left">
             <thead>
               <tr className="border-b border-[var(--border)] bg-[var(--bg-elevated)]">
-                <th className="hidden px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] md:table-cell">ID</th>
-                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)]">Título / Descrição</th>
-                <th className="hidden px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] lg:table-cell">Categoria</th>
-                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)]">Gravidade</th>
-                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)]">Status</th>
-                <th className="hidden px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] sm:table-cell">Agente</th>
-                <th className="px-6 py-4" />
+                <th className="hidden px-4 py-3 text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)] md:table-cell">ID</th>
+                <th className="px-4 py-3 text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">Título / descrição</th>
+                <th className="hidden px-4 py-3 text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)] lg:table-cell">Categoria</th>
+                <th className="px-4 py-3 text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">Gravidade</th>
+                <th className="px-4 py-3 text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">Estado</th>
+                <th className="hidden px-4 py-3 text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)] sm:table-cell">Agente</th>
+                <th className="px-4 py-3" />
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--border)]/30">
@@ -206,10 +206,10 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.03 }}
                     onClick={() => onOpenReport(report)}
-                    className="group cursor-pointer transition-all hover:bg-white/[0.035] active:scale-[0.995]"
+                    className="group cursor-pointer transition-all hover:bg-white/[0.03] active:scale-[0.995]"
                   >
-                    <td className="hidden px-6 py-4 font-mono text-xs text-[var(--text-muted)] md:table-cell">#{report.id}</td>
-                    <td className="px-6 py-4">
+                    <td className="hidden px-4 py-3.5 font-mono text-xs text-[var(--text-muted)] md:table-cell">#{report.id}</td>
+                    <td className="px-4 py-3.5">
                       <div className="flex items-center gap-3">
                         {report.fotos_path && (
                           <div className="h-10 w-10 shrink-0 overflow-hidden rounded-lg border border-[var(--border)]">
@@ -222,11 +222,11 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({
                         </div>
                       </div>
                     </td>
-                    <td className="hidden px-6 py-4 text-xs font-bold uppercase text-[var(--text-soft)] lg:table-cell">{report.categoria}</td>
-                    <td className="px-6 py-4">
+                    <td className="hidden px-4 py-3.5 text-xs font-bold uppercase text-[var(--text-soft)] lg:table-cell">{report.categoria}</td>
+                    <td className="px-4 py-3.5">
                       <Badge gravidade={report.gravidade} />
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-3.5">
                       <div
                         className={cn(
                           chipClass,
@@ -241,7 +241,7 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({
                         {report.status || 'Aberto'}
                       </div>
                     </td>
-                    <td className="hidden px-6 py-4 sm:table-cell">
+                    <td className="hidden px-4 py-3.5 sm:table-cell">
                       <div className="flex items-center gap-2">
                         <div className="flex h-6 w-6 items-center justify-center rounded bg-[var(--surface-3)] text-[10px] font-bold text-[var(--text-muted)]">
                           {report.agente_nome.charAt(0)}
@@ -249,7 +249,7 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({
                         <span className="text-xs font-medium text-[var(--text-soft)]">{report.agente_nome}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-right">
+                    <td className="px-4 py-3.5 text-right">
                       <div className="flex items-center justify-end gap-1">
                         <button
                           onClick={(e) => {

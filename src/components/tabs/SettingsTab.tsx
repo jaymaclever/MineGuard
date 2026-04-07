@@ -16,7 +16,7 @@ interface SettingsTabProps {
 }
 
 const panelClass =
-  'rounded-[1.5rem] border border-[var(--border)] bg-[var(--surface-1)] p-5 shadow-[0_24px_60px_-44px_rgba(0,0,0,0.75)]';
+  'rounded-[1.35rem] border border-[var(--border)] bg-[var(--surface-1)] px-4 py-4 shadow-[0_24px_60px_-44px_rgba(0,0,0,0.55)]';
 const inputClass =
   'w-full rounded-xl border border-[var(--border)] bg-[var(--bg-input)] px-3 py-2.5 text-sm text-[var(--text-main)] outline-none transition-colors placeholder:text-[var(--text-faint)] focus:border-primary';
 const labelClass = 'text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]';
@@ -68,17 +68,17 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ systemSettings, public
   }, [backupStatus]);
 
   return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-8">
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
       <div className="space-y-2">
-        <h2 className="text-3xl font-black tracking-tight uppercase text-[var(--text-main)]">Configurações do Sistema</h2>
+        <h2 className="text-2xl font-black tracking-tight uppercase text-[var(--text-main)] md:text-[2rem]">Configurações do sistema</h2>
         <p className="text-sm text-[var(--text-muted)]">
           Integrações, identidade visual, cópias de segurança e parâmetros globais do produto.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card title="Notificações" subtitle="Configure email, Telegram e relatórios agendados" className="lg:col-span-2">
-          <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-5 xl:grid-cols-3">
             <form
               onSubmit={async (e) => {
                 e.preventDefault();

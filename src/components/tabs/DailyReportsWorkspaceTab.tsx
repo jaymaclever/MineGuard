@@ -219,15 +219,15 @@ export const DailyReportsWorkspaceTab: React.FC<Props> = ({ canGenerate, canExpo
   const detailStatus = detail ? lifecycleLabel[detail.lifecycleStatus] : '';
 
   return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
-      <div className="overflow-hidden rounded-[2rem] border border-[var(--border)] bg-[radial-gradient(circle_at_top_left,rgba(249,115,22,0.16),transparent_28%),linear-gradient(180deg,var(--surface-1),var(--surface-2))] p-5 md:p-7">
-        <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-5">
+      <div className="overflow-hidden rounded-[1.8rem] border border-[var(--border)] bg-[radial-gradient(circle_at_top_left,rgba(var(--primary-rgb),0.14),transparent_30%),linear-gradient(180deg,var(--surface-1),var(--surface-2))] p-4 md:p-6">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
           <div className="max-w-2xl space-y-3">
             <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.22em] text-primary">
               <FileText size={12} /> Relatórios Diários
             </div>
             <div>
-              <h2 className="text-3xl font-black tracking-tight text-[var(--text-main)] md:text-4xl">Geração, pesquisa e exportação</h2>
+              <h2 className="text-[1.9rem] font-black tracking-tight text-[var(--text-main)] md:text-[2.4rem]">Geração, pesquisa e exportação</h2>
               <p className="mt-2 max-w-2xl text-sm text-[var(--text-muted)]">Painel central para relatórios diários, com filtros rápidos, comparação entre dias e ações de ciclo de vida.</p>
             </div>
             <div className="flex flex-wrap gap-2 text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">
@@ -236,7 +236,7 @@ export const DailyReportsWorkspaceTab: React.FC<Props> = ({ canGenerate, canExpo
               <span className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-3 py-1">{selectedIds.length} selecionados</span>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 xl:min-w-[500px]">
+          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 xl:min-w-[460px]">
             {[
               ['Total', summary.total],
               ['Rascunhos', summary.draft],
@@ -245,7 +245,7 @@ export const DailyReportsWorkspaceTab: React.FC<Props> = ({ canGenerate, canExpo
             ].map(([label, value]) => (
               <div key={String(label)} className="rounded-2xl border border-[var(--border)] bg-[var(--surface-2)] px-4 py-3">
                 <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">{label}</p>
-                <p className="mt-2 text-2xl font-black text-[var(--text-main)]">{value as number}</p>
+                <p className="mt-2 text-xl font-black text-[var(--text-main)]">{value as number}</p>
               </div>
             ))}
           </div>
@@ -271,10 +271,10 @@ export const DailyReportsWorkspaceTab: React.FC<Props> = ({ canGenerate, canExpo
         </Card>
       )}
 
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[360px_1fr]">
-        <div className="space-y-6">
-          <Card title="Pesquisa e filtros" subtitle="Intervalos rápidos ou datas personalizadas" className="rounded-[1.75rem]">
-            <div className="space-y-4">
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-[340px_1fr]">
+        <div className="space-y-5">
+          <Card title="Pesquisa e filtros" subtitle="Intervalos rápidos ou datas personalizadas" className="rounded-[1.65rem]">
+            <div className="space-y-3.5">
               <div className="relative">
                 <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-faint)]" />
                 <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Pesquisar por título, código ou texto..." className="w-full rounded-2xl border border-[var(--border)] bg-[var(--bg-input)] py-3 pl-10 pr-4 text-sm text-[var(--text-main)] outline-none focus:border-primary" />
@@ -302,7 +302,7 @@ export const DailyReportsWorkspaceTab: React.FC<Props> = ({ canGenerate, canExpo
           </Card>
 
           {canExport && (
-            <Card title="Exportação em lote" subtitle="Selecione relatórios e exporte de uma vez" className="rounded-[1.75rem]">
+          <Card title="Exportação em lote" subtitle="Selecione relatórios e exporte de uma vez" className="rounded-[1.65rem]">
               <div className="space-y-4">
                 <div className="grid grid-cols-3 gap-2">
                   {(['pdf', 'html', 'xlsx'] as const).map((format) => (
@@ -318,7 +318,7 @@ export const DailyReportsWorkspaceTab: React.FC<Props> = ({ canGenerate, canExpo
             </Card>
           )}
 
-          <Card title="Arquivo diário" subtitle="Clique para abrir o detalhe" className="rounded-[1.75rem]">
+          <Card title="Arquivo diário" subtitle="Clique para abrir o detalhe" className="rounded-[1.65rem]">
             <div className="space-y-3">
               {loadingList ? (
                 <div className="flex items-center justify-center py-16 text-[var(--text-muted)]"><Loader2 className="mr-2 animate-spin" size={18} /> A carregar...</div>
@@ -330,7 +330,7 @@ export const DailyReportsWorkspaceTab: React.FC<Props> = ({ canGenerate, canExpo
               ) : reports.map((report) => {
                 const active = report.id === selectedId;
                 return (
-                  <button key={report.id} onClick={() => { setSelectedId(report.id); setSelectedIds((current) => current.includes(report.id) ? current.filter((id) => id !== report.id) : [...current, report.id]); }} className={cn('w-full rounded-2xl border p-4 text-left transition-all', active ? 'border-primary/30 bg-primary/10' : 'border-[var(--border)] bg-[var(--surface-2)] hover:border-[var(--border-strong)]')}>
+                  <button key={report.id} onClick={() => { setSelectedId(report.id); setSelectedIds((current) => current.includes(report.id) ? current.filter((id) => id !== report.id) : [...current, report.id]); }} className={cn('w-full rounded-2xl border p-3.5 text-left transition-all', active ? 'border-primary/30 bg-primary/10' : 'border-[var(--border)] bg-[var(--surface-2)] hover:border-[var(--border-strong)]')}>
                     <div className="flex items-start justify-between gap-3">
                       <div className="space-y-1">
                         <p className="text-sm font-black uppercase tracking-[0.08em] text-[var(--text-main)]">{report.title}</p>
@@ -353,7 +353,7 @@ export const DailyReportsWorkspaceTab: React.FC<Props> = ({ canGenerate, canExpo
           </Card>
         </div>
 
-        <Card title="Detalhe do relatório" subtitle="Resumo executivo e ações rápidas" className="rounded-[1.75rem]">
+        <Card title="Detalhe do relatório" subtitle="Resumo executivo e ações rápidas" className="rounded-[1.65rem]">
           {loadingDetail ? (
             <div className="flex min-h-[420px] items-center justify-center text-[var(--text-muted)]"><Loader2 className="mr-2 animate-spin" size={18} /> A carregar detalhe...</div>
           ) : detail ? (

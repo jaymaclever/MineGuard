@@ -178,7 +178,7 @@ const SidebarItem = ({ icon: Icon, label, active, onClick }: { icon: any, label:
     <div className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-[1rem] border transition-all", active ? "border-primary/20 bg-primary/12 text-primary shadow-[0_0_30px_rgba(var(--primary-rgb),0.18)]" : "border-[var(--border)] bg-[var(--surface-1)] text-[var(--text-faint)] group-hover:border-[var(--border-strong)] group-hover:text-[var(--text-main)]")}>
       <Icon size={16} className={cn("transition-transform group-hover:scale-110", active && "glow-amber")} />
     </div>
-    <span className="min-w-0 truncate text-left leading-tight">{label}</span>
+    <span className="sidebar-label min-w-0 flex-1 text-left leading-[1.1rem]">{label}</span>
   </button>
 );
 
@@ -1985,7 +1985,7 @@ export default function App() {
 
         <div className="mt-auto border-t border-[var(--border)] p-3">
           <div className={cn(
-            "flex items-center gap-2.5 rounded-[1.15rem] border border-zinc-800/70 bg-zinc-950/60 p-2.5 group cursor-pointer hover:border-zinc-700 transition-all",
+            "flex items-center gap-2.5 rounded-[1.15rem] border border-[var(--border)] bg-[var(--surface-1)]/85 p-2.5 group cursor-pointer hover:border-[var(--border-strong)] transition-all",
             publicSettings.app_layout === 'compact' && "justify-center p-2"
           )}>
             <div className="h-9 w-9 shrink-0 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center text-[12px] font-black text-black shadow-inner">
@@ -1994,11 +1994,11 @@ export default function App() {
             {publicSettings.app_layout !== 'compact' && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 min-w-0">
                 <p className="truncate text-[11px] font-bold group-hover:text-primary transition-colors">{currentUser.nome}</p>
-                <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-zinc-500">{currentUser.nivel_hierarquico}</p>
+                <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-[var(--text-muted)]">{currentUser.nivel_hierarquico}</p>
               </motion.div>
             )}
             {publicSettings.app_layout !== 'compact' && (
-              <button onClick={handleLogout} className="p-1 text-zinc-600 hover:text-red-400 transition-colors">
+              <button onClick={handleLogout} className="p-1 text-[var(--text-faint)] hover:text-red-400 transition-colors">
                 <LogOut size={14} />
               </button>
             )}
@@ -2016,9 +2016,9 @@ export default function App() {
               <Shield className="text-black" size={18} strokeWidth={3} />
             </div>
             <div className="min-w-0">
-              <p className="text-[9px] font-black uppercase tracking-[0.16em] text-zinc-500">{publicSettings.app_name}</p>
-              <h1 className="truncate text-[13px] font-black uppercase tracking-[0.05em] text-white md:text-[1.15rem]">{currentViewMeta.title}</h1>
-              <p className="hidden max-w-2xl truncate text-[11px] text-zinc-500 xl:block">{currentViewMeta.subtitle}</p>
+              <p className="text-[9px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">{publicSettings.app_name}</p>
+              <h1 className="truncate text-[13px] font-black uppercase tracking-[0.05em] text-[var(--text-main)] md:text-[1.15rem]">{currentViewMeta.title}</h1>
+              <p className="hidden max-w-2xl truncate text-[11px] text-[var(--text-muted)] xl:block">{currentViewMeta.subtitle}</p>
             </div>
             <div className="hidden xl:flex items-center gap-3 flex-1 max-w-[34rem] ml-3">
               <div className="relative w-full group">
@@ -2036,7 +2036,7 @@ export default function App() {
           
           <div className="flex items-center gap-2 md:gap-3 shrink-0">
             {/* Network Status Indicator */}
-            <div className="hidden xl:flex items-center gap-2 rounded-xl border border-zinc-800/60 bg-zinc-900/60 px-2.5 py-1.5" title={isOnline ? "Conexão Segura e Sincronizada" : "Modo Offline (Gravando Localmente)"}>
+            <div className="hidden xl:flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] px-2.5 py-1.5" title={isOnline ? "Conexão Segura e Sincronizada" : "Modo Offline (Gravando Localmente)"}>
               <div className={cn("w-2 h-2 rounded-full", isOnline ? "bg-green-500 animate-pulse" : "bg-orange-500")} />
               <span className={cn("text-[9px] font-bold uppercase tracking-[0.14em]", isOnline ? "text-green-500" : "text-orange-500")}>
                 {isOnline ? "Online" : "Offline / L"}
@@ -2046,7 +2046,7 @@ export default function App() {
             {/* Focus Mode Toggle */}
             <button 
               onClick={() => setFocusMode(!focusMode)}
-              className={cn("hidden lg:flex items-center gap-2 rounded-xl border px-2.5 py-1.5 transition-all shadow-sm", focusMode ? "bg-red-500/10 border-red-500/30 text-red-500" : "bg-zinc-900/50 border-zinc-800/50 text-zinc-500 hover:text-zinc-300")}
+              className={cn("hidden lg:flex items-center gap-2 rounded-xl border px-2.5 py-1.5 transition-all shadow-sm", focusMode ? "bg-red-500/10 border-red-500/30 text-red-500" : "bg-[var(--surface-1)] border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text-main)]")}
               title="Modo Operação Noturna"
             >
               <Activity size={12} className={focusMode ? "animate-pulse" : ""} />
@@ -2102,7 +2102,7 @@ export default function App() {
                     initial={{ opacity: 0, y: 10, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                    className="absolute right-0 mt-2 w-80 bg-zinc-950 border border-[var(--border)] rounded-xl shadow-2xl z-50 overflow-hidden"
+                    className="absolute right-0 z-50 mt-2 w-[20rem] overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] shadow-2xl xl:w-[22rem]"
                   >
                       <div className="p-4 border-b border-[var(--border)] flex items-center justify-between">
                         <h3 className="text-xs font-black uppercase tracking-widest text-[var(--text-main)]">Notificações</h3>
@@ -2207,24 +2207,24 @@ export default function App() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="space-y-8"
+                className="space-y-6"
               >
-                <div className="overflow-hidden rounded-[2rem] border border-zinc-800/70 bg-[radial-gradient(circle_at_top_left,rgba(249,115,22,0.14),transparent_28%),linear-gradient(180deg,rgba(23,24,30,0.92),rgba(10,10,13,0.96))] p-5 md:p-7">
-                  <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
+                <div className="overflow-hidden rounded-[1.8rem] border border-[var(--border)] bg-[radial-gradient(circle_at_top_left,rgba(var(--primary-rgb),0.12),transparent_30%),linear-gradient(180deg,var(--surface-2),var(--surface-1))] p-4 md:p-6">
+                  <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
                     <div className="max-w-3xl">
                       <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.24em] text-primary">
                         <Activity size={12} />
                         Sala de situação
                       </div>
-                      <h2 className="mt-4 text-3xl font-black tracking-tight text-white md:text-4xl">{t('app.dashboard.commandCenter')}</h2>
-                      <p className="mt-3 text-sm text-zinc-400 md:text-base">{t('app.dashboard.realtimeOverview')}</p>
+                      <h2 className="mt-3 text-[1.9rem] font-black tracking-tight text-[var(--text-main)] md:text-[2.4rem]">{t('app.dashboard.commandCenter')}</h2>
+                      <p className="mt-2 text-sm text-[var(--text-muted)] md:text-[15px]">{t('app.dashboard.realtimeOverview')}</p>
                     </div>
                     <div className="flex flex-wrap items-center gap-2 self-start xl:self-auto">
-                      <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-zinc-800/70 bg-black/20 p-1.5">
-                        <button onClick={() => setDashboardRange('today')} className={cn("rounded-xl px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] transition-all", dashboardRange === 'today' ? "bg-primary text-black shadow-lg shadow-primary/20" : "text-zinc-500 hover:bg-zinc-900/70 hover:text-zinc-200")}>{t('app.dashboard.today')}</button>
-                        <button onClick={() => setDashboardRange('7days')} className={cn("rounded-xl px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] transition-all", dashboardRange === '7days' ? "bg-primary text-black shadow-lg shadow-primary/20" : "text-zinc-500 hover:bg-zinc-900/70 hover:text-zinc-200")}>{t('app.dashboard.last7days')}</button>
-                        <button onClick={() => setDashboardRange('30days')} className={cn("rounded-xl px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] transition-all", dashboardRange === '30days' ? "bg-primary text-black shadow-lg shadow-primary/20" : "text-zinc-500 hover:bg-zinc-900/70 hover:text-zinc-200")}>{t('app.dashboard.last30days')}</button>
-                        <button onClick={() => setIsDashboardRangeModalOpen(true)} className={cn("rounded-xl px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] transition-all", dashboardRange === 'custom' ? "bg-primary text-black shadow-lg shadow-primary/20" : "text-zinc-500 hover:bg-zinc-900/70 hover:text-zinc-200")}>{dashboardRange === 'custom' ? dashboardCustomRangeLabel : t('app.dashboard.customRange')}</button>
+                      <div className="flex flex-wrap items-center gap-1.5 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)]/85 p-1.5">
+                        <button onClick={() => setDashboardRange('today')} className={cn("rounded-xl px-3 py-2 text-[10px] font-black uppercase tracking-[0.16em] transition-all", dashboardRange === 'today' ? "bg-primary text-black shadow-lg shadow-primary/20" : "text-[var(--text-muted)] hover:bg-[var(--surface-3)] hover:text-[var(--text-main)]")}>{t('app.dashboard.today')}</button>
+                        <button onClick={() => setDashboardRange('7days')} className={cn("rounded-xl px-3 py-2 text-[10px] font-black uppercase tracking-[0.16em] transition-all", dashboardRange === '7days' ? "bg-primary text-black shadow-lg shadow-primary/20" : "text-[var(--text-muted)] hover:bg-[var(--surface-3)] hover:text-[var(--text-main)]")}>{t('app.dashboard.last7days')}</button>
+                        <button onClick={() => setDashboardRange('30days')} className={cn("rounded-xl px-3 py-2 text-[10px] font-black uppercase tracking-[0.16em] transition-all", dashboardRange === '30days' ? "bg-primary text-black shadow-lg shadow-primary/20" : "text-[var(--text-muted)] hover:bg-[var(--surface-3)] hover:text-[var(--text-main)]")}>{t('app.dashboard.last30days')}</button>
+                        <button onClick={() => setIsDashboardRangeModalOpen(true)} className={cn("rounded-xl px-3 py-2 text-[10px] font-black uppercase tracking-[0.16em] transition-all", dashboardRange === 'custom' ? "bg-primary text-black shadow-lg shadow-primary/20" : "text-[var(--text-muted)] hover:bg-[var(--surface-3)] hover:text-[var(--text-main)]")}>{dashboardRange === 'custom' ? dashboardCustomRangeLabel : t('app.dashboard.customRange')}</button>
                       </div>
                     </div>
                   </div>
@@ -2239,7 +2239,7 @@ export default function App() {
                 </div>
 
                 {/* Charts Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
                   <Card title="Volume de Ocorrências" className="lg:col-span-2">
                     <div className="h-[250px] md:h-[300px] w-full mt-4">
                       <ResponsiveContainer width="100%" height="100%">
@@ -2250,16 +2250,16 @@ export default function App() {
                               <stop offset="95%" stopColor="var(--primary)" stopOpacity={0}/>
                             </linearGradient>
                           </defs>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#18181b" vertical={false} />
+                          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
                           <XAxis 
                             dataKey="date" 
-                            stroke="#52525b" 
+                            stroke="var(--text-faint)" 
                             fontSize={10} 
                             tickFormatter={(val) => val.split('-').slice(1).reverse().join('/')}
                           />
-                          <YAxis stroke="#52525b" fontSize={10} />
+                          <YAxis stroke="var(--text-faint)" fontSize={10} />
                           <Tooltip 
-                            contentStyle={{ backgroundColor: '#09090b', border: '1px solid #27272a', borderRadius: '8px' }}
+                            contentStyle={{ backgroundColor: 'var(--surface-1)', border: '1px solid var(--border)', borderRadius: '12px', color: 'var(--text-main)' }}
                             itemStyle={{ color: 'var(--primary)', fontSize: '12px', fontWeight: 'bold' }}
                           />
                           <Area type="monotone" dataKey="count" stroke="var(--primary)" strokeWidth={3} fillOpacity={1} fill="url(#colorCount)" />
@@ -2293,7 +2293,7 @@ export default function App() {
                               ))}
                             </Pie>
                             <Tooltip 
-                              contentStyle={{ backgroundColor: '#09090b', border: '1px solid #27272a', borderRadius: '8px' }}
+                              contentStyle={{ backgroundColor: 'var(--surface-1)', border: '1px solid var(--border)', borderRadius: '12px', color: 'var(--text-main)' }}
                               itemStyle={{ fontSize: '12px', fontWeight: 'bold' }}
                             />
                           </PieChart>
@@ -2307,10 +2307,10 @@ export default function App() {
                               setFilterCategory(entry.name);
                               setActiveTab('reports');
                             }}
-                            className="flex items-center gap-1.5 bg-zinc-900/60 px-2.5 py-1.5 rounded-lg border border-zinc-800/50 shadow-sm transition-all hover:border-primary/50 hover:bg-zinc-800 cursor-pointer group"
+                            className="flex items-center gap-1.5 rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-2.5 py-1.5 shadow-sm transition-all cursor-pointer group hover:border-primary/40 hover:bg-[var(--surface-3)]"
                           >
                             <div className="w-1.5 h-1.5 rounded-full group-hover:scale-125 transition-transform" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
-                            <span className="text-[10px] text-zinc-100 font-bold truncate uppercase tracking-tight group-hover:text-primary transition-colors">{entry.name}</span>
+                            <span className="text-[10px] font-bold uppercase tracking-tight text-[var(--text-main)] truncate transition-colors group-hover:text-primary">{entry.name}</span>
                           </div>
                         ))}
                       </div>
@@ -2330,52 +2330,52 @@ export default function App() {
                 </Card>
 
                 {/* Recent Reports List */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
                   <Card 
                     title={t('app.dashboard.latestOccurrences')} 
                     subtitle="Registos mais recentes no sistema"
                     action={
                       <button 
                         onClick={() => window.print()}
-                        className="p-2 hover:bg-zinc-800 rounded-lg text-zinc-500 hover:text-zinc-300 transition-all no-print"
+                        className="rounded-lg p-2 text-[var(--text-muted)] transition-all hover:bg-[var(--surface-3)] hover:text-[var(--text-main)] no-print"
                         title="Exportar Lista para PDF"
                       >
                         <Printer size={16} />
                       </button>
                     }
                   >
-                    <div className="space-y-3 mt-4">
+                    <div className="mt-3 space-y-2.5">
                       {reports.slice(0, 5).map((report) => (
                         <div 
                           key={report.id}
                           onClick={() => openReportDetails(report)}
-                          className="flex items-center gap-4 p-3 rounded-xl bg-zinc-900/50 border border-zinc-800/50 hover:border-primary/30 hover:bg-zinc-900 transition-all cursor-pointer group"
+                          className="group flex cursor-pointer items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2.5 transition-all hover:border-primary/30 hover:bg-[var(--surface-3)]"
                         >
                           <div className={cn(
-                            "w-10 h-10 rounded-lg flex items-center justify-center shrink-0",
+                            "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg",
                             report.gravidade === 'G4' ? "bg-red-500/10 text-red-500" :
                             report.gravidade === 'G3' ? "bg-primary/10 text-primary" :
-                            "bg-zinc-800 text-zinc-400"
+                            "bg-[var(--surface-3)] text-[var(--text-faint)]"
                           )}>
-                            <AlertTriangle size={20} />
+                            <AlertTriangle size={18} />
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between mb-0.5">
-                              <p className="text-xs font-black text-zinc-200 uppercase truncate group-hover:text-primary transition-colors">{report.titulo || 'Sem Título'}</p>
-                              <span className="text-[9px] font-bold text-zinc-600">{formatTime(report.timestamp, normalizeLanguage(i18n.language))}</span>
+                              <p className="truncate text-xs font-black uppercase text-[var(--text-main)] transition-colors group-hover:text-primary">{report.titulo || 'Sem Título'}</p>
+                              <span className="text-[9px] font-bold text-[var(--text-faint)]">{formatTime(report.timestamp, normalizeLanguage(i18n.language))}</span>
                             </div>
-                            <p className="text-[10px] text-zinc-500 line-clamp-1">{report.descricao}</p>
+                            <p className="line-clamp-1 text-[10px] text-[var(--text-muted)]">{report.descricao}</p>
                             <button className="sm:hidden mt-1 text-[8px] font-black text-primary uppercase tracking-widest">Mais detalhes</button>
                           </div>
-                          <ChevronRight size={14} className="text-zinc-700 group-hover:text-zinc-400 transition-colors" />
+                          <ChevronRight size={14} className="text-[var(--text-faint)] transition-colors group-hover:text-[var(--text-main)]" />
                         </div>
                       ))}
                       {reports.length === 0 && (
-                        <p className="text-center py-8 text-[10px] font-bold text-zinc-600 uppercase tracking-widest">Nenhum registo recente</p>
+                        <p className="py-8 text-center text-[10px] font-bold uppercase tracking-widest text-[var(--text-faint)]">Nenhum registo recente</p>
                       )}
                       <button 
                         onClick={() => setActiveTab('reports')}
-                        className="w-full py-2 text-[10px] font-black text-zinc-500 hover:text-primary uppercase tracking-widest transition-colors border-t border-zinc-800/50 mt-2"
+                        className="mt-2 w-full border-t border-[var(--border)] py-2 text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] transition-colors hover:text-primary"
                       >
                         Ver Todos os Registos
                       </button>
@@ -2385,11 +2385,11 @@ export default function App() {
                   <Card title="Alertas" subtitle="Notificações críticas e avisos">
                     {alerts.length === 0 ? (
                       <div className="p-8 text-center">
-                        <AlertTriangle className="mx-auto text-zinc-600 mb-2" size={32} />
-                        <p className="text-xs text-zinc-500">Nenhum alerta no momento</p>
+                        <AlertTriangle className="mx-auto mb-2 text-[var(--text-faint)]" size={32} />
+                        <p className="text-xs text-[var(--text-muted)]">Nenhum alerta no momento</p>
                       </div>
                     ) : (
-                      <div className="space-y-3 mt-4 max-h-64 overflow-y-auto">
+                      <div className="mt-3 max-h-64 space-y-2.5 overflow-y-auto">
                         {alerts.slice(0, 5).map((alert: any) => {
                           const bgColors = {
                             critico: "bg-red-500/5 border-red-500/10",
@@ -2415,7 +2415,7 @@ export default function App() {
                               <div className="flex-1 min-w-0">
                                 <p className="text-xs font-bold truncate">{alert.titulo}</p>
                                 <p className="text-[10px] opacity-70 mt-0.5 line-clamp-2">{alert.mensagem}</p>
-                                <p className="text-[9px] text-zinc-600 mt-1">{formatDateTime(alert.timestamp, normalizeLanguage(i18n.language))}</p>
+                                <p className="mt-1 text-[9px] text-[var(--text-faint)]">{formatDateTime(alert.timestamp, normalizeLanguage(i18n.language))}</p>
                               </div>
                             </div>
                           );
@@ -4076,16 +4076,16 @@ export default function App() {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed bottom-0 left-0 right-0 z-[100] md:hidden rounded-t-[2rem] border-t border-zinc-800 bg-[linear-gradient(180deg,rgba(18,18,22,0.98),rgba(7,7,10,0.98))] px-4 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-6 shadow-[0_-30px_80px_rgba(0,0,0,0.55)]"
+              className="fixed bottom-0 left-0 right-0 z-[100] md:hidden rounded-t-[2rem] border-t border-[var(--border)] bg-[linear-gradient(180deg,var(--surface-1),var(--surface-2))] px-4 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-6 shadow-[0_-30px_80px_rgba(0,0,0,0.28)]"
             >
-              <div className="mx-auto mb-4 h-1 w-12 rounded-full bg-zinc-700/70" />
+              <div className="mx-auto mb-4 h-1 w-12 rounded-full bg-[var(--border-strong)]" />
               <div className="mb-5 flex items-start justify-between gap-3">
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-[0.24em] text-primary">Mais opções</p>
-                  <h3 className="mt-2 text-base font-black uppercase tracking-[0.08em] text-white">Navegação rápida</h3>
-                  <p className="mt-1 text-xs text-zinc-500">Atalhos operacionais e áreas administrativas.</p>
+                  <h3 className="mt-2 text-base font-black uppercase tracking-[0.08em] text-[var(--text-main)]">Navegação rápida</h3>
+                  <p className="mt-1 text-xs text-[var(--text-muted)]">Atalhos operacionais e áreas administrativas.</p>
                 </div>
-                <button onClick={() => setIsMobileMenuOpen(false)} className="rounded-xl border border-zinc-800 bg-zinc-900/70 p-2 text-zinc-400">
+                <button onClick={() => setIsMobileMenuOpen(false)} className="rounded-xl border border-[var(--border)] bg-[var(--surface-1)] p-2 text-[var(--text-muted)]">
                   <XCircle size={18} />
                 </button>
               </div>
@@ -4115,7 +4115,7 @@ export default function App() {
                         "flex min-h-[76px] flex-col items-start justify-between rounded-2xl border px-4 py-3 text-left transition-all",
                         active
                           ? "border-primary/40 bg-primary/12 text-primary"
-                          : "border-zinc-800/80 bg-zinc-950/60 text-zinc-300"
+                          : "border-[var(--border)] bg-[var(--surface-1)] text-[var(--text-main)]"
                       )}
                     >
                       <Icon size={18} />
@@ -4124,14 +4124,14 @@ export default function App() {
                   );
                 })}
               </div>
-              <div className="mt-6 flex items-center justify-between border-t border-zinc-800 pt-6">
+              <div className="mt-6 flex items-center justify-between border-t border-[var(--border)] pt-6">
                 <div className="flex items-center gap-3">
                    <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-black font-black">
                      {currentUser.nome.charAt(0)}
                    </div>
                    <div>
-                     <p className="text-xs font-black uppercase">{currentUser.nome}</p>
-                     <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">{currentUser.nivel_hierarquico}</p>
+                     <p className="text-xs font-black uppercase text-[var(--text-main)]">{currentUser.nome}</p>
+                     <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">{currentUser.nivel_hierarquico}</p>
                    </div>
                 </div>
                 <button onClick={handleLogout} className="p-3 bg-red-500/10 text-red-500 rounded-xl">

@@ -413,13 +413,20 @@
 }
 
 .nav-section-label {
-  padding: 0 1.25rem;
+  padding: 0 0.95rem;
   margin-bottom: 0.5rem;
   color: var(--text-faint);
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 800;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
+}
+
+.sidebar-label {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 @layer utilities {
@@ -584,6 +591,17 @@
   .section-shell {
     padding-left: 1rem;
     padding-right: 1rem;
+  }
+}
+
+@media (min-width: 1024px) and (max-width: 1440px) {
+  html {
+    font-size: 87.5%;
+  }
+
+  .section-shell {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
   }
 }
 

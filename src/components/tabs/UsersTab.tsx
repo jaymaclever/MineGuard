@@ -13,7 +13,7 @@ interface UsersTabProps {
 }
 
 const panelClass =
-  'rounded-[1.5rem] border border-[var(--border)] bg-[var(--surface-1)] p-5 shadow-[0_24px_60px_-44px_rgba(0,0,0,0.75)]';
+  'rounded-[1.35rem] border border-[var(--border)] bg-[var(--surface-1)] px-4 py-3.5 shadow-[0_24px_60px_-44px_rgba(0,0,0,0.55)]';
 const labelClass = 'text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]';
 const inputClass =
   'w-full rounded-xl border border-[var(--border)] bg-[var(--bg-input)] px-4 py-3 text-sm text-[var(--text-main)] outline-none transition-colors placeholder:text-[var(--text-faint)] focus:border-primary';
@@ -25,15 +25,14 @@ export const UsersTab: React.FC<UsersTabProps> = ({ users, onCreateUser, onEditU
     const term = query.trim().toLowerCase();
     if (!term) return users;
     return users.filter((user) =>
-      [user.nome, user.funcao, user.numero_mecanografico, user.nivel_hierarquico]
-        .some((value) => String(value || '').toLowerCase().includes(term))
+      [user.nome, user.funcao, user.numero_mecanografico, user.nivel_hierarquico].some((value) => String(value || '').toLowerCase().includes(term))
     );
   }, [users, query]);
 
   const roleCount = useMemo(() => new Set(users.map((user) => user.nivel_hierarquico)).size, [users]);
 
   return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-5">
       <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
         <div className="space-y-3">
           <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.22em] text-primary">
@@ -41,25 +40,23 @@ export const UsersTab: React.FC<UsersTabProps> = ({ users, onCreateUser, onEditU
             Estrutura da equipa
           </div>
           <div className="space-y-2">
-            <h2 className="text-3xl font-black tracking-tight text-[var(--text-main)] uppercase">Gestão de utilizadores</h2>
-            <p className="max-w-2xl text-sm text-[var(--text-muted)]">
-              Gira agentes, funções e perfis de acesso com uma vista mais clara para operação e administração.
-            </p>
+            <h2 className="text-2xl font-black uppercase tracking-tight text-[var(--text-main)] md:text-[2rem]">Gestão de utilizadores</h2>
+            <p className="max-w-2xl text-sm text-[var(--text-muted)]">Gira agentes, funções e perfis de acesso com uma vista mais clara para operação e administração.</p>
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2.5">
           <div className={panelClass}>
             <p className={labelClass}>Utilizadores</p>
-            <p className="mt-1 text-2xl font-black text-[var(--text-main)]">{users.length}</p>
+            <p className="mt-1 text-xl font-black text-[var(--text-main)]">{users.length}</p>
           </div>
           <div className={panelClass}>
             <p className={labelClass}>Perfis ativos</p>
-            <p className="mt-1 text-2xl font-black text-[var(--text-main)]">{roleCount}</p>
+            <p className="mt-1 text-xl font-black text-[var(--text-main)]">{roleCount}</p>
           </div>
           <button
             onClick={onCreateUser}
-            className="inline-flex items-center gap-2 rounded-2xl bg-primary px-5 py-3 text-[10px] font-black uppercase tracking-[0.18em] text-primary-foreground transition-all hover:brightness-110"
+            className="inline-flex items-center gap-2 rounded-2xl bg-primary px-4 py-3 text-[10px] font-black uppercase tracking-[0.18em] text-primary-foreground transition-all hover:brightness-110"
           >
             <Plus size={16} strokeWidth={3} />
             Adicionar agente
@@ -68,7 +65,7 @@ export const UsersTab: React.FC<UsersTabProps> = ({ users, onCreateUser, onEditU
       </div>
 
       <Card title="Equipa operacional" subtitle="Pesquise rapidamente e atue sobre perfis existentes" className="rounded-[1.75rem]">
-        <div className="mt-4 space-y-5">
+        <div className="mt-3 space-y-4">
           <div className="relative">
             <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-faint)]" />
             <input
@@ -89,11 +86,11 @@ export const UsersTab: React.FC<UsersTabProps> = ({ users, onCreateUser, onEditU
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+            <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2 xl:grid-cols-3">
               {filteredUsers.map((user) => (
                 <Card
                   key={user.id}
-                  className="group rounded-[1.5rem] border border-[var(--border)] bg-[var(--surface-1)] transition-all hover:border-[var(--border-strong)] hover:bg-[var(--surface-2)]"
+                  className="group rounded-[1.4rem] border border-[var(--border)] bg-[var(--surface-1)] transition-all hover:border-[var(--border-strong)] hover:bg-[var(--surface-2)]"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/15 text-lg font-black text-primary">
