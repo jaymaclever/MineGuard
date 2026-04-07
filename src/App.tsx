@@ -1,7 +1,6 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import i18n from './i18n';
-import imageCompression from 'browser-image-compression';
 import { 
   Shield, 
   FileText, 
@@ -77,6 +76,7 @@ import { DashboardRangeModal, EditAlertModal, UserModal } from './components/mod
 import { io } from 'socket.io-client';
 import { normalizeLanguage } from './i18n';
 import { applyThemeSettings, resolveThemeMode, resolveThemePalette, resolveThemeTemplate, themePalettes, themeTemplates } from './lib/theme';
+import { compressPhotoToJpeg } from './lib/photoUpload';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 
@@ -1491,9 +1491,8 @@ export default function App() {
       
       for (const foto of newReport.fotos) {
         try {
-          const options = { maxSizeMB: 0.3, maxWidthOrHeight: 1280, useWebWorker: true };
-          const compressedFile = await imageCompression(foto.file, options);
-          formData.append('fotos', compressedFile);
+          const jpegFile = await compressPhotoToJpeg(foto.file);
+          formData.append('fotos', jpegFile);
         } catch (e) {
           console.error("Image compression failed", e);
           formData.append('fotos', foto.file);
@@ -1737,9 +1736,8 @@ export default function App() {
       for (const foto of editingReportData.fotos) {
         if (foto.file) {
           try {
-            const options = { maxSizeMB: 0.3, maxWidthOrHeight: 1280, useWebWorker: true };
-            const compressedFile = await imageCompression(foto.file, options);
-            formData.append('fotos', compressedFile);
+            const jpegFile = await compressPhotoToJpeg(foto.file);
+            formData.append('fotos', jpegFile);
           } catch (e) {
             console.error("Image compression failed", e);
             formData.append('fotos', foto.file);

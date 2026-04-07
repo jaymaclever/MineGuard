@@ -371,28 +371,28 @@ async function startServer() {
   
   const SSL_KEY_PATH = process.env.SSL_KEY_PATH || path.join(process.cwd(), "certs", "key.pem");
   const SSL_CERT_PATH = process.env.SSL_CERT_PATH || path.join(process.cwd(), "certs", "cert.pem");
+  const PORT = process.env.PORT ? parseInt(process.env.PORT) : 2026;
+  const HTTP_REDIRECT_PORT = process.env.HTTP_PORT ? parseInt(process.env.HTTP_PORT) : PORT - 1;
   const hasSslKey = fs.existsSync(SSL_KEY_PATH);
   const hasSslCert = fs.existsSync(SSL_CERT_PATH);
   
-  let server;
+  let server: https.Server;
   console.log(`[SSL] Key path: ${SSL_KEY_PATH}`);
   console.log(`[SSL] Cert path: ${SSL_CERT_PATH}`);
   console.log(`[SSL] Key found: ${hasSslKey ? "yes" : "no"}`);
   console.log(`[SSL] Cert found: ${hasSslCert ? "yes" : "no"}`);
 
-  if (hasSslKey && hasSslCert) {
+  const useHttps = hasSslKey && hasSslCert;
+
+  if (useHttps) {
     const options = {
       key: fs.readFileSync(SSL_KEY_PATH),
       cert: fs.readFileSync(SSL_CERT_PATH)
     };
     server = https.createServer(options, app);
-    console.log(`[SSL] Servidor configurado com HTTPS.`);
+    console.log("[SSL] Servidor configurado com HTTPS.");
   } else {
-    if (process.env.NODE_ENV === "production") {
-      throw new Error(`[SSL] Certificados ausentes em produção. Esperado key=${SSL_KEY_PATH} cert=${SSL_CERT_PATH}`);
-    }
-    server = http.createServer(app);
-    console.warn(`[SSL] Certificados não encontrados. Usando HTTP.`);
+    throw new Error("[SSL] HTTPS obrigatorio. Certificados ausentes ou invalidos. Esperado key=" + SSL_KEY_PATH + " cert=" + SSL_CERT_PATH);
   }
 
   const io = new Server(server);
@@ -462,8 +462,6 @@ async function startServer() {
     console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
     next();
   });
-
-  const PORT = process.env.PORT ? parseInt(process.env.PORT) : 2026;
 
   // --- Auth API ---
   app.post("/api/login", (req, res) => {
@@ -1887,14 +1885,26 @@ ${alert.coords_lat ? `<b>Local:</b> <a href="https://www.google.com/maps?q=${ale
     }
   }, 15000);
 
-  const protocol = server instanceof https.Server ? "https" : "http";
-  server.listen(PORT, "0.0.0.0", () => {
+  const redirectServer = http.createServer((req, res) => {
+    const hostHeader = req.headers.host || `localhost:${HTTP_REDIRECT_PORT}`;
+    const host = hostHeader.replace(/:\d+$/, `:${PORT}`);
+    const location = `https://${host}${req.url || "/"}`;
+    res.writeHead(301, {
+      Location: location,
+      "Content-Type": "text/plain; charset=utf-8",
+    });
+    res.end("Redirecting to HTTPS");
+  });
+
+  redirectServer.listen(HTTP_REDIRECT_PORT, () => {
+    console.log(`[SSL] Redirect HTTP ativo em http://localhost:${HTTP_REDIRECT_PORT} -> https://localhost:${PORT}`);
+  });
+
+  server.listen(PORT, () => {
     console.log("-----------------------------------------");
-    console.log(`🚀 MINEGUARD RODANDO EM: ${protocol}://localhost:${PORT}`);
-    if (protocol === "https") {
-      console.log(`🔒 MODO SEGURO ATIVADO`);
-      console.log(`⚠️  NOTA: Como o certificado é autoassinado, aceite o aviso de segurança no navegador.`);
-    }
+    console.log(`MINEGUARD RODANDO EM: https://localhost:${PORT}`);
+    console.log(`MODO SEGURO ATIVADO`);
+    console.log(`NOTA: Como o certificado e autoassinado, aceite o aviso de seguranca no navegador.`);
     console.log("-----------------------------------------");
   });
 }

@@ -4,12 +4,12 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "tsx server.ts",
+    "dev": "node C:/Users/admin/Vodoo/MineGuard/scripts/start-dev.mjs",
     "build": "vite build",
     "preview": "vite preview",
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
-    "start": "tsx server.ts"
+    "start": "node C:/Users/admin/Vodoo/MineGuard/scripts/start-dev.mjs"
   },
   "dependencies": {
     "@google/genai": "^1.47.0",

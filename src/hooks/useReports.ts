@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Report, User, Categoria, Gravidade } from '../types';
 import { toast } from 'sonner';
-import imageCompression from 'browser-image-compression';
+import { compressPhotoToJpeg } from '../lib/photoUpload';
 
 export const useReports = (currentUser: User | null, isOnline: boolean, savePendingSync: (data: any, type: 'NEW' | 'EDIT') => void) => {
   const [reports, setReports] = useState<Report[]>([]);
@@ -90,9 +90,8 @@ export const useReports = (currentUser: User | null, isOnline: boolean, savePend
 
       for (const foto of newReport.fotos) {
         try {
-          const options = { maxSizeMB: 0.3, maxWidthOrHeight: 1280, useWebWorker: true };
-          const compressedFile = await imageCompression(foto.file, options);
-          formData.append(`fotos`, compressedFile);
+          const jpegFile = await compressPhotoToJpeg(foto.file);
+          formData.append(`fotos`, jpegFile);
         } catch (e) {
           formData.append(`fotos`, foto.file);
         }
@@ -136,9 +135,8 @@ export const useReports = (currentUser: User | null, isOnline: boolean, savePend
       if (data.fotos) {
         for (const foto of data.fotos) {
           if (foto.file) {
-            const options = { maxSizeMB: 0.3, maxWidthOrHeight: 1280, useWebWorker: true };
-            const compressedFile = await imageCompression(foto.file, options);
-            formData.append(`fotos`, compressedFile);
+            const jpegFile = await compressPhotoToJpeg(foto.file);
+            formData.append(`fotos`, jpegFile);
           }
           formData.append(`captions`, foto.caption);
         }
