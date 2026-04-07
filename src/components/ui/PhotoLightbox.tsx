@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { motion } from 'motion/react';
-import { ChevronLeft, ChevronRight, XCircle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Download, ExternalLink, XCircle } from 'lucide-react';
 
 export interface PhotoLightboxItem {
   src: string;
@@ -44,6 +44,20 @@ export const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
 
   if (!isOpen || !activeItem) return null;
 
+  const openInNewTab = () => {
+    window.open(activeItem.src, '_blank', 'noopener,noreferrer');
+  };
+
+  const downloadPhoto = () => {
+    const anchor = document.createElement('a');
+    anchor.href = activeItem.src;
+    anchor.download = `${activeItem.alt || 'fotografia'}.jpg`;
+    anchor.rel = 'noopener noreferrer';
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+  };
+
   return (
     <motion.div
       className="fixed inset-0 z-[260] flex items-center justify-center bg-black/95 p-4 backdrop-blur-xl"
@@ -65,14 +79,33 @@ export const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
             <p className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-500">Visualização da fotografia</p>
             <p className="truncate text-sm font-semibold text-zinc-200">{activeItem.alt}</p>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-full p-1 text-zinc-500 transition-colors hover:text-white"
-            aria-label="Fechar visualizador"
-          >
-            <XCircle size={26} />
-          </button>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={openInNewTab}
+              className="flex items-center gap-2 rounded-full border border-zinc-700 bg-zinc-900/80 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-200 transition-colors hover:border-primary/50 hover:text-primary"
+            >
+              <ExternalLink size={14} />
+              Tamanho real
+            </button>
+            <button
+              type="button"
+              onClick={downloadPhoto}
+              className="flex items-center gap-2 rounded-full border border-zinc-700 bg-zinc-900/80 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-200 transition-colors hover:border-primary/50 hover:text-primary"
+            >
+              <Download size={14} />
+              Descarregar
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-full p-1 text-zinc-500 transition-colors hover:text-white"
+              aria-label="Fechar visualizador"
+            >
+              <XCircle size={26} />
+            </button>
+          </div>
         </div>
 
         <div className="relative flex min-h-0 flex-1 items-center justify-center bg-black p-4">
@@ -96,9 +129,7 @@ export const PhotoLightbox: React.FC<PhotoLightboxProps> = ({
                 draggable={false}
               />
             </div>
-            {activeItem.caption && (
-              <p className="max-w-3xl text-center text-sm text-zinc-400">{activeItem.caption}</p>
-            )}
+            {activeItem.caption && <p className="max-w-3xl text-center text-sm text-zinc-400">{activeItem.caption}</p>}
           </div>
 
           {items.length > 1 && (

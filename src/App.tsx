@@ -75,6 +75,7 @@ import { ReportDetailModal } from './components/modals/ReportDetailModal';
 import { DashboardRangeModal, EditAlertModal, UserModal } from './components/modals/SystemModals';
 import { io } from 'socket.io-client';
 import { normalizeLanguage } from './i18n';
+import { matchesAlertAudience } from './lib/alertAudience';
 import { applyThemeSettings, resolveThemeMode, resolveThemePalette, resolveThemeTemplate, themePalettes, themeTemplates } from './lib/theme';
 import { compressPhotoToJpeg } from './lib/photoUpload';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
@@ -514,9 +515,9 @@ export default function App() {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isBellShaking, setIsBellShaking] = useState(false);
   const [alerts, setAlerts] = useState<any[]>([]);
-  const [newAlert, setNewAlert] = useState({ titulo: '', mensagem: '', tipo: 'aviso' });
+  const [newAlert, setNewAlert] = useState({ titulo: '', mensagem: '', tipo: 'aviso', expiresInHours: '24', isTemporary: true, targetAudience: 'all', pinned: false });
   const [editingAlert, setEditingAlert] = useState<any>(null);
-  const [editAlertForm, setEditAlertForm] = useState({ titulo: '', mensagem: '', tipo: 'aviso' });
+  const [editAlertForm, setEditAlertForm] = useState({ titulo: '', mensagem: '', tipo: 'aviso', expiresInHours: '24', isTemporary: true, targetAudience: 'all', pinned: false });
   const [mapCenter, setMapCenter] = useState<[number, number]>([-8.8383, 13.2344]); // Angola/Luanda default
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [focusMode, setFocusMode] = useState(false);
@@ -527,6 +528,9 @@ export default function App() {
   const [showInstallBtn, setShowInstallBtn] = useState(false);
   const [showInstallGuide, setShowInstallGuide] = useState(false);
   const canManageSystem = currentUser?.permissions?.manage_settings === true || currentUser?.nivel_hierarquico === 'Superadmin';
+  const canGenerateDailyReports =
+    canManageSystem ||
+    ['Oficial', 'Sierra 1', 'Sierra 2'].includes(currentUser?.nivel_hierarquico || '');
   const getSettingValue = (key: string, fallback = '') => systemSettings.find((setting) => setting.key === key)?.value || fallback;
   const reportDynamicFields = getReportDynamicFields(systemSettings);
   const reportFormBaseItems = [
@@ -742,6 +746,7 @@ export default function App() {
   // Socket.io Connection
   useEffect(() => {
     const socket = io();
+    const currentRole = (currentUser?.nivel_hierarquico || currentUser?.funcao || '').toString();
 
     socket.on('new_report', (incomingReport: Report) => {
       const report = normalizeReportRecord(incomingReport);
@@ -775,6 +780,9 @@ export default function App() {
     });
 
     socket.on('new_alert', (alert: any) => {
+      if (!matchesAlertAudience(alert?.target_audience, currentRole)) {
+        return;
+      }
       setAlerts(prev => [alert, ...prev]);
       addNotification(
         `Novo Alerta: ${alert.titulo}`,
@@ -785,6 +793,10 @@ export default function App() {
     });
 
     socket.on('alert_updated', (alert: any) => {
+      if (!matchesAlertAudience(alert?.target_audience, currentRole)) {
+        setAlerts(prev => prev.filter(a => a.id !== alert.id));
+        return;
+      }
       setAlerts(prev => prev.map(a => a.id === alert.id ? alert : a));
       toast.info(`Alerta atualizado: ${alert.titulo}`);
     });
@@ -1550,7 +1562,7 @@ export default function App() {
       const data = await res.json();
       if (data.status === 'success') {
         toast.success("Alerta criado com sucesso!");
-        setNewAlert({ titulo: '', mensagem: '', tipo: 'aviso' });
+        setNewAlert({ titulo: '', mensagem: '', tipo: 'aviso', expiresInHours: '24', isTemporary: true, targetAudience: 'all', pinned: false });
         // Alert will be added via Socket.io listener
       } else {
         toast.error(data.message || "Erro ao criar alerta");
@@ -1850,6 +1862,24 @@ export default function App() {
       }
     } catch (err) {
       toast.error("Erro ao aprovar relatório");
+    }
+  };
+
+  const handleMarkAlertRead = async (alertId: number) => {
+    try {
+      const res = await fetch(`/api/alerts/${alertId}/read`, {
+        method: 'PATCH',
+        credentials: 'include'
+      });
+
+      const data = await res.json();
+      if (data.status === 'success') {
+        setAlerts((current) => current.map((alert) => (alert.id === alertId ? { ...alert, read: 1 } : alert)));
+      } else {
+        toast.error(data.message || "Erro ao marcar alerta como lido");
+      }
+    } catch (err) {
+      toast.error("Erro ao marcar alerta como lido");
     }
   };
   const currentViewMeta = activeViewMeta[activeTab] || activeViewMeta.dashboard;
@@ -2629,9 +2659,18 @@ export default function App() {
                 onCreateAlert={handleCreateAlert}
                 onStartEditAlert={(alert) => {
                   setEditingAlert(alert);
-                  setEditAlertForm({ titulo: alert.titulo, mensagem: alert.mensagem, tipo: alert.tipo });
+                  setEditAlertForm({
+                    titulo: alert.titulo,
+                    mensagem: alert.mensagem,
+                    tipo: alert.tipo,
+                    expiresInHours: alert.expires_in_hours ? String(alert.expires_in_hours) : '24',
+                    isTemporary: Boolean(alert.expires_at),
+                    targetAudience: alert.target_audience || 'all',
+                    pinned: Boolean(alert.pinned),
+                  });
                 }}
                 onDeleteAlert={handleDeleteAlert}
+                onMarkAlertRead={handleMarkAlertRead}
               />
             )}
 
@@ -3086,8 +3125,9 @@ export default function App() {
 
             {activeTab === 'daily_reports' && (
               <DailyReportsWorkspaceTab
-                canGenerate={canManageSystem}
+                canGenerate={canGenerateDailyReports}
                 canExport={currentUser.permissions?.export_reports === true}
+                canManageLifecycle={canManageSystem}
               />
             )}
 

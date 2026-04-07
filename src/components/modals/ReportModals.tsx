@@ -1,13 +1,13 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { motion } from 'motion/react';
 import { Camera, Images, XCircle } from 'lucide-react';
-import { Badge } from '../ui/LayoutComponents';
 import { cn } from '../../lib/utils';
 import {
   DynamicFieldDefinition,
   formatDynamicFieldValue,
   getDynamicFieldValues,
 } from '../../lib/reportDynamicFields';
+import { PhotoLightbox } from '../ui/PhotoLightbox';
 
 type NewReportPhoto = { file: File; caption: string };
 
@@ -90,11 +90,31 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({
   setNewReport,
   addNewReportPhotos,
 }) => {
+  const [photoViewerIndex, setPhotoViewerIndex] = useState<number | null>(null);
+
   if (!isOpen && !showPreview) return null;
 
   const configuredSectors = getConfiguredSectors(systemSettings);
   const dynamicFieldValues = getDynamicFieldValues(newReport.metadata);
   const visibleItems = formItems.filter((item) => isVisible(item, newReport.categoria));
+
+  const photoItems = useMemo(
+    () =>
+      newReport.fotos.map((photo) => ({
+        src: URL.createObjectURL(photo.file),
+        alt: photo.caption || photo.file.name,
+        caption: photo.caption || photo.file.name,
+      })),
+    [newReport.fotos]
+  );
+
+  useEffect(() => {
+    return () => {
+      photoItems.forEach((item) => {
+        if (item.src.startsWith('blob:')) URL.revokeObjectURL(item.src);
+      });
+    };
+  }, [photoItems]);
 
   const updateDynamicFieldValue = (fieldId: string, value: any) => {
     setNewReport((current: NewReportState) => ({
@@ -111,24 +131,13 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({
 
   const renderDynamicInput = (field: DynamicFieldDefinition) => {
     const value = dynamicFieldValues[field.id];
-
-    if (field.type === 'textarea') {
-      return <textarea value={value || ''} required={field.required} placeholder={field.placeholder || field.label} onChange={(e) => updateDynamicFieldValue(field.id, e.target.value)} className="min-h-[96px] w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm focus:border-primary focus:outline-none" />;
-    }
-
-    if (field.type === 'select') {
-      return <select value={value || ''} required={field.required} onChange={(e) => updateDynamicFieldValue(field.id, e.target.value)} className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm focus:border-primary focus:outline-none"><option value="">Selecione...</option>{(field.options || []).map((option) => <option key={option} value={option}>{option}</option>)}</select>;
-    }
-
+    if (field.type === 'textarea') return <textarea value={value || ''} required={field.required} placeholder={field.placeholder || field.label} onChange={(e) => updateDynamicFieldValue(field.id, e.target.value)} className="min-h-[96px] w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm focus:border-primary focus:outline-none" />;
+    if (field.type === 'select') return <select value={value || ''} required={field.required} onChange={(e) => updateDynamicFieldValue(field.id, e.target.value)} className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm focus:border-primary focus:outline-none"><option value="">Selecione...</option>{(field.options || []).map((option) => <option key={option} value={option}>{option}</option>)}</select>;
     if (field.type === 'multiselect') {
       const selectedValues = Array.isArray(value) ? value : [];
       return <div className="flex flex-wrap gap-2 rounded-xl border border-zinc-800 bg-zinc-950/40 p-3">{(field.options || []).map((option) => { const selected = selectedValues.includes(option); return <button key={option} type="button" onClick={() => updateDynamicFieldValue(field.id, selected ? selectedValues.filter((item) => item !== option) : [...selectedValues, option])} className={cn('rounded-lg border px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest transition-all', selected ? 'border-primary/50 bg-primary/15 text-primary' : 'border-zinc-800 bg-zinc-900 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200')}>{option}</button>; })}</div>;
     }
-
-    if (field.type === 'checkbox') {
-      return <label className="flex items-center gap-3 rounded-xl border border-zinc-800 bg-zinc-900/50 p-4"><input type="checkbox" checked={Boolean(value)} onChange={(e) => updateDynamicFieldValue(field.id, e.target.checked)} className="h-5 w-5 rounded border-zinc-700 bg-zinc-900 text-primary focus:ring-primary/20" /><span className="text-sm font-bold text-zinc-300">{field.placeholder || field.label}</span></label>;
-    }
-
+    if (field.type === 'checkbox') return <label className="flex items-center gap-3 rounded-xl border border-zinc-800 bg-zinc-900/50 p-4"><input type="checkbox" checked={Boolean(value)} onChange={(e) => updateDynamicFieldValue(field.id, e.target.checked)} className="h-5 w-5 rounded border-zinc-700 bg-zinc-900 text-primary focus:ring-primary/20" /><span className="text-sm font-bold text-zinc-300">{field.placeholder || field.label}</span></label>;
     return <input type={field.type === 'number' ? 'number' : field.type === 'date' ? 'date' : 'text'} value={value || ''} required={field.required} placeholder={field.placeholder || field.label} onChange={(e) => updateDynamicFieldValue(field.id, e.target.value)} className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm focus:border-primary focus:outline-none" />;
   };
 
@@ -148,7 +157,38 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({
           </div>
         </div>
       </div>
-      {newReport.fotos.length > 0 && <div className="space-y-2">{newReport.fotos.map((photo, index) => <div key={`${photo.file.name}-${index}`} className="space-y-2 rounded-xl border border-zinc-800 bg-zinc-900/50 p-3"><div className="flex items-center justify-between"><span className="text-xs font-bold text-zinc-300">{photo.file.name}</span><button type="button" onClick={() => setNewReport((current: NewReportState) => ({ ...current, fotos: current.fotos.filter((_, photoIndex) => photoIndex !== index) }))} className="text-[10px] font-bold uppercase tracking-widest text-red-500 hover:text-red-400">Remover</button></div><input type="text" placeholder="Legenda/descrição desta fotografia..." value={photo.caption} onChange={(event) => setNewReport((current: NewReportState) => { const updatedPhotos = [...current.fotos]; updatedPhotos[index] = { ...updatedPhotos[index], caption: event.target.value }; return { ...current, fotos: updatedPhotos }; })} className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-xs text-zinc-200 focus:border-primary focus:outline-none" /></div>)}</div>}
+
+      {newReport.fotos.length > 0 && (
+        <div className="space-y-3">
+          {photoItems.length > 0 && (
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {photoItems.map((photo, index) => (
+                <button key={`${photo.src}-${index}`} type="button" onClick={() => setPhotoViewerIndex(index)} className="group space-y-2 text-left">
+                  <div className="relative aspect-square overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900">
+                    <img src={photo.src} alt={photo.alt} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]" />
+                    <div className="absolute inset-0 flex items-end bg-gradient-to-t from-black/70 via-transparent to-transparent p-3 opacity-0 transition-opacity group-hover:opacity-100">
+                      <span className="rounded-full border border-white/10 bg-black/50 px-3 py-1 text-[9px] font-black uppercase tracking-widest text-white">Visualizar</span>
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-zinc-400">{photo.caption}</p>
+                </button>
+              ))}
+            </div>
+          )}
+
+          <div className="space-y-2">
+            {newReport.fotos.map((photo, index) => (
+              <div key={`${photo.file.name}-${index}`} className="space-y-2 rounded-xl border border-zinc-800 bg-zinc-900/50 p-3">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-xs font-bold text-zinc-300">{photo.file.name}</span>
+                  <button type="button" onClick={() => setNewReport((current: NewReportState) => ({ ...current, fotos: current.fotos.filter((_, photoIndex) => photoIndex !== index) }))} className="text-[10px] font-bold uppercase tracking-widest text-red-500 hover:text-red-400">Remover</button>
+                </div>
+                <input type="text" placeholder="Legenda/descrição desta fotografia..." value={photo.caption} onChange={(event) => setNewReport((current: NewReportState) => { const updatedPhotos = [...current.fotos]; updatedPhotos[index] = { ...updatedPhotos[index], caption: event.target.value }; return { ...current, fotos: updatedPhotos }; })} className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-xs text-zinc-200 focus:border-primary focus:outline-none" />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 
@@ -156,7 +196,6 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({
     if (item.isDynamic && item.field) {
       return <div key={item.id} className={cn('space-y-2', (item.type === 'textarea' || item.type === 'multiselect' || item.type === 'checkbox') && 'md:col-span-2')}><label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{item.label}{item.field.required && <span className="ml-1 text-red-400">*</span>}</label>{renderDynamicInput(item.field)}</div>;
     }
-
     switch (item.id) {
       case 'base:title':
         return <div key={item.id} className="space-y-2 md:col-span-2"><label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Título da ocorrência</label><input type="text" required value={newReport.titulo} onChange={(e) => setNewReport((c: NewReportState) => ({ ...c, titulo: e.target.value }))} placeholder="Ex: Intrusão Setor Norte" className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm focus:border-primary focus:outline-none" /></div>;
@@ -226,9 +265,7 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({
                 <button type="button" onClick={onClose} className="text-zinc-500 transition-colors hover:text-white"><XCircle size={24} /></button>
               </div>
               <div className="custom-scrollbar min-h-0 flex-1 overflow-y-auto p-4 sm:p-6 md:max-h-[72vh]">
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  {visibleItems.map(renderField)}
-                </div>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">{visibleItems.map(renderField)}</div>
               </div>
               <div className="no-print flex flex-col-reverse justify-end gap-3 border-t border-zinc-800 bg-zinc-900/40 p-4 sm:flex-row md:p-6">
                 <button type="button" onClick={onClose} className="w-full rounded-lg border border-zinc-800 bg-zinc-900/50 px-6 py-2.5 text-[10px] font-black uppercase tracking-widest text-zinc-500 transition-all hover:text-white sm:w-auto">Cancelar</button>
@@ -253,6 +290,14 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({
           </motion.div>
         </div>
       )}
+
+      <PhotoLightbox
+        isOpen={photoViewerIndex !== null}
+        items={photoItems}
+        activeIndex={photoViewerIndex ?? 0}
+        onClose={() => setPhotoViewerIndex(null)}
+        onChangeIndex={(nextIndex) => setPhotoViewerIndex(nextIndex)}
+      />
     </>
   );
 };

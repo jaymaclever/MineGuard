@@ -1,4 +1,4 @@
-import express from "express";
+﻿import express from "express";
 import { createServer as createViteServer } from "vite";
 import path from "path";
 import fs from "fs";
@@ -27,6 +27,7 @@ import {
   listDailyReports,
   updateDailyReportLifecycle,
 } from "./report_generator";
+import { getAlertAudienceLabel, matchesAlertAudience } from "./src/lib/alertAudience";
 
 const db = new Database("mina_seguranca.db");
 const LUANDA_SQL_OFFSET = "+1 hour";
@@ -101,6 +102,10 @@ db.exec(`
     titulo TEXT NOT NULL,
     mensagem TEXT NOT NULL,
     tipo TEXT DEFAULT 'aviso',
+    is_temporary BOOLEAN DEFAULT 1,
+    expires_at TEXT,
+    target_audience TEXT DEFAULT 'all',
+    pinned BOOLEAN DEFAULT 0,
     timestamp TEXT DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY(created_by) REFERENCES users(id)
   );
@@ -149,6 +154,8 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_reports_agente_timestamp ON reports(agente_id, timestamp);
   CREATE INDEX IF NOT EXISTS idx_audit_logs_timestamp ON audit_logs(timestamp);
   CREATE INDEX IF NOT EXISTS idx_alerts_timestamp ON alerts(timestamp);
+  CREATE INDEX IF NOT EXISTS idx_alerts_expires_at ON alerts(expires_at);
+  CREATE INDEX IF NOT EXISTS idx_alerts_target_audience ON alerts(target_audience);
 
   -- Seed default system settings if empty
   INSERT OR IGNORE INTO system_settings (key, value, description) VALUES ('app_name', 'MINEGUARD', 'Nome da aplicação');
@@ -158,6 +165,25 @@ db.exec(`
   INSERT OR IGNORE INTO system_settings (key, value, description) VALUES ('app_theme_template', 'executive', 'Template visual do sistema');
   INSERT OR IGNORE INTO system_settings (key, value, description) VALUES ('app_layout', 'default', 'Layout da aplicação (default, compact)');
 `);
+
+try {
+  const alertColumns = db.prepare("PRAGMA table_info(alerts)").all() as Array<{ name: string }>;
+  const alertColumnNames = alertColumns.map((column) => column.name);
+  if (!alertColumnNames.includes("is_temporary")) {
+    db.exec("ALTER TABLE alerts ADD COLUMN is_temporary BOOLEAN DEFAULT 1;");
+  }
+  if (!alertColumnNames.includes("expires_at")) {
+    db.exec("ALTER TABLE alerts ADD COLUMN expires_at TEXT;");
+  }
+  if (!alertColumnNames.includes("target_audience")) {
+    db.exec("ALTER TABLE alerts ADD COLUMN target_audience TEXT DEFAULT 'all';");
+  }
+  if (!alertColumnNames.includes("pinned")) {
+    db.exec("ALTER TABLE alerts ADD COLUMN pinned BOOLEAN DEFAULT 0;");
+  }
+} catch (error) {
+  console.error("Migration: unable to extend alerts table", error);
+}
 
 // Migration: Add password column if it doesn't exist (for existing databases)
 try {
@@ -648,7 +674,21 @@ async function startServer() {
     }
   });
 
-  app.post("/api/reports/generate-now", authenticate, checkPermission('manage_settings'), (req: any, res) => {
+  const canGenerateDailyReports = (user: any) => {
+    const role = String(user?.nivel_hierarquico || user?.funcao || '').toLowerCase();
+    return (
+      user?.nivel_hierarquico === 'Superadmin' ||
+      user?.permissions?.manage_settings === true ||
+      ['oficial', 'sierra 1', 'sierra 2', 'supervisor', 'admin'].includes(role)
+    );
+  };
+
+  app.post("/api/reports/generate-now", authenticate, (req: any, res, next) => {
+    if (!canGenerateDailyReports(req.user)) {
+      return res.status(403).json({ status: "error", message: "Forbidden: Insufficient permissions" });
+    }
+    next();
+  }, (req: any, res) => {
     try {
       const { date } = req.body || {};
       const result = generateDailyReport({ date, generatedBy: req.user?.id ?? null });
@@ -1573,17 +1613,19 @@ async function startServer() {
   app.get("/api/alerts", authenticate, (req: any, res) => {
     try {
       const userId = req.user.id;
+      const userRole = String(req.user.nivel_hierarquico || req.user.funcao || '').toLowerCase();
       const alerts = db.prepare(`
         SELECT a.*, u.nome as creator_name, 
           COALESCE(ar.read, 0) as read
         FROM alerts a
         LEFT JOIN alert_reads ar ON a.id = ar.alert_id AND ar.user_id = ?
         LEFT JOIN users u ON a.created_by = u.id
-        ORDER BY a.timestamp DESC
+        WHERE a.expires_at IS NULL OR datetime(a.expires_at) > datetime('now')
+        ORDER BY COALESCE(a.pinned, 0) DESC, a.timestamp DESC
         LIMIT 100
       `).all(userId) as any[];
 
-      res.json({ status: "success", alerts });
+      res.json({ status: "success", alerts: alerts.map((alert: any) => decorateAlertRow(alert, userId, userRole)).filter((alert: any) => alert.visible_for_user) });
     } catch (err: any) {
       res.status(500).json({ status: "error", message: err.message });
     }
@@ -1593,17 +1635,20 @@ async function startServer() {
     try {
       const userId = req.user.id;
 
-      const { titulo, mensagem, tipo } = req.body;
+      const { titulo, mensagem, tipo, expiresInHours, isTemporary, targetAudience, pinned } = req.body;
       if (!titulo || !mensagem) {
         return res.status(400).json({ status: "error", message: "Título e mensagem são obrigatórios" });
       }
 
       const stmt = db.prepare(`
-        INSERT INTO alerts (created_by, titulo, mensagem, tipo, timestamp)
-        VALUES (?, ?, ?, ?, datetime('now'))
+        INSERT INTO alerts (created_by, titulo, mensagem, tipo, is_temporary, expires_at, target_audience, pinned, timestamp)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
       `);
       
-      const result = stmt.run(userId, titulo, mensagem, tipo || 'aviso');
+      const expiresAt = parseAlertExpiry(expiresInHours, isTemporary, tipo, pinned);
+      const effectivePinned = pinned ? 1 : (String(tipo) === 'critico' ? 1 : 0);
+      const effectiveAudience = String(targetAudience || 'all');
+      const result = stmt.run(userId, titulo, mensagem, tipo || 'aviso', expiresAt ? 1 : 0, expiresAt, effectiveAudience, effectivePinned);
       const alertId = result.lastInsertRowid as number;
 
       // Insert into alert_reads for all users except creator
@@ -1619,9 +1664,9 @@ async function startServer() {
       `).get(alertId) as any;
 
       // Broadcast via Socket.io
-      io.emit("new_alert", alert);
+      io.emit("new_alert", decorateAlertRow(alert, userId, String(req.user.nivel_hierarquico || req.user.funcao || '').toLowerCase()));
 
-      res.json({ status: "success", alert });
+      res.json({ status: "success", alert: decorateAlertRow(alert, userId, String(req.user.nivel_hierarquico || req.user.funcao || '').toLowerCase()) });
     } catch (err: any) {
       res.status(500).json({ status: "error", message: err.message });
     }
@@ -1644,7 +1689,7 @@ async function startServer() {
     try {
       const { id } = req.params;
       const userId = req.user.id;
-      const { titulo, mensagem, tipo } = req.body;
+      const { titulo, mensagem, tipo, expiresInHours, isTemporary, targetAudience, pinned } = req.body;
 
       const alert = db.prepare("SELECT created_by FROM alerts WHERE id = ?").get(id) as any;
       if (!alert) {
@@ -1655,13 +1700,16 @@ async function startServer() {
         return res.status(403).json({ status: "error", message: "Apenas o criador pode editar este alerta" });
       }
 
-      db.prepare("UPDATE alerts SET titulo = ?, mensagem = ?, tipo = ? WHERE id = ?").run(titulo, mensagem, tipo, id);
+      const expiresAt = parseAlertExpiry(expiresInHours, isTemporary, tipo, pinned);
+      const effectivePinned = pinned ? 1 : (String(tipo) === 'critico' ? 1 : 0);
+      const effectiveAudience = String(targetAudience || 'all');
+      db.prepare("UPDATE alerts SET titulo = ?, mensagem = ?, tipo = ?, is_temporary = ?, expires_at = ?, target_audience = ?, pinned = ? WHERE id = ?").run(titulo, mensagem, tipo, expiresAt ? 1 : 0, expiresAt, effectiveAudience, effectivePinned, id);
 
       const updated = db.prepare("SELECT a.*, u.nome as creator_name, COALESCE(ar.read, 0) as read FROM alerts a LEFT JOIN users u ON a.created_by = u.id LEFT JOIN alert_reads ar ON a.id = ar.alert_id AND ar.user_id = ? WHERE a.id = ?").get(userId, id) as any;
 
-      io.emit("alert_updated", updated);
+      io.emit("alert_updated", decorateAlertRow(updated, userId, String(req.user.nivel_hierarquico || req.user.funcao || '').toLowerCase()));
 
-      res.json({ status: "success", alert: updated });
+      res.json({ status: "success", alert: decorateAlertRow(updated, userId, String(req.user.nivel_hierarquico || req.user.funcao || '').toLowerCase()) });
     } catch (err: any) {
       res.status(500).json({ status: "error", message: err.message });
     }
@@ -1688,21 +1736,73 @@ async function startServer() {
     }
   });
 
+  const parseAlertExpiry = (expiresInHours: unknown, isTemporary: unknown, tipo: unknown, pinned: unknown) => {
+    if (String(isTemporary) === 'false' || String(isTemporary) === '0') return null;
+    const hours = Number(expiresInHours ?? 24);
+    if (!Number.isFinite(hours) || hours <= 0) return null;
+    const safeHours = String(tipo) === 'critico' && hours < 72 ? 72 : hours;
+    return new Date(Date.now() + safeHours * 60 * 60 * 1000).toISOString();
+  };
+
+  const decorateAlertRow = (row: any, userId: number, userRole = '') => ({
+    ...row,
+    expires_in_hours: row.expires_at ? Math.max(1, Math.round((new Date(row.expires_at).getTime() - Date.now()) / (60 * 60 * 1000))) : null,
+    expired: row.expires_at ? new Date(row.expires_at).getTime() <= Date.now() : false,
+    read: row.read ?? 0,
+    creator_name: row.creator_name || 'Sistema',
+    target_audience: row.target_audience || 'all',
+    target_audience_label: getAlertAudienceLabel(row.target_audience),
+    pinned: row.pinned ? 1 : 0,
+    visible_for_user: matchesAlertAudience(row.target_audience, userRole),
+  });
+
+  const pruneExpiredAlerts = () => {
+    try {
+      const expiredAlerts = db.prepare(`
+        SELECT id FROM alerts
+        WHERE expires_at IS NOT NULL AND datetime(expires_at) <= datetime('now')
+      `).all() as Array<{ id: number }>;
+
+      if (expiredAlerts.length === 0) return;
+
+      db.prepare(`
+        DELETE FROM alert_reads
+        WHERE alert_id IN (
+          SELECT id FROM alerts
+          WHERE expires_at IS NOT NULL AND datetime(expires_at) <= datetime('now')
+        )
+      `).run();
+      db.prepare(`
+        DELETE FROM alerts
+        WHERE expires_at IS NOT NULL AND datetime(expires_at) <= datetime('now')
+      `).run();
+
+      expiredAlerts.forEach((alert) => io.emit('alert_deleted', { id: alert.id }));
+    } catch (error) {
+      console.error('Erro ao limpar alertas expirados:', error);
+    }
+  };
+
+  pruneExpiredAlerts();
+  setInterval(pruneExpiredAlerts, 10 * 60 * 1000);
+
   // Alerts endpoints
   app.get("/api/alerts", authenticate, (req: any, res) => {
     try {
       const userId = req.user.id;
+      const userRole = String(req.user.nivel_hierarquico || req.user.funcao || '').toLowerCase();
       const alerts = db.prepare(`
         SELECT a.*, u.nome as creator_name, 
           COALESCE(ar.read, 0) as read
         FROM alerts a
         LEFT JOIN alert_reads ar ON a.id = ar.alert_id AND ar.user_id = ?
         LEFT JOIN users u ON a.created_by = u.id
-        ORDER BY a.timestamp DESC
+        WHERE a.expires_at IS NULL OR datetime(a.expires_at) > datetime('now')
+        ORDER BY COALESCE(a.pinned, 0) DESC, a.timestamp DESC
         LIMIT 100
       `).all(userId) as any[];
 
-      res.json({ status: "success", alerts });
+      res.json({ status: "success", alerts: alerts.map((alert: any) => decorateAlertRow(alert, userId, userRole)).filter((alert: any) => alert.visible_for_user) });
     } catch (err: any) {
       res.status(500).json({ status: "error", message: err.message });
     }
@@ -1711,24 +1811,30 @@ async function startServer() {
   app.post("/api/alerts", authenticate, checkPermission('create_alerts'), (req: any, res) => {
     try {
       const userId = req.user.id;
+      const creatorRole = String(req.user.nivel_hierarquico || req.user.funcao || '').toLowerCase();
 
-      const { titulo, mensagem, tipo } = req.body;
+      const { titulo, mensagem, tipo, expiresInHours, isTemporary, targetAudience, pinned } = req.body;
       if (!titulo || !mensagem) {
         return res.status(400).json({ status: "error", message: "Título e mensagem são obrigatórios" });
       }
 
       const stmt = db.prepare(`
-        INSERT INTO alerts (created_by, titulo, mensagem, tipo, timestamp)
-        VALUES (?, ?, ?, ?, datetime('now'))
+        INSERT INTO alerts (created_by, titulo, mensagem, tipo, is_temporary, expires_at, target_audience, pinned, timestamp)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
       `);
       
-      const result = stmt.run(userId, titulo, mensagem, tipo || 'aviso');
+      const expiresAt = parseAlertExpiry(expiresInHours, isTemporary, tipo, pinned);
+      const effectivePinned = pinned ? 1 : (String(tipo) === 'critico' ? 1 : 0);
+      const effectiveAudience = String(targetAudience || 'all');
+      const result = stmt.run(userId, titulo, mensagem, tipo || 'aviso', expiresAt ? 1 : 0, expiresAt, effectiveAudience, effectivePinned);
       const alertId = result.lastInsertRowid as number;
 
-      // Insert into alert_reads for all users except creator
-      const allUsers = db.prepare("SELECT id FROM users WHERE id != ?").all(userId) as any[];
+      // Insert unread rows only for users that can actually receive this alert
+      const allUsers = db.prepare("SELECT id, nivel_hierarquico FROM users WHERE id != ?").all(userId) as any[];
       const insertRead = db.prepare("INSERT OR IGNORE INTO alert_reads (alert_id, user_id, read) VALUES (?, ?, 0)");
-      allUsers.forEach(u => insertRead.run(alertId, u.id));
+      allUsers
+        .filter((u) => matchesAlertAudience(effectiveAudience, u.nivel_hierarquico))
+        .forEach((u) => insertRead.run(alertId, u.id));
 
       const alert = db.prepare(`
         SELECT a.*, u.nome as creator_name, 0 as read
@@ -1738,9 +1844,9 @@ async function startServer() {
       `).get(alertId) as any;
 
       // Broadcast via Socket.io
-      io.emit("new_alert", alert);
+      io.emit("new_alert", decorateAlertRow(alert, userId, creatorRole));
 
-      res.json({ status: "success", alert });
+      res.json({ status: "success", alert: decorateAlertRow(alert, userId, creatorRole) });
     } catch (err: any) {
       res.status(500).json({ status: "error", message: err.message });
     }
@@ -1763,7 +1869,8 @@ async function startServer() {
     try {
       const { id } = req.params;
       const userId = req.user.id;
-      const { titulo, mensagem, tipo } = req.body;
+      const editorRole = String(req.user.nivel_hierarquico || req.user.funcao || '').toLowerCase();
+      const { titulo, mensagem, tipo, expiresInHours, isTemporary, targetAudience, pinned } = req.body;
 
       const alert = db.prepare("SELECT created_by FROM alerts WHERE id = ?").get(id) as any;
       if (!alert) {
@@ -1774,13 +1881,22 @@ async function startServer() {
         return res.status(403).json({ status: "error", message: "Apenas o criador pode editar este alerta" });
       }
 
-      db.prepare("UPDATE alerts SET titulo = ?, mensagem = ?, tipo = ? WHERE id = ?").run(titulo, mensagem, tipo, id);
+      const expiresAt = parseAlertExpiry(expiresInHours, isTemporary, tipo, pinned);
+      const effectivePinned = pinned ? 1 : (String(tipo) === 'critico' ? 1 : 0);
+      const effectiveAudience = String(targetAudience || 'all');
+      db.prepare("UPDATE alerts SET titulo = ?, mensagem = ?, tipo = ?, is_temporary = ?, expires_at = ?, target_audience = ?, pinned = ? WHERE id = ?").run(titulo, mensagem, tipo, expiresAt ? 1 : 0, expiresAt, effectiveAudience, effectivePinned, id);
+
+      const matchingUsers = db.prepare("SELECT id, nivel_hierarquico FROM users WHERE id != ?").all(userId) as any[];
+      const insertRead = db.prepare("INSERT OR IGNORE INTO alert_reads (alert_id, user_id, read) VALUES (?, ?, 0)");
+      matchingUsers
+        .filter((candidate) => matchesAlertAudience(effectiveAudience, candidate.nivel_hierarquico))
+        .forEach((candidate) => insertRead.run(id, candidate.id));
 
       const updated = db.prepare("SELECT a.*, u.nome as creator_name, COALESCE(ar.read, 0) as read FROM alerts a LEFT JOIN users u ON a.created_by = u.id LEFT JOIN alert_reads ar ON a.id = ar.alert_id AND ar.user_id = ? WHERE a.id = ?").get(userId, id) as any;
 
-      io.emit("alert_updated", updated);
+      io.emit("alert_updated", decorateAlertRow(updated, userId, editorRole));
 
-      res.json({ status: "success", alert: updated });
+      res.json({ status: "success", alert: decorateAlertRow(updated, userId, editorRole) });
     } catch (err: any) {
       res.status(500).json({ status: "error", message: err.message });
     }
@@ -1910,4 +2026,5 @@ ${alert.coords_lat ? `<b>Local:</b> <a href="https://www.google.com/maps?q=${ale
 }
 
 startServer();
+
 

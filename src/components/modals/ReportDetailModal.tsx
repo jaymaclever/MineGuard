@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { motion } from 'motion/react';
 import { Camera, CheckCircle2, Clock, FileText, Images, MapPin, Printer, Shield, Trash2, XCircle } from 'lucide-react';
 import { Badge } from '../ui/LayoutComponents';
@@ -21,31 +21,95 @@ interface EditingReportData {
 }
 type FormItem = { id: string; label: string; type: string; scope: string; categories?: string[]; active: boolean; isDynamic: boolean; field?: DynamicFieldDefinition | null };
 interface ReportDetailModalProps {
-  report: ReportData | null; currentUser: any; systemSettings: Array<{ key: string; value: string }>; dynamicFields: DynamicFieldDefinition[]; formItems: FormItem[]; isEditing: boolean; editingData: EditingReportData; onClose: () => void; onStartEditing: () => void; onCancelEditing: () => void; setEditingData: React.Dispatch<React.SetStateAction<any>>; addEditingReportPhotos: (files: File[]) => void; onSaveEdits: () => void; onConclude: (id: number, status: string) => void; onApprove: (id: number) => void; onDelete: (id: number) => void;
+  report: ReportData | null;
+  currentUser: any;
+  systemSettings: Array<{ key: string; value: string }>;
+  dynamicFields: DynamicFieldDefinition[];
+  formItems: FormItem[];
+  isEditing: boolean;
+  editingData: EditingReportData;
+  onClose: () => void;
+  onStartEditing: () => void;
+  onCancelEditing: () => void;
+  setEditingData: React.Dispatch<React.SetStateAction<any>>;
+  addEditingReportPhotos: (files: File[]) => void;
+  onSaveEdits: () => void;
+  onConclude: (id: number, status: string) => void;
+  onApprove: (id: number) => void;
+  onDelete: (id: number) => void;
 }
-const getConfiguredSectors = (settings: Array<{ key: string; value: string }>) => (settings.find((item) => item.key === 'form_sectors')?.value || '').split(',').map((sector) => sector.trim()).filter(Boolean);
-const isVisible = (item: FormItem, category: string) => item.active && (item.scope === 'both' || item.scope === 'edit') && !(item.categories && item.categories.length > 0 && !item.categories.includes(category));
 
-export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({ report, currentUser, systemSettings, formItems, isEditing, editingData, onClose, onStartEditing, onCancelEditing, setEditingData, addEditingReportPhotos, onSaveEdits, onConclude, onApprove, onDelete }) => {
+const getConfiguredSectors = (settings: Array<{ key: string; value: string }>) =>
+  (settings.find((item) => item.key === 'form_sectors')?.value || '')
+    .split(',')
+    .map((sector) => sector.trim())
+    .filter(Boolean);
+
+const isVisible = (item: FormItem, category: string) => {
+  if (!item.active) return false;
+  if (!(item.scope === 'both' || item.scope === 'edit')) return false;
+  if (item.categories && item.categories.length > 0 && !item.categories.includes(category)) return false;
+  return true;
+};
+
+export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
+  report,
+  currentUser,
+  systemSettings,
+  formItems,
+  isEditing,
+  editingData,
+  onClose,
+  onStartEditing,
+  onCancelEditing,
+  setEditingData,
+  addEditingReportPhotos,
+  onSaveEdits,
+  onConclude,
+  onApprove,
+  onDelete,
+}) => {
   const [photoViewerIndex, setPhotoViewerIndex] = useState<number | null>(null);
+  const [editingPhotoViewerIndex, setEditingPhotoViewerIndex] = useState<number | null>(null);
+
   const configuredSectors = getConfiguredSectors(systemSettings);
   const reportDynamicValues = getDynamicFieldValues(report?.metadata);
   const visibleItems = report ? formItems.filter((item) => isVisible(item, report.categoria)) : [];
-  const reportPhotoItems = useMemo(() => (report?.photos || []).map((photo) => ({ src: photo.photo_path, alt: photo.caption || 'Evidência', caption: photo.caption || '' })), [report?.photos]);
+  const reportPhotoItems = useMemo(
+    () => (report?.photos || []).map((photo) => ({ src: photo.photo_path, alt: photo.caption || 'Evidência', caption: photo.caption || '' })),
+    [report?.photos]
+  );
+  const editingPhotoItems = useMemo(
+    () => editingData.fotos.map((photo) => ({ src: URL.createObjectURL(photo.file), alt: photo.caption || photo.file.name, caption: photo.caption || photo.file.name })),
+    [editingData.fotos]
+  );
+
+  useEffect(() => {
+    return () => {
+      editingPhotoItems.forEach((item) => {
+        if (item.src.startsWith('blob:')) URL.revokeObjectURL(item.src);
+      });
+    };
+  }, [editingPhotoItems]);
+
   if (!report) return null;
 
   const renderDynamicInput = (field: DynamicFieldDefinition) => {
     const value = editingData.dynamicFieldValues?.[field.id];
     const setValue = (next: any) => setEditingData((current: EditingReportData) => ({ ...current, dynamicFieldValues: { ...current.dynamicFieldValues, [field.id]: next } }));
+
     if (field.type === 'textarea') return <textarea value={value || ''} onChange={(e) => setValue(e.target.value)} className="min-h-[96px] w-full rounded-xl border border-zinc-800 bg-zinc-900 p-3 text-sm text-zinc-300 focus:border-primary focus:outline-none" />;
     if (field.type === 'select') return <select value={value || ''} onChange={(e) => setValue(e.target.value)} className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm focus:border-primary focus:outline-none"><option value="">Selecione...</option>{(field.options || []).map((option) => <option key={option} value={option}>{option}</option>)}</select>;
-    if (field.type === 'multiselect') { const selectedValues = Array.isArray(value) ? value : []; return <div className="flex flex-wrap gap-2 rounded-xl border border-zinc-800 bg-zinc-950/30 p-3">{(field.options || []).map((option) => { const selected = selectedValues.includes(option); return <button key={option} type="button" onClick={() => setValue(selected ? selectedValues.filter((item) => item !== option) : [...selectedValues, option])} className={cn('rounded-lg border px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest transition-all', selected ? 'border-primary/50 bg-primary/15 text-primary' : 'border-zinc-800 bg-zinc-900 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200')}>{option}</button>; })}</div>; }
+    if (field.type === 'multiselect') {
+      const selectedValues = Array.isArray(value) ? value : [];
+      return <div className="flex flex-wrap gap-2 rounded-xl border border-zinc-800 bg-zinc-950/30 p-3">{(field.options || []).map((option) => { const selected = selectedValues.includes(option); return <button key={option} type="button" onClick={() => setValue(selected ? selectedValues.filter((item) => item !== option) : [...selectedValues, option])} className={cn('rounded-lg border px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest transition-all', selected ? 'border-primary/50 bg-primary/15 text-primary' : 'border-zinc-800 bg-zinc-900 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200')}>{option}</button>; })}</div>;
+    }
     if (field.type === 'checkbox') return <label className="flex items-center gap-3 rounded-xl border border-zinc-800 bg-zinc-900/50 p-4"><input type="checkbox" checked={Boolean(value)} onChange={(e) => setValue(e.target.checked)} className="h-5 w-5 rounded border-zinc-700 bg-zinc-900 text-primary focus:ring-primary/20" /><span className="text-sm font-bold text-zinc-300">{field.placeholder || field.label}</span></label>;
     return <input type={field.type === 'number' ? 'number' : field.type === 'date' ? 'date' : 'text'} value={value || ''} onChange={(e) => setValue(e.target.value)} className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm focus:border-primary focus:outline-none" />;
   };
 
-  const photoCard = (photo: { src: string; alt: string; caption?: string }, index: number) => (
-    <button key={`${photo.src}-${index}`} type="button" onClick={() => setPhotoViewerIndex(index)} className="group space-y-2 text-left">
+  const renderPhotoCard = (photo: { src: string; alt: string; caption?: string }, index: number, onOpen: (idx: number) => void) => (
+    <button key={`${photo.src}-${index}`} type="button" onClick={() => onOpen(index)} className="group space-y-2 text-left">
       <div className="relative aspect-square overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900">
         <img src={photo.src} alt={photo.alt} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]" />
         <div className="absolute inset-0 flex items-end bg-gradient-to-t from-black/70 via-transparent to-transparent p-3 opacity-0 transition-opacity group-hover:opacity-100">
@@ -70,16 +134,40 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({ report, cu
           </div>
         </div>
       </div>
-      {editingData.fotos.map((photo, index) => <div key={`${photo.file.name}-${index}`} className="space-y-2 rounded-xl border border-zinc-800 bg-zinc-900/50 p-3"><div className="flex items-center justify-between"><span className="text-xs font-bold text-zinc-300">{photo.file.name}</span><button type="button" onClick={() => setEditingData((c: EditingReportData) => ({ ...c, fotos: c.fotos.filter((_, photoIndex) => photoIndex !== index) }))} className="text-[10px] font-bold uppercase tracking-widest text-red-500 hover:text-red-400">Remover</button></div><input type="text" placeholder="Legenda/descrição..." value={photo.caption} onChange={(event) => setEditingData((c: EditingReportData) => { const next = [...c.fotos]; next[index] = { ...next[index], caption: event.target.value }; return { ...c, fotos: next }; })} className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-xs text-zinc-200 focus:border-primary focus:outline-none" /></div>)}
-      {reportPhotoItems.length > 0 && <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">{reportPhotoItems.map(photoCard)}</div>}
+
+      {editingPhotoItems.length > 0 && (
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {editingPhotoItems.map((photo, index) => renderPhotoCard(photo, index, setEditingPhotoViewerIndex))}
+        </div>
+      )}
+
+      {editingData.fotos.map((photo, index) => (
+        <div key={`${photo.file.name}-${index}`} className="space-y-2 rounded-xl border border-zinc-800 bg-zinc-900/50 p-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-zinc-300">{photo.file.name}</span>
+            <button type="button" onClick={() => setEditingData((c: EditingReportData) => ({ ...c, fotos: c.fotos.filter((_, photoIndex) => photoIndex !== index) }))} className="text-[10px] font-bold uppercase tracking-widest text-red-500 hover:text-red-400">Remover</button>
+          </div>
+          <input type="text" placeholder="Legenda/descrição..." value={photo.caption} onChange={(event) => setEditingData((c: EditingReportData) => { const next = [...c.fotos]; next[index] = { ...next[index], caption: event.target.value }; return { ...c, fotos: next }; })} className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-xs text-zinc-200 focus:border-primary focus:outline-none" />
+        </div>
+      ))}
+
+      {reportPhotoItems.length > 0 && (
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {reportPhotoItems.map((photo, index) => renderPhotoCard(photo, index, setPhotoViewerIndex))}
+        </div>
+      )}
     </div>
   );
 
   const renderField = (item: FormItem) => {
     if (item.id === 'base:photos') {
-      return <div key={item.id} className="space-y-2 md:col-span-2"><label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Galeria de evidências</label>{isEditing && report.status === 'Aberto' ? renderPhotoEditor() : reportPhotoItems.length > 0 ? <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">{reportPhotoItems.map(photoCard)}</div> : <div className="rounded-xl border-2 border-dashed border-zinc-800 p-6 text-center text-zinc-600">Nenhuma fotografia anexada</div>}</div>;
+      return <div key={item.id} className="space-y-2 md:col-span-2"><label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Galeria de evidências</label>{isEditing && report.status === 'Aberto' ? renderPhotoEditor() : reportPhotoItems.length > 0 ? <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">{reportPhotoItems.map((photo, index) => renderPhotoCard(photo, index, setPhotoViewerIndex))}</div> : <div className="rounded-xl border-2 border-dashed border-zinc-800 p-6 text-center text-zinc-600">Nenhuma fotografia anexada</div>}</div>;
     }
-    if (item.isDynamic && item.field) return <div key={item.id} className={cn('space-y-2', (item.type === 'textarea' || item.type === 'multiselect' || item.type === 'checkbox') && 'md:col-span-2')}><label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{item.label}</label>{isEditing ? renderDynamicInput(item.field) : <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-3 text-sm text-zinc-300">{formatDynamicFieldValue(item.field, reportDynamicValues[item.field.id]) || 'N/A'}</div>}</div>;
+
+    if (item.isDynamic && item.field) {
+      return <div key={item.id} className={cn('space-y-2', (item.type === 'textarea' || item.type === 'multiselect' || item.type === 'checkbox') && 'md:col-span-2')}><label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{item.label}</label>{isEditing ? renderDynamicInput(item.field) : <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-3 text-sm text-zinc-300">{formatDynamicFieldValue(item.field, reportDynamicValues[item.field.id]) || 'N/A'}</div>}</div>;
+    }
+
     const viewValue = (() => {
       switch (item.id) {
         case 'base:title': return report.titulo || 'Sem título';
@@ -98,6 +186,7 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({ report, cu
         default: return 'N/A';
       }
     })();
+
     switch (item.id) {
       case 'base:title':
         return <div key={item.id} className="space-y-2 md:col-span-2"><label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Título</label>{isEditing ? <input type="text" value={editingData.titulo} onChange={(e) => setEditingData((c: EditingReportData) => ({ ...c, titulo: e.target.value }))} className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm focus:border-primary focus:outline-none" /> : <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-3 text-sm text-zinc-300">{viewValue}</div>}</div>;
@@ -160,6 +249,8 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({ report, cu
         </div>
       </motion.div>
     </div>
+
     <PhotoLightbox isOpen={photoViewerIndex !== null} items={reportPhotoItems} activeIndex={photoViewerIndex ?? 0} onClose={() => setPhotoViewerIndex(null)} onChangeIndex={(nextIndex) => setPhotoViewerIndex(nextIndex)} />
+    <PhotoLightbox isOpen={editingPhotoViewerIndex !== null} items={editingPhotoItems} activeIndex={editingPhotoViewerIndex ?? 0} onClose={() => setEditingPhotoViewerIndex(null)} onChangeIndex={(nextIndex) => setEditingPhotoViewerIndex(nextIndex)} />
   </>;
 };
