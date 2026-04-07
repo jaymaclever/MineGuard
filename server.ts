@@ -787,8 +787,30 @@ async function startServer() {
           size: stats.size,
           modifiedAt: stats.mtime.toISOString(),
         };
-      })
-      .sort((a, b) => b.modifiedAt.localeCompare(a.modifiedAt));
+        })
+        .sort((a, b) => b.modifiedAt.localeCompare(a.modifiedAt));
+  };
+
+  const createDatabaseBackupSnapshot = (suffix = 'manual') => {
+    ensureBackupsDir();
+    const dbPath = path.join(process.cwd(), 'mina_seguranca.db');
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const filename = `mineguard-${suffix}-${stamp}.backup`;
+    const targetPath = path.join(backupsDir, filename);
+    fs.copyFileSync(dbPath, targetPath);
+    return targetPath;
+  };
+
+  const clearDirectoryFiles = (directoryPath: string) => {
+    if (!fs.existsSync(directoryPath)) return;
+    for (const entry of fs.readdirSync(directoryPath, { withFileTypes: true })) {
+      const fullPath = path.join(directoryPath, entry.name);
+      if (entry.isDirectory()) {
+        fs.rmSync(fullPath, { recursive: true, force: true });
+      } else {
+        fs.rmSync(fullPath, { force: true });
+      }
+    }
   };
 
   const isGitRepo = () => fs.existsSync(path.join(process.cwd(), '.git'));
@@ -843,6 +865,66 @@ async function startServer() {
       res.json({ status: "ok", message: "Backup restaurado com sucesso", backupPath });
     } catch (error: any) {
       res.status(500).json({ status: "error", message: error.message });
+    }
+  });
+
+  app.post("/api/system/reset", authenticate, checkPermission('manage_settings'), (req: any, res) => {
+    try {
+      const confirmation = String(req.body?.confirmation || '').trim().toUpperCase();
+      if (confirmation !== 'REPOR') {
+        return res.status(400).json({ status: "error", message: "Confirmação inválida. Escreva REPOR para continuar." });
+      }
+
+      const backupPath = createDatabaseBackupSnapshot('pre-reset');
+      const uploadsDir = path.join(process.cwd(), 'uploads');
+      const reportsDir = path.join(process.cwd(), 'daily_reports');
+
+      const resetTransaction = db.transaction(() => {
+        db.prepare("DELETE FROM alert_reads").run();
+        db.prepare("DELETE FROM alerts").run();
+        db.prepare("DELETE FROM report_photos").run();
+        db.prepare("DELETE FROM telegram_queue").run();
+        db.prepare("DELETE FROM reports").run();
+        db.prepare("DELETE FROM daily_reports_archive").run();
+        db.prepare("DELETE FROM audit_logs").run();
+        db.prepare("DELETE FROM users").run();
+
+        db.prepare(`
+          INSERT INTO users (nome, funcao, numero_mecanografico, nivel_hierarquico, password, preferred_language)
+          VALUES (?, ?, ?, ?, ?, ?)
+        `).run(
+          'Superadmin',
+          'Administrador do Sistema',
+          'superadmin',
+          'Superadmin',
+          bcrypt.hashSync('secret', 10),
+          'pt',
+        );
+
+        db.prepare("INSERT INTO audit_logs (user_id, action, details) VALUES (?, ?, ?)").run(
+          null,
+          'SYSTEM_RESET',
+          'Sistema reposto para configuração inicial com superadmin padrão.',
+        );
+      });
+
+      resetTransaction();
+
+      clearDirectoryFiles(uploadsDir);
+      clearDirectoryFiles(reportsDir);
+
+      io.emit('reports_cleared');
+      io.emit('alerts_cleared');
+      io.emit('users_reset');
+
+      res.json({
+        status: "ok",
+        message: "Sistema reposto com sucesso. O acesso volta ao utilizador superadmin.",
+        credentials: { numero_mecanografico: 'superadmin', password: 'secret' },
+        backupPath,
+      });
+    } catch (error: any) {
+      res.status(500).json({ status: "error", message: error.message || "Falha ao repor o sistema." });
     }
   });
 

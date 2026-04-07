@@ -28,6 +28,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ systemSettings, public
   const [restoreFile, setRestoreFile] = useState<File | null>(null);
   const [githubBranch, setGithubBranch] = useState(getSetting('github_branch', 'main'));
   const [updatingGithub, setUpdatingGithub] = useState(false);
+  const [resettingSystem, setResettingSystem] = useState(false);
 
   const themeMode = publicSettings.app_theme_mode === 'light' ? 'light' : 'dark';
   const palettes = themePalettes.filter((palette) => palette.mode === themeMode);
@@ -463,6 +464,59 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ systemSettings, public
                 >
                   <Upload size={14} className="mr-2 inline-block" />
                   Restaurar backup selecionado
+                </button>
+              </div>
+              <div className="space-y-3 rounded-2xl border border-red-500/20 bg-red-500/5 p-4">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle size={18} className="mt-0.5 text-red-500" />
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.18em] text-red-500">Reposição total</p>
+                    <p className="mt-2 text-sm text-[var(--text-main)]">
+                      Limpa ocorrências, utilizadores, alertas, evidências e relatórios arquivados, mantendo apenas o perfil padrão do sistema.
+                    </p>
+                    <p className="mt-2 text-[10px] text-[var(--text-muted)]">Credenciais após reposição: <b>superadmin</b> / <b>secret</b>.</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  disabled={resettingSystem}
+                  onClick={async () => {
+                    const confirmation = window.prompt('Esta ação é destrutiva. Escreva REPOR para confirmar.');
+                    if (confirmation === null) return;
+                    if (confirmation.trim().toUpperCase() !== 'REPOR') {
+                      toast.error('Confirmação inválida. Nada foi alterado.');
+                      return;
+                    }
+
+                    try {
+                      setResettingSystem(true);
+                      toast.loading('A repor o sistema...');
+                      const res = await fetch('/api/system/reset', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({ confirmation }),
+                      });
+                      const data = await res.json();
+                      toast.dismiss();
+                      if (data.status !== 'ok') {
+                        toast.error(data.message || 'Falha ao repor o sistema.');
+                        return;
+                      }
+
+                      await fetch('/api/logout', { method: 'POST', credentials: 'include' });
+                      toast.success('Sistema reposto com sucesso. Vai voltar ao login.');
+                      window.location.reload();
+                    } catch (error) {
+                      toast.dismiss();
+                      toast.error('Não foi possível repor o sistema.');
+                    } finally {
+                      setResettingSystem(false);
+                    }
+                  }}
+                  className="w-full rounded-xl bg-red-500/15 px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.18em] text-red-500 transition-all hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {resettingSystem ? 'A repor sistema...' : 'Repor sistema'}
                 </button>
               </div>
               <div className="space-y-3 rounded-2xl border border-[var(--border)] bg-[var(--surface-1)] p-4">
