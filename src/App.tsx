@@ -70,6 +70,7 @@ import { EvidenceLibraryTab } from './components/tabs/EvidenceLibraryTab';
 import { ShiftsTab } from './components/tabs/ShiftsTab';
 import { AlertsTab } from './components/tabs/AlertsTab';
 import { UsersTab } from './components/tabs/UsersTab';
+import { SettingsTab } from './components/tabs/SettingsTab';
 import { NewReportModal } from './components/modals/ReportModals';
 import { ReportDetailModal } from './components/modals/ReportDetailModal';
 import { DashboardRangeModal, EditAlertModal, UserModal } from './components/modals/SystemModals';
@@ -1303,6 +1304,22 @@ export default function App() {
       }),
       credentials: 'include',
     });
+  };
+
+  const updateSettings = async (settings: any[]) => {
+    try {
+      await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ settings }),
+        credentials: 'include',
+      });
+      fetchData();
+      return true;
+    } catch (err) {
+      console.error(err);
+      return false;
+    }
   };
 
   const handleMoveReportFormItem = async (itemId: string, direction: 'up' | 'down') => {
@@ -3183,6 +3200,24 @@ export default function App() {
             )}
 
             {activeTab === 'settings' && (
+              <motion.div
+                key="settings-clean"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="space-y-8"
+              >
+                <SettingsTab
+                  systemSettings={systemSettings as any}
+                  publicSettings={publicSettings as any}
+                  updateSettings={updateSettings}
+                  currentUser={currentUser as any}
+                  fetchData={fetchData}
+                />
+              </motion.div>
+            )}
+
+            {activeTab === '__legacy_settings__' && (
               <motion.div 
                 key="settings"
                 initial={{ opacity: 0, y: 10 }}

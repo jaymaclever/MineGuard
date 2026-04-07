@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Activity } from 'lucide-react';
+import { Activity, MapPin } from 'lucide-react';
 import { MapContainer, Marker, Popup, TileLayer, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import { cn } from '../../lib/utils';
@@ -61,22 +61,14 @@ const getHeatIcon = (severity: MapReport['gravidade']) => {
   });
 };
 
-const MapCenterController = ({
-  target,
-  zoom,
-}: {
-  target: [number, number] | null;
-  zoom: number;
-}) => {
+const MapCenterController = ({ target, zoom }: { target: [number, number] | null; zoom: number }) => {
   const map = useMap();
   const appliedTarget = useRef<string>('');
 
   useEffect(() => {
     if (!target) return;
-
     const targetKey = `${target[0].toFixed(4)}:${target[1].toFixed(4)}`;
     if (appliedTarget.current === targetKey) return;
-
     appliedTarget.current = targetKey;
     window.requestAnimationFrame(() => {
       map.setView(target, zoom, { animate: false });
@@ -86,11 +78,7 @@ const MapCenterController = ({
   return null;
 };
 
-const MapViewportTracker = ({
-  onCenterChange,
-}: {
-  onCenterChange: (center: [number, number]) => void;
-}) => {
+const MapViewportTracker = ({ onCenterChange }: { onCenterChange: (center: [number, number]) => void }) => {
   useMapEvents({
     moveend(event) {
       const center = event.target.getCenter();
@@ -154,12 +142,12 @@ export const OperationsMapPanel: React.FC<OperationsMapPanelProps> = ({
   }, [mappedReports]);
 
   return (
-    <div className="h-[400px] bg-zinc-950 rounded-xl relative overflow-hidden border border-zinc-800/50 z-0">
+    <div className="relative z-0 h-[400px] overflow-hidden rounded-[1.5rem] border border-[var(--border)] bg-[var(--bg-elevated)]">
       <MapContainer
         center={initialCenter}
         zoom={13}
         scrollWheelZoom={false}
-        style={{ height: '100%', width: '100%', background: '#0a0a0a' }}
+        style={{ height: '100%', width: '100%', background: 'var(--bg-main)' }}
       >
         <MapCenterController target={hotspotCenter} zoom={13} />
         <MapViewportTracker onCenterChange={setCurrentCenter} />
@@ -180,17 +168,17 @@ export const OperationsMapPanel: React.FC<OperationsMapPanelProps> = ({
         {mappedReports.map((report) => (
           <Marker key={report.id} position={[Number(report.coords_lat), Number(report.coords_lng)]}>
             <Popup className="custom-popup">
-              <div className="p-2 min-w-[180px] bg-zinc-950 text-zinc-100">
-                <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-1">{report.categoria}</p>
-                <p className="text-sm font-bold text-white mb-2">{report.agente_nome}</p>
-                <p className="text-[10px] text-zinc-400 line-clamp-3 leading-relaxed mb-3 italic">"{report.descricao}"</p>
-                <div className="pt-2 border-t border-zinc-800 flex items-center justify-between">
-                  <span className="text-[9px] font-bold text-zinc-500">{formatDate(report.timestamp, 'pt')}</span>
+              <div className="min-w-[180px] p-2 text-[var(--text-main)]">
+                <p className="mb-1 text-[10px] font-black uppercase tracking-widest text-primary">{report.categoria}</p>
+                <p className="mb-2 text-sm font-bold text-[var(--text-main)]">{report.agente_nome}</p>
+                <p className="mb-3 line-clamp-3 text-[10px] leading-relaxed text-[var(--text-muted)] italic">"{report.descricao}"</p>
+                <div className="flex items-center justify-between border-t border-[var(--border)] pt-2">
+                  <span className="text-[9px] font-bold text-[var(--text-faint)]">{formatDate(report.timestamp, 'pt')}</span>
                   <button
                     onClick={() => onOpenReportDetails(report)}
-                    className="text-[10px] font-black text-primary hover:text-white transition-colors uppercase tracking-widest"
+                    className="text-[10px] font-black uppercase tracking-widest text-primary transition-colors hover:text-[var(--text-main)]"
                   >
-                    Ver Ficha
+                    Ver ficha
                   </button>
                 </div>
               </div>
@@ -202,17 +190,19 @@ export const OperationsMapPanel: React.FC<OperationsMapPanelProps> = ({
       <button
         onClick={onToggleHeatmap}
         className={cn(
-          'absolute top-4 right-4 z-[1000] px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 border shadow-2xl',
-          showHeatmap ? 'bg-primary text-black border-primary shadow-primary/20' : 'bg-zinc-900 text-zinc-400 border-zinc-800 hover:bg-zinc-800',
+          'absolute right-4 top-4 z-[1000] flex items-center gap-2 rounded-xl border px-3 py-2 text-[10px] font-black uppercase tracking-widest shadow-2xl transition-all',
+          showHeatmap
+            ? 'border-primary bg-primary text-primary-foreground shadow-primary/20'
+            : 'border-[var(--border)] bg-[var(--bg-panel)] text-[var(--text-muted)] hover:bg-[var(--surface-3)]',
         )}
       >
         <Activity size={14} className={showHeatmap ? 'animate-pulse' : ''} />
         {showHeatmap ? 'Heatmap On' : 'Heatmap Off'}
       </button>
 
-      <div className="absolute bottom-4 right-4 bg-zinc-900/80 backdrop-blur-md border border-zinc-800 p-3 rounded-lg text-[10px] font-bold text-zinc-400 z-[1000] pointer-events-none">
-        <div className="flex items-center gap-2 mb-1">
-          <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+      <div className="pointer-events-none absolute bottom-4 right-4 z-[1000] rounded-lg border border-[var(--border)] bg-[var(--bg-panel)] p-3 text-[10px] font-bold text-[var(--text-muted)] backdrop-blur-md">
+        <div className="mb-1 flex items-center gap-2">
+          <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
           <span>SISTEMA ATIVO</span>
         </div>
         <p>
