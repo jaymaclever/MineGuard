@@ -1,4 +1,4 @@
-export type DynamicFieldType = 'text' | 'textarea' | 'number' | 'date' | 'select' | 'multiselect' | 'checkbox';
+﻿export type DynamicFieldType = 'text' | 'textarea' | 'number' | 'date' | 'select' | 'multiselect' | 'checkbox';
 export type DynamicFieldScope = 'create' | 'edit' | 'both';
 
 export interface DynamicFieldDefinition {
@@ -209,3 +209,4 @@ export function validateDynamicFieldValues(
 
   return null;
 }
+

@@ -1,4 +1,4 @@
-// Centralised Types for MineGuard
+﻿// Centralised Types for MineGuard
 
 export type NivelHierarquico = 'Superadmin' | 'Sierra 1' | 'Sierra 2' | 'Oficial' | 'Supervisor' | 'Agente';
 export type Categoria = 'Valores' | 'Perímetro' | 'Logística' | 'Safety' | 'Manutenção' | 'Informativo' | 'Operativo';

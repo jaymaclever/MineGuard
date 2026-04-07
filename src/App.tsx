@@ -526,6 +526,53 @@ export default function App() {
   const canManageSystem = currentUser?.permissions?.manage_settings === true || currentUser?.nivel_hierarquico === 'Superadmin';
   const getSettingValue = (key: string, fallback = '') => systemSettings.find((setting) => setting.key === key)?.value || fallback;
   const reportDynamicFields = getReportDynamicFields(systemSettings);
+  const reportFormBaseItems = [
+    { id: 'base:title', label: 'Título da ocorrência', type: 'text', scope: 'both', categories: [] as string[], active: true },
+    { id: 'base:category', label: 'Categoria', type: 'select', scope: 'both', categories: [] as string[], active: true },
+    { id: 'base:severity', label: 'Gravidade', type: 'select', scope: 'both', categories: [] as string[], active: true },
+    { id: 'base:description', label: 'Descrição da ocorrência', type: 'textarea', scope: 'both', categories: [] as string[], active: true },
+    { id: 'base:safety_incident', label: 'Tipo de incidente (Safety)', type: 'select', scope: 'both', categories: ['Safety'], active: true },
+    { id: 'base:safety_ppe', label: 'Uso de EPI', type: 'select', scope: 'both', categories: ['Safety'], active: true },
+    { id: 'base:sector', label: 'Setor / local', type: 'multiselect', scope: 'both', categories: [] as string[], active: true },
+    { id: 'base:people', label: 'Pessoas envolvidas', type: 'number', scope: 'both', categories: [] as string[], active: true },
+    { id: 'base:equipment', label: 'Equipamento', type: 'text', scope: 'both', categories: [] as string[], active: getSettingValue('enable_equipment', 'true') === 'true' },
+    { id: 'base:risk', label: 'Potencial de risco', type: 'select', scope: 'both', categories: [] as string[], active: true },
+    { id: 'base:witnesses', label: 'Testemunhas', type: 'text', scope: 'both', categories: [] as string[], active: getSettingValue('enable_witnesses', 'true') === 'true' },
+    { id: 'base:immediate_action', label: 'Ação imediata tomada', type: 'textarea', scope: 'both', categories: [] as string[], active: true },
+    { id: 'base:investigation', label: 'Requer investigação formal', type: 'checkbox', scope: 'both', categories: [] as string[], active: true },
+    { id: 'base:photos', label: 'Galeria de evidências', type: 'media', scope: 'both', categories: [] as string[], active: true },
+  ];
+  const reportFormLayoutSetting = (() => {
+    try {
+      const parsed = JSON.parse(getSettingValue('report_form_layout', '[]'));
+      return Array.isArray(parsed) ? parsed.map((item) => String(item)) : [];
+    } catch {
+      return [] as string[];
+    }
+  })();
+  const reportFormItems = (() => {
+    const dynamicItems = reportDynamicFields.map((field) => ({
+      id: `dynamic:${field.id}`,
+      label: field.label,
+      type: field.type,
+      scope: field.scope,
+      categories: field.categories || [],
+      active: field.active,
+      isDynamic: true,
+      field,
+    }));
+    const allItems = [
+      ...reportFormBaseItems.map((item) => ({ ...item, isDynamic: false, field: null as any })),
+      ...dynamicItems,
+    ];
+    const orderedIds = [...reportFormLayoutSetting];
+    allItems.forEach((item) => {
+      if (!orderedIds.includes(item.id)) orderedIds.push(item.id);
+    });
+    return orderedIds
+      .map((id) => allItems.find((item) => item.id === id))
+      .filter(Boolean) as Array<any>;
+  })();
 
   // PWA Logic
   useEffect(() => {
@@ -578,11 +625,12 @@ export default function App() {
     };
   }
 
-  function createEmptyNewReport() {
+  function createEmptyNewReport(settingsSource = systemSettings) {
+    const getValue = (key: string, fallback = '') => settingsSource.find((setting) => setting.key === key)?.value || fallback;
     return {
       titulo: '',
-      categoria: (getSettingValue('default_report_category', 'Valores') as Categoria),
-      gravidade: (getSettingValue('default_report_severity', 'G1') as Gravidade),
+      categoria: (getValue('default_report_category', 'Valores') as Categoria),
+      gravidade: (getValue('default_report_severity', 'G1') as Gravidade),
       descricao: '',
       coords_lat: '',
       coords_lng: '',
@@ -628,9 +676,26 @@ export default function App() {
   });
   const [dynamicFieldDraft, setDynamicFieldDraft] = useState(createEmptyDynamicField());
   const [editingDynamicFieldId, setEditingDynamicFieldId] = useState<string | null>(null);
-  const [draggedDynamicFieldId, setDraggedDynamicFieldId] = useState<string | null>(null);
+  const [draggedFormLayoutItemId, setDraggedFormLayoutItemId] = useState<string | null>(null);
   const [dynamicFieldPreviewCategory, setDynamicFieldPreviewCategory] = useState<Categoria>('Valores');
   const [dynamicFieldPreviewScope, setDynamicFieldPreviewScope] = useState<'create' | 'edit'>('create');
+  const [operationalSettingsForm, setOperationalSettingsForm] = useState({
+    form_sectors: '',
+    enable_witnesses: false,
+    enable_equipment: false,
+    default_report_category: 'Valores' as Categoria,
+    default_report_severity: 'G1' as Gravidade,
+  });
+
+  useEffect(() => {
+    setOperationalSettingsForm({
+      form_sectors: systemSettings.find((s) => s.key === 'form_sectors')?.value || '',
+      enable_witnesses: systemSettings.find((s) => s.key === 'enable_witnesses')?.value === 'true',
+      enable_equipment: systemSettings.find((s) => s.key === 'enable_equipment')?.value === 'true',
+      default_report_category: (getSettingValue('default_report_category', 'Valores') as Categoria),
+      default_report_severity: (getSettingValue('default_report_severity', 'G1') as Gravidade),
+    });
+  }, [systemSettings]);
 
   const addNotification = (title: string, message: string, type: 'report' | 'system' | 'alert' = 'system', reportId?: number) => {
     const newNotif: Notification = {
@@ -1052,6 +1117,13 @@ export default function App() {
     setNewReport(createEmptyNewReport());
   };
 
+  const openNewReportModal = () => {
+    setShowReportPreview(false);
+    setNewReportStep(1);
+    setNewReport(createEmptyNewReport());
+    setIsNewReportModalOpen(true);
+  };
+
   const closeReportDetails = () => {
     setSelectedReport(null);
     setIsEditingReport(false);
@@ -1198,24 +1270,59 @@ export default function App() {
     }
   };
 
-  const handleReorderDynamicFields = async (sourceId: string, targetId: string) => {
-    if (!sourceId || !targetId || sourceId === targetId) return;
+  const saveReportFormLayout = async (orderedIds: string[]) => {
+    await fetch('/api/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        settings: [
+          {
+            key: 'report_form_layout',
+            value: JSON.stringify(orderedIds),
+            description: 'Ordem visual do formulário de ocorrência',
+          },
+        ],
+      }),
+      credentials: 'include',
+    });
+  };
 
-    const sourceIndex = reportDynamicFields.findIndex((field) => field.id === sourceId);
-    const targetIndex = reportDynamicFields.findIndex((field) => field.id === targetId);
-    if (sourceIndex < 0 || targetIndex < 0) return;
+  const handleMoveReportFormItem = async (itemId: string, direction: 'up' | 'down') => {
+    const currentIndex = reportFormItems.findIndex((item) => item.id === itemId);
+    if (currentIndex < 0) return;
+    const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+    if (targetIndex < 0 || targetIndex >= reportFormItems.length) return;
 
-    const nextFields = [...reportDynamicFields];
-    const [movedField] = nextFields.splice(sourceIndex, 1);
-    nextFields.splice(targetIndex, 0, movedField);
+    const nextItems = [...reportFormItems];
+    const [item] = nextItems.splice(currentIndex, 1);
+    nextItems.splice(targetIndex, 0, item);
 
     try {
-      await saveDynamicFieldConfiguration(nextFields);
+      await saveReportFormLayout(nextItems.map((entry) => entry.id));
       fetchData();
     } catch {
-      toast.error('Erro ao reordenar campo.');
+      toast.error('Erro ao reordenar item do formulário.');
+    }
+  };
+
+  const handleReorderReportFormItems = async (sourceId: string, targetId: string) => {
+    if (!sourceId || !targetId || sourceId === targetId) return;
+
+    const sourceIndex = reportFormItems.findIndex((item) => item.id === sourceId);
+    const targetIndex = reportFormItems.findIndex((item) => item.id === targetId);
+    if (sourceIndex < 0 || targetIndex < 0) return;
+
+    const nextItems = [...reportFormItems];
+    const [movedItem] = nextItems.splice(sourceIndex, 1);
+    nextItems.splice(targetIndex, 0, movedItem);
+
+    try {
+      await saveReportFormLayout(nextItems.map((entry) => entry.id));
+      fetchData();
+    } catch {
+      toast.error('Erro ao reordenar item do formulário.');
     } finally {
-      setDraggedDynamicFieldId(null);
+      setDraggedFormLayoutItemId(null);
     }
   };
 
@@ -2000,7 +2107,7 @@ export default function App() {
               <motion.button 
                 whileHover={{ scale: 1.02, boxShadow: '0 0 20px rgba(249, 115, 22, 0.3)' }}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => setIsNewReportModalOpen(true)}
+                onClick={openNewReportModal}
                 className="hidden md:flex items-center gap-2 bg-primary text-black font-black text-[10px] px-6 py-3 rounded-xl transition-all shadow-xl shadow-primary/20 uppercase tracking-[0.2em] relative overflow-hidden group"
               >
                 <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
@@ -2561,17 +2668,16 @@ export default function App() {
                   </Card>
 
                   {/* Operational Settings */}
-                  <Card title="Funcionamento de Ocorrências" subtitle="Campos e comportamentos dinâmicos">
+                  <Card title="Formulário de Ocorrências" subtitle="Configuração visual, ordem e campos personalizados da janela de ocorrência">
                     <form onSubmit={async (e) => {
                       e.preventDefault();
-                      const formData = new FormData(e.currentTarget);
                       try {
                         const settingsToSave = [
-                          { key: 'form_sectors', value: formData.get('form_sectors'), description: 'Setores Disponíveis' },
-                          { key: 'enable_witnesses', value: formData.get('enable_witnesses') === 'on' ? 'true' : 'false', description: 'Habilitar Testemunhas' },
-                          { key: 'enable_equipment', value: formData.get('enable_equipment') === 'on' ? 'true' : 'false', description: 'Habilitar Equipamentos' },
-                          { key: 'default_report_category', value: formData.get('default_report_category'), description: 'Categoria padrão da ocorrência' },
-                          { key: 'default_report_severity', value: formData.get('default_report_severity'), description: 'Gravidade padrão da ocorrência' }
+                          { key: 'form_sectors', value: operationalSettingsForm.form_sectors, description: 'Setores Disponíveis' },
+                          { key: 'enable_witnesses', value: operationalSettingsForm.enable_witnesses ? 'true' : 'false', description: 'Habilitar Testemunhas' },
+                          { key: 'enable_equipment', value: operationalSettingsForm.enable_equipment ? 'true' : 'false', description: 'Habilitar Equipamentos' },
+                          { key: 'default_report_category', value: operationalSettingsForm.default_report_category, description: 'Categoria padrão da ocorrência' },
+                          { key: 'default_report_severity', value: operationalSettingsForm.default_report_severity, description: 'Gravidade padrão da ocorrência' }
                         ];
                         await fetch('/api/settings', {
                           method: 'POST',
@@ -2579,6 +2685,18 @@ export default function App() {
                           body: JSON.stringify({ settings: settingsToSave }),
                           credentials: 'include'
                         });
+                        const mergedSettings = [...systemSettings];
+                        settingsToSave.forEach((setting) => {
+                          const normalizedValue = String(setting.value ?? '');
+                          const existingIndex = mergedSettings.findIndex((item) => item.key === setting.key);
+                          if (existingIndex >= 0) {
+                            mergedSettings[existingIndex] = { ...mergedSettings[existingIndex], value: normalizedValue };
+                          } else {
+                            mergedSettings.push({ ...setting, value: normalizedValue });
+                          }
+                        });
+                        setSystemSettings(mergedSettings);
+                        setNewReport(createEmptyNewReport(mergedSettings));
                         toast.success("Parâmetros operacionais salvos!");
                         fetchData();
                       } catch (err) { toast.error("Erro ao guardar parâmetros"); }
@@ -2586,8 +2704,9 @@ export default function App() {
                       <div className="space-y-2">
                         <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Setores Disponíveis (Separados por vírgula)</label>
                         <textarea 
-                          name="form_sectors" 
-                          defaultValue={systemSettings.find(s => s.key === 'form_sectors')?.value || ''} 
+                          name="form_sectors"
+                          value={operationalSettingsForm.form_sectors}
+                          onChange={(event) => setOperationalSettingsForm((current) => ({ ...current, form_sectors: event.target.value }))}
                           placeholder="Setor A, Setor B, Mina Norte..."
                           className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2 px-3 text-sm focus:outline-none focus:border-primary min-h-[100px]" 
                         />
@@ -2599,8 +2718,9 @@ export default function App() {
                           <span className="text-xs font-bold text-zinc-300">Campo de Testemunhas</span>
                           <input 
                             name="enable_witnesses" 
-                            type="checkbox" 
-                            defaultChecked={systemSettings.find(s => s.key === 'enable_witnesses')?.value === 'true'} 
+                            type="checkbox"
+                            checked={operationalSettingsForm.enable_witnesses}
+                            onChange={(event) => setOperationalSettingsForm((current) => ({ ...current, enable_witnesses: event.target.checked }))}
                             className="w-4 h-4 accent-primary" 
                           />
                         </div>
@@ -2608,8 +2728,9 @@ export default function App() {
                           <span className="text-xs font-bold text-zinc-300">Campo de Equipamentos</span>
                           <input 
                             name="enable_equipment" 
-                            type="checkbox" 
-                            defaultChecked={systemSettings.find(s => s.key === 'enable_equipment')?.value === 'true'} 
+                            type="checkbox"
+                            checked={operationalSettingsForm.enable_equipment}
+                            onChange={(event) => setOperationalSettingsForm((current) => ({ ...current, enable_equipment: event.target.checked }))}
                             className="w-4 h-4 accent-primary" 
                           />
                         </div>
@@ -2620,7 +2741,8 @@ export default function App() {
                           <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Categoria padrão</label>
                           <select
                             name="default_report_category"
-                            defaultValue={getSettingValue('default_report_category', 'Valores')}
+                            value={operationalSettingsForm.default_report_category}
+                            onChange={(event) => setOperationalSettingsForm((current) => ({ ...current, default_report_category: event.target.value as Categoria }))}
                             className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2 px-3 text-sm focus:outline-none focus:border-primary"
                           >
                             <option value="Valores">Valores</option>
@@ -2636,7 +2758,8 @@ export default function App() {
                           <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Gravidade padrão</label>
                           <select
                             name="default_report_severity"
-                            defaultValue={getSettingValue('default_report_severity', 'G1')}
+                            value={operationalSettingsForm.default_report_severity}
+                            onChange={(event) => setOperationalSettingsForm((current) => ({ ...current, default_report_severity: event.target.value as Gravidade }))}
                             className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2 px-3 text-sm focus:outline-none focus:border-primary"
                           >
                             <option value="G1">G1</option>
@@ -2650,11 +2773,11 @@ export default function App() {
                       <button type="submit" className="w-full py-3 bg-zinc-100 text-black rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-white transition-all">
                         Guardar Parâmetros Ativos
                       </button>
-                    </form>
-                  </Card>
-
-                  <Card title="Campos Dinâmicos da Ocorrência" subtitle="Adicionar, ocultar e ordenar campos personalizados">
-                    <div className="mt-4 space-y-4">
+                      <div className="mt-8 border-t border-zinc-800 pt-6 space-y-4">
+                        <div>
+                          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-primary">Campos personalizados</p>
+                          <p className="mt-1 text-xs text-zinc-500">Adiciona campos extra sem alterar a estrutura dos relatórios ou do backend.</p>
+                        </div>
                       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div className="space-y-2">
                           <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Nome do campo</label>
@@ -2774,17 +2897,12 @@ export default function App() {
                       </div>
 
                       <div className="space-y-3 border-t border-zinc-800 pt-4">
-                        {reportDynamicFields.length === 0 && (
-                          <div className="rounded-xl border border-dashed border-zinc-800 p-4 text-xs text-zinc-500">
-                            Ainda não existem campos dinâmicos configurados.
-                          </div>
-                        )}
-                        {reportDynamicFields.length > 0 && (
+                        {reportFormItems.length > 0 && (
                           <div className="rounded-xl border border-zinc-800/70 bg-zinc-950/30 p-4">
                             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                               <div>
                                 <p className="text-[10px] font-black uppercase tracking-[0.18em] text-primary">Preview do formulário</p>
-                                <p className="mt-1 text-xs text-zinc-500">Simulação rápida do que o utilizador vai ver na criação ou edição.</p>
+                                <p className="mt-1 text-xs text-zinc-500">Simulação rápida do layout final da janela de ocorrência.</p>
                               </div>
                               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                                 <select
@@ -2813,35 +2931,40 @@ export default function App() {
 
                             <div className="mt-4 rounded-2xl border border-zinc-800 bg-zinc-950/50 p-4">
                               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                                <div className="space-y-2">
-                                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Título da ocorrência</label>
-                                  <div className="rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm text-zinc-500">Exemplo de título</div>
-                                </div>
-                                <div className="space-y-2">
-                                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Categoria</label>
-                                  <div className="rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm text-zinc-200">{dynamicFieldPreviewCategory}</div>
-                                </div>
-                                {reportDynamicFields
-                                  .filter((field) => {
-                                    if (!field.active) return false;
-                                    if (!(field.scope === 'both' || field.scope === dynamicFieldPreviewScope)) return false;
-                                    if (field.categories && field.categories.length > 0 && !field.categories.includes(dynamicFieldPreviewCategory)) return false;
+                                {reportFormItems
+                                  .filter((item) => {
+                                    if (!item.active) return false;
+                                    if (!(item.scope === 'both' || item.scope === dynamicFieldPreviewScope)) return false;
+                                    if (item.categories && item.categories.length > 0 && !item.categories.includes(dynamicFieldPreviewCategory)) return false;
                                     return true;
                                   })
-                                  .map((field) => (
-                                    <div key={`preview-${field.id}`} className={cn('space-y-2', (field.type === 'textarea' || field.type === 'multiselect' || field.type === 'checkbox') && 'sm:col-span-2')}>
-                                      <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">
-                                        {field.label}
-                                        {field.required && <span className="ml-1 text-red-400">*</span>}
-                                      </label>
+                                  .map((item) => (
+                                    <div key={`preview-${item.id}`} className={cn('space-y-2', (item.type === 'textarea' || item.type === 'multiselect' || item.type === 'checkbox' || item.type === 'media') && 'sm:col-span-2')}>
+                                      <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{item.label}</label>
                                       <div className="rounded-lg border border-dashed border-zinc-700 bg-zinc-900/60 px-4 py-3 text-sm text-zinc-500">
-                                        {field.type === 'checkbox'
-                                          ? field.placeholder || 'Toggle'
-                                          : field.type === 'select'
-                                            ? `Seleção: ${(field.options || []).join(', ') || 'sem opções'}`
-                                            : field.type === 'multiselect'
-                                              ? `Múltipla seleção: ${(field.options || []).join(', ') || 'sem opções'}`
-                                              : field.placeholder || `Campo ${field.type}`}
+                                        {item.id === 'base:category'
+                                          ? dynamicFieldPreviewCategory
+                                          : item.id === 'base:severity'
+                                            ? 'G1 / G2 / G3 / G4'
+                                            : item.id === 'base:safety_incident'
+                                              ? 'Seleção Safety'
+                                              : item.id === 'base:safety_ppe'
+                                                ? 'Uso de EPI'
+                                                : item.id === 'base:sector'
+                                                  ? 'Setores parametrizados'
+                                                  : item.id === 'base:people'
+                                                    ? 'Campo numérico'
+                                                    : item.id === 'base:investigation'
+                                                      ? 'Checkbox'
+                                                      : item.id === 'base:photos'
+                                                        ? 'Importar ou tirar fotografias'
+                                                        : item.isDynamic
+                                                          ? (item.type === 'select'
+                                                              ? `Seleção: ${(item.field?.options || []).join(', ') || 'sem opções'}`
+                                                              : item.type === 'multiselect'
+                                                                ? `Múltipla seleção: ${(item.field?.options || []).join(', ') || 'sem opções'}`
+                                                                : item.field?.placeholder || `Campo ${item.type}`)
+                                                          : `Campo ${item.type}`}
                                       </div>
                                     </div>
                                   ))}
@@ -2849,17 +2972,22 @@ export default function App() {
                             </div>
                           </div>
                         )}
-                        {reportDynamicFields.map((field, index) => (
+                        {reportFormItems.length === 0 && (
+                          <div className="rounded-xl border border-dashed border-zinc-800 p-4 text-xs text-zinc-500">
+                            Ainda não existem itens configurados para o formulário.
+                          </div>
+                        )}
+                        {reportFormItems.map((field, index) => (
                           <div
                             key={field.id}
                             draggable
-                            onDragStart={() => setDraggedDynamicFieldId(field.id)}
-                            onDragEnd={() => setDraggedDynamicFieldId(null)}
+                            onDragStart={() => setDraggedFormLayoutItemId(field.id)}
+                            onDragEnd={() => setDraggedFormLayoutItemId(null)}
                             onDragOver={(event) => event.preventDefault()}
-                            onDrop={() => draggedDynamicFieldId && handleReorderDynamicFields(draggedDynamicFieldId, field.id)}
+                            onDrop={() => draggedFormLayoutItemId && handleReorderReportFormItems(draggedFormLayoutItemId, field.id)}
                             className={cn(
                               "rounded-xl border border-zinc-800 bg-zinc-900/40 p-3 transition-all",
-                              draggedDynamicFieldId === field.id && "border-primary/50 bg-primary/5"
+                              draggedFormLayoutItemId === field.id && "border-primary/50 bg-primary/5"
                             )}
                           >
                             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -2869,20 +2997,21 @@ export default function App() {
                                 </div>
                                 <div>
                                 <p className="text-xs font-black uppercase text-zinc-200">{field.label}</p>
-                                <p className="mt-1 text-[10px] uppercase tracking-widest text-zinc-500">{field.type} • {field.scope} • {field.required ? 'obrigatório' : 'opcional'}</p>
+                                <p className="mt-1 text-[10px] uppercase tracking-widest text-zinc-500">{field.isDynamic ? 'campo dinâmico' : 'campo base'} • {field.type} • {field.scope}{field.isDynamic ? ` • ${field.field?.required ? 'obrigatório' : 'opcional'}` : ''}</p>
                                 </div>
                               </div>
                               <div className="flex gap-2">
-                                <button type="button" onClick={() => handleMoveDynamicField(field.id, 'up')} disabled={index === 0} className="px-3 py-2 rounded-lg bg-zinc-800 text-zinc-300 text-[10px] font-black uppercase disabled:opacity-40">↑</button>
-                                <button type="button" onClick={() => handleMoveDynamicField(field.id, 'down')} disabled={index === reportDynamicFields.length - 1} className="px-3 py-2 rounded-lg bg-zinc-800 text-zinc-300 text-[10px] font-black uppercase disabled:opacity-40">↓</button>
-                                <button type="button" onClick={() => handleEditDynamicField(field.id)} className="px-3 py-2 rounded-lg bg-blue-600 text-white text-[10px] font-black uppercase">Editar</button>
-                                <button type="button" onClick={() => handleDeleteDynamicField(field.id)} className="px-3 py-2 rounded-lg bg-red-600/20 text-red-400 text-[10px] font-black uppercase">Remover</button>
+                                <button type="button" onClick={() => handleMoveReportFormItem(field.id, 'up')} disabled={index === 0} className="px-3 py-2 rounded-lg bg-zinc-800 text-zinc-300 text-[10px] font-black uppercase disabled:opacity-40">↑</button>
+                                <button type="button" onClick={() => handleMoveReportFormItem(field.id, 'down')} disabled={index === reportFormItems.length - 1} className="px-3 py-2 rounded-lg bg-zinc-800 text-zinc-300 text-[10px] font-black uppercase disabled:opacity-40">↓</button>
+                                {field.isDynamic && <button type="button" onClick={() => handleEditDynamicField(field.field.id)} className="px-3 py-2 rounded-lg bg-blue-600 text-white text-[10px] font-black uppercase">Editar</button>}
+                                {field.isDynamic && <button type="button" onClick={() => handleDeleteDynamicField(field.field.id)} className="px-3 py-2 rounded-lg bg-red-600/20 text-red-400 text-[10px] font-black uppercase">Remover</button>}
                               </div>
                             </div>
                           </div>
                         ))}
                       </div>
                     </div>
+                    </form>
                   </Card>
                 </div>
 
@@ -3580,6 +3709,7 @@ export default function App() {
           newReportStep={newReportStep}
           systemSettings={systemSettings as any}
           dynamicFields={reportDynamicFields as any}
+          formItems={reportFormItems as any}
           onClose={closeNewReportModal}
           onSubmit={handleCreateReport}
           onPreview={handlePreviewNewReport}
@@ -3618,6 +3748,7 @@ export default function App() {
           currentUser={currentUser}
           systemSettings={systemSettings as any}
           dynamicFields={reportDynamicFields as any}
+          formItems={reportFormItems as any}
           isEditing={isEditingReport}
           editingData={editingReportData}
           onClose={closeReportDetails}
@@ -3668,7 +3799,7 @@ export default function App() {
 
         <motion.button 
           whileTap={{ scale: 0.85 }}
-          onClick={() => setIsNewReportModalOpen(true)} 
+          onClick={openNewReportModal} 
           className="w-14 h-14 bg-primary rounded-full flex items-center justify-center text-black shadow-lg shadow-primary/30 -mt-12 border-4 border-[var(--bg-main)] glow-amber"
         >
           <Plus size={24} strokeWidth={4} />
