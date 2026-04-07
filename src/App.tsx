@@ -75,6 +75,7 @@ import { ReportDetailModal } from './components/modals/ReportDetailModal';
 import { DashboardRangeModal, EditAlertModal, UserModal } from './components/modals/SystemModals';
 import { io } from 'socket.io-client';
 import { normalizeLanguage } from './i18n';
+import { applyThemeSettings, resolveThemeMode, resolveThemePalette, resolveThemeTemplate, themePalettes, themeTemplates } from './lib/theme';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 
@@ -168,11 +169,11 @@ const SidebarItem = ({ icon: Icon, label, active, onClick }: { icon: any, label:
       "w-full flex items-center gap-3 rounded-2xl px-4 py-3 text-[11px] font-black uppercase tracking-[0.16em] transition-all duration-300 relative group text-left overflow-hidden",
       active 
         ? "text-primary bg-primary/8 shadow-[inset_0_0_0_1px_rgba(249,115,22,0.12)]" 
-        : "text-zinc-500 hover:text-zinc-100 hover:bg-white/[0.03]"
+        : "text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-white/[0.03]"
     )}
   >
     {active && <motion.div layoutId="active-nav" className="absolute left-0 top-1/2 h-8 w-1 -translate-y-1/2 rounded-r-full bg-primary" />}
-    <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border transition-all", active ? "border-primary/20 bg-primary/12 text-primary shadow-[0_0_30px_rgba(249,115,22,0.12)]" : "border-zinc-800/80 bg-zinc-900/60 text-zinc-600 group-hover:border-zinc-700 group-hover:text-zinc-200")}>
+    <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border transition-all", active ? "border-primary/20 bg-primary/12 text-primary shadow-[0_0_30px_rgba(var(--primary-rgb),0.18)]" : "border-[var(--border)] bg-[var(--surface-1)] text-[var(--text-faint)] group-hover:border-[var(--border-strong)] group-hover:text-[var(--text-main)]")}>
       <Icon size={18} className={cn("transition-transform group-hover:scale-110", active && "glow-amber")} />
     </div>
     <span className="truncate text-left leading-tight">{label}</span>
@@ -214,8 +215,8 @@ const StatCard = ({ title, value, icon: Icon, trend, color, onClick }: { title: 
     </div>
 
     <div className="mt-6 relative z-10">
-      <div className="text-3xl font-black tracking-tighter text-white mb-1 group-hover:translate-x-1 transition-transform">{value}</div>
-      <div className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">{title}</div>
+      <div className="text-3xl font-black tracking-tighter text-[var(--text-main)] mb-1 group-hover:translate-x-1 transition-transform">{value}</div>
+      <div className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest">{title}</div>
     </div>
     
     <div className={cn("absolute bottom-0 left-0 h-1 transition-all duration-500 opacity-30 group-hover:opacity-100", color.replace('text-', 'bg-'))} style={{ width: '0%' }} id={`progress-${title.toLowerCase().replace(/\s/g, '-')}`} />
@@ -285,10 +286,10 @@ const Card = ({ children, className, title, subtitle, action, onClick }: { child
     )}
   >
     {(title || action) && (
-      <div className="p-4 md:p-6 border-b border-zinc-800/40 flex items-center justify-between bg-white/[0.02]">
+      <div className="p-4 md:p-6 border-b border-[var(--border)] flex items-center justify-between bg-white/[0.03]">
         <div>
-          {title && <h3 className="text-xs font-black text-zinc-100 uppercase tracking-[0.2em]">{title}</h3>}
-          {subtitle && <p className="text-[10px] text-zinc-500 mt-1 font-bold">{subtitle}</p>}
+          {title && <h3 className="text-xs font-black text-[var(--text-main)] uppercase tracking-[0.2em]">{title}</h3>}
+          {subtitle && <p className="text-[10px] text-[var(--text-muted)] mt-1 font-bold">{subtitle}</p>}
         </div>
         {action}
       </div>
@@ -490,7 +491,8 @@ export default function App() {
     app_name: 'MINEGUARD',
     app_slogan: 'Security Operating System',
     app_theme_mode: 'dark',
-    app_theme_palette: 'orange',
+    app_theme_palette: 'obsidian-amber',
+    app_theme_template: 'executive',
     app_layout: 'default'
   });
   const [selectedRoleForPerms, setSelectedRoleForPerms] = useState<string>('Superadmin');
@@ -696,6 +698,30 @@ export default function App() {
       default_report_severity: (getSettingValue('default_report_severity', 'G1') as Gravidade),
     });
   }, [systemSettings]);
+  const [interfaceSettingsForm, setInterfaceSettingsForm] = useState({
+    app_name: 'MINEGUARD',
+    app_slogan: 'Security Operating System',
+    app_theme_mode: 'dark',
+    app_theme_palette: 'obsidian-amber',
+    app_theme_template: 'executive',
+    app_layout: 'default',
+  });
+
+  useEffect(() => {
+    const normalizedMode = resolveThemeMode(publicSettings.app_theme_mode);
+    setInterfaceSettingsForm({
+      app_name: publicSettings.app_name || 'MINEGUARD',
+      app_slogan: publicSettings.app_slogan || 'Security Operating System',
+      app_theme_mode: normalizedMode,
+      app_theme_palette: resolveThemePalette(normalizedMode, publicSettings.app_theme_palette),
+      app_theme_template: resolveThemeTemplate(publicSettings.app_theme_template),
+      app_layout: publicSettings.app_layout || 'default',
+    });
+  }, [publicSettings]);
+
+  useEffect(() => {
+    applyThemeSettings(document.documentElement, publicSettings);
+  }, [publicSettings]);
 
   const addNotification = (title: string, message: string, type: 'report' | 'system' | 'alert' = 'system', reportId?: number) => {
     const newNotif: Notification = {
@@ -786,15 +812,7 @@ export default function App() {
       .then(data => {
         if (data) {
           setPublicSettings(data);
-          // Apply theme
-          const root = document.documentElement;
-          if (data.app_theme_mode === 'light') root.classList.add('light');
-          else root.classList.remove('light');
-          
-          // Apply palette
-          const palettes = ['theme-orange', 'theme-blue', 'theme-green', 'theme-red', 'theme-purple'];
-          palettes.forEach(p => root.classList.remove(p));
-          root.classList.add(`theme-${data.app_theme_palette || 'orange'}`);
+          applyThemeSettings(document.documentElement, data);
         }
       });
 
@@ -1580,14 +1598,14 @@ export default function App() {
 
   if (isLoading) return (
     <div className="h-screen bg-[#050505] flex items-center justify-center">
-      <Toaster position="top-right" theme="dark" richColors />
+      <Toaster position="top-right" theme={publicSettings.app_theme_mode === 'light' ? 'light' : 'dark'} richColors />
       <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
     </div>
   );
 
   if (!currentUser) return (
     <>
-      <Toaster position="top-right" theme="dark" richColors />
+      <Toaster position="top-right" theme={publicSettings.app_theme_mode === 'light' ? 'light' : 'dark'} richColors />
       <Login onLogin={setCurrentUser} publicSettings={publicSettings} />
     </>
   );
@@ -1856,17 +1874,22 @@ export default function App() {
     );
   }
 
+  const selectedThemeMode = resolveThemeMode(interfaceSettingsForm.app_theme_mode);
+  const availablePalettes = themePalettes.filter((palette) => palette.mode === selectedThemeMode);
+  const selectedPalette = availablePalettes.find((palette) => palette.id === interfaceSettingsForm.app_theme_palette) || availablePalettes[0];
+  const selectedTemplate = themeTemplates.find((template) => template.id === resolveThemeTemplate(interfaceSettingsForm.app_theme_template)) || themeTemplates[0];
+
   return (
     <div className={cn("app-shell flex h-screen bg-[var(--bg-main)] text-[var(--text-main)] font-sans selection:bg-primary/30 relative overflow-hidden transition-all duration-700", focusMode && "brightness-50 sepia-[.4] hue-rotate-[-10deg] saturate-[1.5] contrast-125")}>
       <div className="absolute inset-0 industrial-grid opacity-[0.03] pointer-events-none" />
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[50vh] bg-gradient-to-b from-primary/10 to-transparent opacity-30 pointer-events-none" />
       
-      <Toaster position="top-right" theme="dark" richColors />
+      <Toaster position="top-right" theme={publicSettings.app_theme_mode === 'light' ? 'light' : 'dark'} richColors />
       
       {/* Sidebar */}
       <aside className={cn(
         "app-sidebar hidden md:flex flex-col no-print border-r border-[var(--border)] transition-all duration-300",
-        publicSettings.app_layout === 'compact' ? "w-24" : "w-[21rem]",
+        publicSettings.app_layout === 'compact' ? "w-24" : "w-[var(--template-sidebar-width)]",
         focusMode && "!hidden"
       )}>
         <div className={cn(
@@ -3446,16 +3469,15 @@ export default function App() {
 
                   <Card title="Personalização da interface" subtitle="Altere a aparência global do sistema" className="lg:col-span-2">
                     <form 
-                      key={publicSettings.app_name + publicSettings.app_theme_mode + publicSettings.app_theme_palette}
                       onSubmit={async (e) => {
                         e.preventDefault();
-                        const formData = new FormData(e.currentTarget);
                         const settings = [
-                          { key: 'app_name', value: formData.get('app_name'), description: 'Nome da aplicação' },
-                          { key: 'app_slogan', value: formData.get('app_slogan'), description: 'Slogan da aplicação' },
-                          { key: 'app_theme_mode', value: formData.get('app_theme_mode'), description: 'Modo do tema (light/dark)' },
-                          { key: 'app_theme_palette', value: formData.get('app_theme_palette'), description: 'Paleta de cores' },
-                          { key: 'app_layout', value: formData.get('app_layout'), description: 'Layout do sistema' }
+                          { key: 'app_name', value: interfaceSettingsForm.app_name, description: 'Nome da aplicação' },
+                          { key: 'app_slogan', value: interfaceSettingsForm.app_slogan, description: 'Slogan da aplicação' },
+                          { key: 'app_theme_mode', value: interfaceSettingsForm.app_theme_mode, description: 'Modo do tema (light/dark)' },
+                          { key: 'app_theme_palette', value: interfaceSettingsForm.app_theme_palette, description: 'Paleta de cores' },
+                          { key: 'app_theme_template', value: interfaceSettingsForm.app_theme_template, description: 'Template visual' },
+                          { key: 'app_layout', value: interfaceSettingsForm.app_layout, description: 'Layout do sistema' }
                         ];
                         
                         try {
@@ -3465,8 +3487,10 @@ export default function App() {
                             body: JSON.stringify({ settings }),
                             credentials: 'include'
                           });
-                          toast.success("Interface atualizada. A recarregar...");
-                          setTimeout(() => window.location.reload(), 1500);
+                          const nextPublicSettings = { ...publicSettings, ...Object.fromEntries(settings.map((item) => [item.key, item.value])) };
+                          setPublicSettings(nextPublicSettings);
+                          applyThemeSettings(document.documentElement, nextPublicSettings);
+                          toast.success("Identidade visual atualizada.");
                         } catch (err) {
                           toast.error("Erro ao guardar personalização");
                         }
@@ -3477,8 +3501,9 @@ export default function App() {
                           <input 
                             name="app_name"
                             type="text"
-                            defaultValue={publicSettings.app_name}
-                            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
+                            value={interfaceSettingsForm.app_name}
+                            onChange={(event) => setInterfaceSettingsForm((current) => ({ ...current, app_name: event.target.value }))}
+                            className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-input)] py-2.5 px-4 text-sm text-[var(--text-main)] focus:outline-none focus:border-primary"
                           />
                         </div>
                         <div className="space-y-2">
@@ -3486,8 +3511,9 @@ export default function App() {
                           <input 
                             name="app_slogan"
                             type="text"
-                            defaultValue={publicSettings.app_slogan}
-                            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
+                            value={interfaceSettingsForm.app_slogan}
+                            onChange={(event) => setInterfaceSettingsForm((current) => ({ ...current, app_slogan: event.target.value }))}
+                            className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-input)] py-2.5 px-4 text-sm text-[var(--text-main)] focus:outline-none focus:border-primary"
                           />
                         </div>
                       </div>
@@ -3495,39 +3521,163 @@ export default function App() {
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div className="space-y-2">
                           <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Modo do tema</label>
-                          <select 
-                            name="app_theme_mode"
-                            defaultValue={publicSettings.app_theme_mode}
-                            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
-                          >
-                            <option value="dark">Escuro</option>
-                            <option value="light">Claro</option>
-                          </select>
+                          <div className="grid grid-cols-2 gap-2">
+                            {[
+                              { value: 'dark', label: 'Escuro' },
+                              { value: 'light', label: 'Claro' },
+                            ].map((modeOption) => (
+                              <button
+                                key={modeOption.value}
+                                type="button"
+                                onClick={() => setInterfaceSettingsForm((current) => ({
+                                  ...current,
+                                  app_theme_mode: modeOption.value,
+                                  app_theme_palette: resolveThemePalette(modeOption.value as 'light' | 'dark', current.app_theme_palette),
+                                }))}
+                                className={cn(
+                                  "rounded-xl border px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] transition-all",
+                                  interfaceSettingsForm.app_theme_mode === modeOption.value
+                                    ? "border-primary bg-primary/12 text-primary"
+                                    : "border-[var(--border)] bg-[var(--surface-1)] text-[var(--text-muted)] hover:border-[var(--border-strong)] hover:text-[var(--text-main)]"
+                                )}
+                              >
+                                {modeOption.label}
+                              </button>
+                            ))}
+                          </div>
                         </div>
                         <div className="space-y-2">
-                          <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Paleta de cores</label>
-                          <select 
-                            name="app_theme_palette"
-                            defaultValue={publicSettings.app_theme_palette}
-                            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
+                          <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Template visual</label>
+                          <select
+                            name="app_theme_template"
+                            value={interfaceSettingsForm.app_theme_template}
+                            onChange={(event) => setInterfaceSettingsForm((current) => ({ ...current, app_theme_template: event.target.value }))}
+                            className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-input)] py-2.5 px-4 text-sm text-[var(--text-main)] focus:outline-none focus:border-primary"
                           >
-                            <option value="orange">Laranja (padrão)</option>
-                            <option value="blue">Azul Corporativo</option>
-                            <option value="green">Verde Operacional</option>
-                            <option value="red">Vermelho Alerta</option>
-                            <option value="purple">Roxo Estratégico</option>
+                            {themeTemplates.map((template) => (
+                              <option key={template.id} value={template.id}>{template.name}</option>
+                            ))}
                           </select>
+                          <p className="text-[11px] text-[var(--text-muted)]">{selectedTemplate.description}</p>
                         </div>
                         <div className="space-y-2">
                           <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Layout do sistema</label>
                           <select 
                             name="app_layout"
-                            defaultValue={publicSettings.app_layout}
-                            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:border-primary"
+                            value={interfaceSettingsForm.app_layout}
+                            onChange={(event) => setInterfaceSettingsForm((current) => ({ ...current, app_layout: event.target.value }))}
+                            className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-input)] py-2.5 px-4 text-sm text-[var(--text-main)] focus:outline-none focus:border-primary"
                           >
                             <option value="default">Padrão (barra lateral)</option>
                             <option value="compact">Compacto</option>
                           </select>
+                        </div>
+                      </div>
+
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between gap-4">
+                          <div>
+                            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-primary">Paletas para {selectedThemeMode === 'light' ? 'modo claro' : 'modo escuro'}</p>
+                            <p className="mt-1 text-xs text-[var(--text-muted)]">Cada paleta altera superfícies, contraste, brilho e personalidade cromática.</p>
+                          </div>
+                          <div className="rounded-full border border-[var(--border)] bg-[var(--surface-1)] px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">
+                            {availablePalettes.length} opções
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
+                          {availablePalettes.map((palette) => {
+                            const selected = interfaceSettingsForm.app_theme_palette === palette.id;
+                            return (
+                              <button
+                                key={palette.id}
+                                type="button"
+                                onClick={() => setInterfaceSettingsForm((current) => ({ ...current, app_theme_palette: palette.id }))}
+                                className={cn(
+                                  "rounded-[1.4rem] border p-4 text-left transition-all",
+                                  selected
+                                    ? "border-primary bg-primary/8 shadow-[0_18px_38px_rgba(var(--primary-rgb),0.16)]"
+                                    : "border-[var(--border)] bg-[var(--surface-1)] hover:border-[var(--border-strong)]"
+                                )}
+                              >
+                                <div className="flex items-start justify-between gap-4">
+                                  <div>
+                                    <p className="text-sm font-black uppercase tracking-[0.12em] text-[var(--text-main)]">{palette.name}</p>
+                                    <p className="mt-1 text-xs text-[var(--text-muted)]">{palette.description}</p>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <span className="h-4 w-4 rounded-full border border-white/30" style={{ backgroundColor: palette.accent }} />
+                                    <span className="h-4 w-4 rounded-full border border-white/20" style={{ backgroundColor: palette.surface }} />
+                                  </div>
+                                </div>
+                                <div className="mt-4 grid grid-cols-3 gap-2">
+                                  <div className="h-10 rounded-xl border border-white/10" style={{ backgroundColor: palette.surface }} />
+                                  <div className="h-10 rounded-xl border border-white/10 bg-[var(--surface-2)]" />
+                                  <div className="h-10 rounded-xl border border-white/10" style={{ backgroundColor: palette.accent, opacity: 0.9 }} />
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      <div className="rounded-[1.75rem] border border-[var(--border)] bg-[var(--surface-1)] p-5">
+                        <div className="flex items-center justify-between gap-4">
+                          <div>
+                            <p className="text-[10px] font-black uppercase tracking-[0.22em] text-primary">Preview do tema</p>
+                            <h4 className="mt-2 text-lg font-black tracking-tight text-[var(--text-main)]">{selectedPalette?.name}</h4>
+                            <p className="mt-1 text-xs text-[var(--text-muted)]">{selectedTemplate.description}</p>
+                          </div>
+                          <div className="rounded-full border border-[var(--border)] px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">
+                            {interfaceSettingsForm.app_layout === 'compact' ? 'Compacto' : 'Padrão'}
+                          </div>
+                        </div>
+                        <div className="mt-5 grid gap-4 lg:grid-cols-[240px_minmax(0,1fr)]">
+                          <div className="rounded-[1.4rem] border border-[var(--border)] p-4" style={{ background: `linear-gradient(180deg, ${selectedPalette?.surface || 'var(--surface-2)'}, var(--surface-2))` }}>
+                            <div className="flex items-center gap-3">
+                              <div className="flex h-10 w-10 items-center justify-center rounded-2xl text-sm font-black" style={{ backgroundColor: selectedPalette?.accent, color: selectedThemeMode === 'light' ? '#ffffff' : '#091018' }}>
+                                MG
+                              </div>
+                              <div>
+                                <p className="text-xs font-black uppercase tracking-[0.16em] text-[var(--text-main)]">{interfaceSettingsForm.app_name}</p>
+                                <p className="text-[10px] uppercase tracking-[0.16em] text-[var(--text-muted)]">{interfaceSettingsForm.app_slogan}</p>
+                              </div>
+                            </div>
+                            <div className="mt-5 space-y-2">
+                              {['Dashboard', 'Ocorrências', 'Relatórios'].map((item, index) => (
+                                <div
+                                  key={item}
+                                  className={cn(
+                                    "rounded-xl border px-3 py-2 text-[11px] font-black uppercase tracking-[0.16em]",
+                                    index === 0 ? "text-[var(--text-main)]" : "text-[var(--text-muted)]"
+                                  )}
+                                  style={index === 0 ? { borderColor: selectedPalette?.accent, backgroundColor: `${selectedPalette?.accent}18` } : undefined}
+                                >
+                                  {item}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="rounded-[1.4rem] border border-[var(--border)] bg-[var(--bg-elevated)] p-4 shadow-[0_18px_40px_var(--shadow-color)]">
+                            <div className="flex items-center justify-between gap-4">
+                              <div>
+                                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">Painel principal</p>
+                                <h5 className="mt-2 text-base font-black text-[var(--text-main)]">Centro de Operações</h5>
+                              </div>
+                              <div className="rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em]" style={{ backgroundColor: `${selectedPalette?.accent}16`, color: selectedPalette?.accent }}>
+                                {selectedThemeMode === 'light' ? 'Claro' : 'Escuro'}
+                              </div>
+                            </div>
+                            <div className="mt-4 grid gap-3 md:grid-cols-3">
+                              {[43, 12, 5].map((value, index) => (
+                                <div key={value} className="rounded-2xl border border-[var(--border)] bg-[var(--surface-2)] p-4">
+                                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">
+                                    {index === 0 ? 'Ocorrências' : index === 1 ? 'Críticas' : 'Alertas'}
+                                  </p>
+                                  <p className="mt-3 text-2xl font-black tracking-tight text-[var(--text-main)]">{value}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
                         </div>
                       </div>
 

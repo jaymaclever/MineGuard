@@ -22,11 +22,11 @@ export const SidebarItem = ({ icon: Icon, label, active, onClick }: { icon: any,
       "w-full flex items-center gap-3 px-6 py-4 text-sm font-bold uppercase tracking-widest transition-all duration-300 relative group",
       active 
         ? "text-primary bg-primary/5" 
-        : "text-zinc-500 hover:text-zinc-200 hover:bg-white/5"
+        : "text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-white/5"
     )}
   >
     {active && <motion.div layoutId="active-nav" className="absolute left-0 w-1 h-2/3 bg-primary rounded-r-full" />}
-    <Icon size={18} className={cn("transition-transform group-hover:scale-110", active ? "text-primary glow-amber" : "text-zinc-600")} />
+    <Icon size={18} className={cn("transition-transform group-hover:scale-110", active ? "text-primary glow-amber" : "text-[var(--text-faint)]")} />
     <span className="truncate">{label}</span>
   </button>
 );
@@ -58,10 +58,10 @@ export const Card = ({ children, className, title, subtitle, action, onClick }: 
     )}
   >
     {(title || action) && (
-      <div className="p-4 md:p-6 border-b border-zinc-800/40 flex items-center justify-between bg-white/[0.02]">
+      <div className="p-4 md:p-6 border-b border-[var(--border)] flex items-center justify-between bg-white/[0.03]">
         <div>
-          {title && <h3 className="text-xs font-black text-zinc-100 uppercase tracking-[0.2em]">{title}</h3>}
-          {subtitle && <p className="text-[10px] text-zinc-500 mt-1 font-bold">{subtitle}</p>}
+          {title && <h3 className="text-xs font-black text-[var(--text-main)] uppercase tracking-[0.2em]">{title}</h3>}
+          {subtitle && <p className="text-[10px] text-[var(--text-muted)] mt-1 font-bold">{subtitle}</p>}
         </div>
         {action}
       </div>

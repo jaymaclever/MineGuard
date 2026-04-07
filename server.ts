@@ -154,7 +154,8 @@ db.exec(`
   INSERT OR IGNORE INTO system_settings (key, value, description) VALUES ('app_name', 'MINEGUARD', 'Nome da aplicação');
   INSERT OR IGNORE INTO system_settings (key, value, description) VALUES ('app_slogan', 'Security Operating System', 'Slogan da aplicação');
   INSERT OR IGNORE INTO system_settings (key, value, description) VALUES ('app_theme_mode', 'dark', 'Modo de tema (light/dark)');
-  INSERT OR IGNORE INTO system_settings (key, value, description) VALUES ('app_theme_palette', 'orange', 'Paleta de cores (orange, blue, green, red, purple)');
+  INSERT OR IGNORE INTO system_settings (key, value, description) VALUES ('app_theme_palette', 'obsidian-amber', 'Paleta de cores do sistema');
+  INSERT OR IGNORE INTO system_settings (key, value, description) VALUES ('app_theme_template', 'executive', 'Template visual do sistema');
   INSERT OR IGNORE INTO system_settings (key, value, description) VALUES ('app_layout', 'default', 'Layout da aplicação (default, compact)');
 `);
 
@@ -527,7 +528,7 @@ async function startServer() {
 
   app.get("/api/public/settings", (req, res) => {
     try {
-      const keys = ['app_name', 'app_slogan', 'app_theme_mode', 'app_theme_palette', 'app_layout'];
+      const keys = ['app_name', 'app_slogan', 'app_theme_mode', 'app_theme_palette', 'app_theme_template', 'app_layout'];
       const placeholders = keys.map(() => '?').join(',');
       const settings = db.prepare(`SELECT key, value FROM system_settings WHERE key IN (${placeholders})`).all(...keys) as any[];
       
