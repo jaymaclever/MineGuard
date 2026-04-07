@@ -48,6 +48,16 @@ import {
 import { Toaster, toast } from 'sonner';
 import { cn } from './lib/utils';
 import { formatDate, formatDateTime, formatTime, LUANDA_TIMEZONE_LABEL } from './lib/datetime';
+import {
+  buildMetadataWithDynamicFields,
+  coerceDynamicFieldValues,
+  createEmptyDynamicField,
+  getDynamicFieldValues,
+  getReportDynamicFields,
+  parseJsonObject,
+  slugifyDynamicFieldLabel,
+  validateDynamicFieldValues,
+} from './lib/reportDynamicFields';
 import { OperationsMapPanel } from './components/ui/OperationsMapPanel';
 import { DailyReportsWorkspaceTab } from './components/tabs/DailyReportsWorkspaceTab';
 import { ReportsTab } from './components/tabs/ReportsTab';
@@ -515,6 +525,7 @@ export default function App() {
   const [showInstallGuide, setShowInstallGuide] = useState(false);
   const canManageSystem = currentUser?.permissions?.manage_settings === true || currentUser?.nivel_hierarquico === 'Superadmin';
   const getSettingValue = (key: string, fallback = '') => systemSettings.find((setting) => setting.key === key)?.value || fallback;
+  const reportDynamicFields = getReportDynamicFields(systemSettings);
 
   // PWA Logic
   useEffect(() => {
@@ -561,6 +572,8 @@ export default function App() {
       acao_imediata: '',
       testemunhas: '',
       potencial_risco: '',
+      metadata: {} as any,
+      dynamicFieldValues: {} as Record<string, any>,
       fotos: [] as Array<{ file: File; caption: string }>
     };
   }
@@ -581,7 +594,7 @@ export default function App() {
       testemunhas: '',
       potencial_risco: '',
       fotos: [] as Array<{ file: File; caption: string }>,
-      metadata: {} as any
+      metadata: { dynamicFields: {} } as any
     };
   }
 
@@ -593,6 +606,8 @@ export default function App() {
     acao_imediata: string;
     testemunhas: string;
     potencial_risco: string;
+    metadata: any;
+    dynamicFieldValues: Record<string, any>;
     fotos: Array<{ file: File; caption: string }>;
   }>(createEmptyEditingReportData());
   
@@ -611,6 +626,11 @@ export default function App() {
     nivel_hierarquico: 'Agente' as NivelHierarquico,
     password: ''
   });
+  const [dynamicFieldDraft, setDynamicFieldDraft] = useState(createEmptyDynamicField());
+  const [editingDynamicFieldId, setEditingDynamicFieldId] = useState<string | null>(null);
+  const [draggedDynamicFieldId, setDraggedDynamicFieldId] = useState<string | null>(null);
+  const [dynamicFieldPreviewCategory, setDynamicFieldPreviewCategory] = useState<Categoria>('Valores');
+  const [dynamicFieldPreviewScope, setDynamicFieldPreviewScope] = useState<'create' | 'edit'>('create');
 
   const addNotification = (title: string, message: string, type: 'report' | 'system' | 'alert' = 'system', reportId?: number) => {
     const newNotif: Notification = {
@@ -631,7 +651,8 @@ export default function App() {
   useEffect(() => {
     const socket = io();
 
-    socket.on('new_report', (report: Report) => {
+    socket.on('new_report', (incomingReport: Report) => {
+      const report = normalizeReportRecord(incomingReport);
       const weight = (currentUser as any)?.peso || 0;
       const isAuthor = report.agente_id === currentUser?.id;
       const isOficialPlus = weight >= 60;
@@ -655,7 +676,8 @@ export default function App() {
       }
     });
 
-    socket.on('report_updated', (report: Partial<Report> & { id: number; status?: Report['status'] }) => {
+    socket.on('report_updated', (incomingReport: Partial<Report> & { id: number; status?: Report['status'] }) => {
+      const report = normalizeReportRecord(incomingReport);
       setReports(prev => prev.map(r => r.id === report.id ? { ...r, ...report } : r));
       setSelectedReport(prev => prev && prev.id === report.id ? { ...prev, ...report } : prev);
     });
@@ -820,7 +842,7 @@ export default function App() {
         if (!data) return;
         const key = keys[index];
         if (key === 'reports') {
-          setReports(data.data || data);
+          setReports(normalizeReportsList(data.data || data));
           if (data.pagination) {
             setTotalPages(data.pagination.pages);
           }
@@ -885,9 +907,14 @@ export default function App() {
       ? `${new Date(`${dashboardCustomRange.from}T00:00:00`).toLocaleDateString(normalizeLanguage(i18n.language) === 'en' ? 'en-US' : 'pt-PT')} -> ${new Date(`${dashboardCustomRange.to}T00:00:00`).toLocaleDateString(normalizeLanguage(i18n.language) === 'en' ? 'en-US' : 'pt-PT')}`
       : t('app.dashboard.customRange');
 
+  const normalizeReportRecord = (report: any): Report => ({
+    ...report,
+    metadata: parseJsonObject(report?.metadata),
+  });
+
   const normalizeReportsList = (payload: any): Report[] => {
-    if (Array.isArray(payload)) return payload as Report[];
-    if (Array.isArray(payload?.reports)) return payload.reports as Report[];
+    if (Array.isArray(payload)) return payload.map(normalizeReportRecord) as Report[];
+    if (Array.isArray(payload?.reports)) return payload.reports.map(normalizeReportRecord) as Report[];
     return [];
   };
 
@@ -1010,11 +1037,13 @@ export default function App() {
         acao_imediata: (selectedReport as any).acao_imediata || '',
         testemunhas: (selectedReport as any).testemunhas || '',
         potencial_risco: (selectedReport as any).potencial_risco || '',
+        metadata: parseJsonObject((selectedReport as any).metadata),
+        dynamicFieldValues: coerceDynamicFieldValues(reportDynamicFields, getDynamicFieldValues((selectedReport as any).metadata)),
         fotos: []
       });
       setIsEditingReport(false);
     }
-  }, [selectedReport]);
+  }, [selectedReport, systemSettings]);
 
   const closeNewReportModal = () => {
     setIsNewReportModalOpen(false);
@@ -1048,11 +1077,146 @@ export default function App() {
       }
     }
 
+    if (step === 2) {
+      const invalidDynamicField = validateDynamicFieldValues(
+        reportDynamicFields,
+        getDynamicFieldValues(newReport.metadata),
+        newReport.categoria,
+        'create'
+      );
+
+      if (invalidDynamicField) {
+        toast.error(`Preencha o campo obrigatório: ${invalidDynamicField.label}`);
+        return false;
+      }
+    }
+
     return true;
   };
 
   const validateNewReportBeforeSubmit = () => {
     return validateNewReportStep(1) && validateNewReportStep(2);
+  };
+
+  const saveDynamicFieldConfiguration = async (fields: any[]) => {
+    await fetch('/api/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        settings: [
+          {
+            key: 'report_dynamic_fields',
+            value: JSON.stringify(fields),
+            description: 'Campos dinâmicos do formulário de ocorrência',
+          },
+        ],
+      }),
+      credentials: 'include',
+    });
+  };
+
+  const handleSaveDynamicField = async () => {
+    const label = dynamicFieldDraft.label.trim();
+    if (!label) {
+      toast.error('Define o nome do campo.');
+      return;
+    }
+
+    if ((dynamicFieldDraft.type === 'select' || dynamicFieldDraft.type === 'multiselect') && (dynamicFieldDraft.options || []).length === 0) {
+      toast.error('Campos de seleção precisam de opções.');
+      return;
+    }
+
+    const baseId = slugifyDynamicFieldLabel(label) || `campo_${Date.now()}`;
+    const nextField = {
+      ...dynamicFieldDraft,
+      id: editingDynamicFieldId || baseId,
+      label,
+    };
+
+    const alreadyExists = reportDynamicFields.some((field) => field.id === nextField.id && field.id !== editingDynamicFieldId);
+    if (alreadyExists) {
+      toast.error('Já existe um campo com este identificador. Ajusta o nome.');
+      return;
+    }
+
+    const nextFields = editingDynamicFieldId
+      ? reportDynamicFields.map((field) => (field.id === editingDynamicFieldId ? nextField : field))
+      : [...reportDynamicFields, nextField];
+
+    try {
+      await saveDynamicFieldConfiguration(nextFields);
+      toast.success(editingDynamicFieldId ? 'Campo atualizado.' : 'Campo adicionado.');
+      setDynamicFieldDraft(createEmptyDynamicField());
+      setEditingDynamicFieldId(null);
+      fetchData();
+    } catch {
+      toast.error('Erro ao guardar campo dinâmico.');
+    }
+  };
+
+  const handleEditDynamicField = (fieldId: string) => {
+    const field = reportDynamicFields.find((item) => item.id === fieldId);
+    if (!field) return;
+    setDynamicFieldDraft({
+      ...field,
+      options: [...(field.options || [])],
+      categories: [...(field.categories || [])],
+    });
+    setEditingDynamicFieldId(fieldId);
+  };
+
+  const handleDeleteDynamicField = async (fieldId: string) => {
+    try {
+      await saveDynamicFieldConfiguration(reportDynamicFields.filter((field) => field.id !== fieldId));
+      toast.success('Campo removido da parametrização.');
+      if (editingDynamicFieldId === fieldId) {
+        setDynamicFieldDraft(createEmptyDynamicField());
+        setEditingDynamicFieldId(null);
+      }
+      fetchData();
+    } catch {
+      toast.error('Erro ao remover campo dinâmico.');
+    }
+  };
+
+  const handleMoveDynamicField = async (fieldId: string, direction: 'up' | 'down') => {
+    const currentIndex = reportDynamicFields.findIndex((field) => field.id === fieldId);
+    if (currentIndex < 0) return;
+    const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+    if (targetIndex < 0 || targetIndex >= reportDynamicFields.length) return;
+
+    const nextFields = [...reportDynamicFields];
+    const [item] = nextFields.splice(currentIndex, 1);
+    nextFields.splice(targetIndex, 0, item);
+
+    try {
+      await saveDynamicFieldConfiguration(nextFields);
+      fetchData();
+    } catch {
+      toast.error('Erro ao reordenar campo.');
+    }
+  };
+
+  const handleReorderDynamicFields = async (sourceId: string, targetId: string) => {
+    if (!sourceId || !targetId || sourceId === targetId) return;
+
+    const sourceIndex = reportDynamicFields.findIndex((field) => field.id === sourceId);
+    const targetIndex = reportDynamicFields.findIndex((field) => field.id === targetId);
+    if (sourceIndex < 0 || targetIndex < 0) return;
+
+    const nextFields = [...reportDynamicFields];
+    const [movedField] = nextFields.splice(sourceIndex, 1);
+    nextFields.splice(targetIndex, 0, movedField);
+
+    try {
+      await saveDynamicFieldConfiguration(nextFields);
+      fetchData();
+    } catch {
+      toast.error('Erro ao reordenar campo.');
+    } finally {
+      setDraggedDynamicFieldId(null);
+    }
   };
 
   const handlePreviewNewReport = () => {
@@ -1091,7 +1255,7 @@ export default function App() {
       const res = await fetch(`/api/reports/${report.id}`, { credentials: 'include' });
       const data = await res.json();
       if (res.ok && data?.report) {
-        setSelectedReport(data.report);
+        setSelectedReport(normalizeReportRecord(data.report));
       }
     } catch (err) {
       console.error(t('app.reports.errors.loadDetails'), err);
@@ -1108,6 +1272,8 @@ export default function App() {
       acao_imediata: selectedReport.acao_imediata || '',
       testemunhas: selectedReport.testemunhas || '',
       potencial_risco: selectedReport.potencial_risco || '',
+      metadata: parseJsonObject(selectedReport.metadata),
+      dynamicFieldValues: coerceDynamicFieldValues(reportDynamicFields, getDynamicFieldValues(selectedReport.metadata)),
       fotos: []
     });
     setIsEditingReport(true);
@@ -1123,6 +1289,8 @@ export default function App() {
         acao_imediata: selectedReport.acao_imediata || '',
         testemunhas: selectedReport.testemunhas || '',
         potencial_risco: selectedReport.potencial_risco || '',
+        metadata: parseJsonObject(selectedReport.metadata),
+        dynamicFieldValues: coerceDynamicFieldValues(reportDynamicFields, getDynamicFieldValues(selectedReport.metadata)),
         fotos: []
       });
     } else {
@@ -1174,7 +1342,10 @@ export default function App() {
       formData.append('requer_investigacao', newReport.requer_investigacao ? '1' : '0');
       formData.append('testemunhas', newReport.testemunhas);
       formData.append('potencial_risco', newReport.potencial_risco);
-      formData.append('metadata', JSON.stringify(newReport.metadata));
+      formData.append(
+        'metadata',
+        JSON.stringify(buildMetadataWithDynamicFields(newReport.metadata, getDynamicFieldValues(newReport.metadata)))
+      );
       
       for (const foto of newReport.fotos) {
         try {
@@ -1198,7 +1369,8 @@ export default function App() {
       if (res.ok) {
         toast.success(t('app.reports.sending.success'), { id: toastId });
         if (data?.report) {
-          setReports(prev => [data.report, ...prev.filter(r => r.id !== data.report.id)]);
+          const normalizedReport = normalizeReportRecord(data.report);
+          setReports(prev => [normalizedReport, ...prev.filter(r => r.id !== normalizedReport.id)]);
         }
         closeNewReportModal();
         fetchData();
@@ -1394,6 +1566,18 @@ export default function App() {
       return;
     }
 
+    const invalidDynamicField = validateDynamicFieldValues(
+      reportDynamicFields,
+      editingReportData.dynamicFieldValues,
+      selectedReport.categoria,
+      'edit'
+    );
+
+    if (invalidDynamicField) {
+      toast.error(`Preencha o campo obrigatório: ${invalidDynamicField.label}`);
+      return;
+    }
+
     try {
       const formData = new FormData();
       formData.append('titulo', editingReportData.titulo.trim());
@@ -1403,6 +1587,10 @@ export default function App() {
       formData.append('acao_imediata', editingReportData.acao_imediata);
       formData.append('testemunhas', editingReportData.testemunhas);
       formData.append('potencial_risco', editingReportData.potencial_risco);
+      formData.append(
+        'metadata',
+        JSON.stringify(buildMetadataWithDynamicFields(editingReportData.metadata, editingReportData.dynamicFieldValues))
+      );
       
       for (const foto of editingReportData.fotos) {
         if (foto.file) {
@@ -1429,8 +1617,9 @@ export default function App() {
         toast.success(t('app.reports.edit.success'));
         setIsEditingReport(false);
         if (data.report) {
-          setReports(prev => prev.map(report => report.id === data.report.id ? data.report : report));
-          setSelectedReport(data.report);
+          const normalizedReport = normalizeReportRecord(data.report);
+          setReports(prev => prev.map(report => report.id === normalizedReport.id ? normalizedReport : report));
+          setSelectedReport(normalizedReport);
         }
         fetchData();
       } else {
@@ -1495,6 +1684,8 @@ export default function App() {
       acao_imediata: report.acao_imediata || '',
       testemunhas: report.testemunhas || '',
       potencial_risco: report.potencial_risco || '',
+      metadata: parseJsonObject(report.metadata),
+      dynamicFieldValues: coerceDynamicFieldValues(reportDynamicFields, getDynamicFieldValues(report.metadata)),
       fotos: []
     });
   };
@@ -2231,6 +2422,8 @@ export default function App() {
                                     acao_imediata: report.acao_imediata || '',
                                     testemunhas: report.testemunhas || '',
                                     potencial_risco: report.potencial_risco || '',
+                                    metadata: parseJsonObject(report.metadata),
+                                    dynamicFieldValues: coerceDynamicFieldValues(reportDynamicFields, getDynamicFieldValues(report.metadata)),
                                     fotos: []
                                   });
                                 }}
@@ -2458,6 +2651,238 @@ export default function App() {
                         Guardar Parâmetros Ativos
                       </button>
                     </form>
+                  </Card>
+
+                  <Card title="Campos Dinâmicos da Ocorrência" subtitle="Adicionar, ocultar e ordenar campos personalizados">
+                    <div className="mt-4 space-y-4">
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Nome do campo</label>
+                          <input
+                            type="text"
+                            value={dynamicFieldDraft.label}
+                            onChange={(event) => setDynamicFieldDraft((current) => ({ ...current, label: event.target.value }))}
+                            placeholder="Ex: Matrícula da viatura"
+                            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2 px-3 text-sm focus:outline-none focus:border-primary"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Tipo</label>
+                          <select
+                            value={dynamicFieldDraft.type}
+                            onChange={(event) => setDynamicFieldDraft((current) => ({ ...current, type: event.target.value as any, options: event.target.value === 'select' || event.target.value === 'multiselect' ? current.options : [] }))}
+                            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2 px-3 text-sm focus:outline-none focus:border-primary"
+                          >
+                            <option value="text">Texto curto</option>
+                            <option value="textarea">Texto longo</option>
+                            <option value="number">Número</option>
+                            <option value="date">Data</option>
+                            <option value="select">Seleção</option>
+                            <option value="multiselect">Múltipla seleção</option>
+                            <option value="checkbox">Checkbox</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Onde aparece</label>
+                          <select
+                            value={dynamicFieldDraft.scope}
+                            onChange={(event) => setDynamicFieldDraft((current) => ({ ...current, scope: event.target.value as any }))}
+                            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2 px-3 text-sm focus:outline-none focus:border-primary"
+                          >
+                            <option value="both">Criação e edição</option>
+                            <option value="create">Só criação</option>
+                            <option value="edit">Só edição</option>
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Placeholder</label>
+                          <input
+                            type="text"
+                            value={dynamicFieldDraft.placeholder || ''}
+                            onChange={(event) => setDynamicFieldDraft((current) => ({ ...current, placeholder: event.target.value }))}
+                            placeholder="Texto de ajuda"
+                            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2 px-3 text-sm focus:outline-none focus:border-primary"
+                          />
+                        </div>
+                      </div>
+
+                      {(dynamicFieldDraft.type === 'select' || dynamicFieldDraft.type === 'multiselect') && (
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Opções</label>
+                          <input
+                            type="text"
+                            value={(dynamicFieldDraft.options || []).join(', ')}
+                            onChange={(event) => setDynamicFieldDraft((current) => ({ ...current, options: event.target.value.split(',').map((item) => item.trim()).filter(Boolean) }))}
+                            placeholder="Ex: Toyota, Volvo, Caterpillar"
+                            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2 px-3 text-sm focus:outline-none focus:border-primary"
+                          />
+                        </div>
+                      )}
+
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Categorias onde aparece</label>
+                        <div className="flex flex-wrap gap-2">
+                          {['Valores', 'Perímetro', 'Safety', 'Operativo', 'Logística', 'Manutenção', 'Informativo'].map((category) => {
+                            const selected = (dynamicFieldDraft.categories || []).includes(category);
+                            return (
+                              <button
+                                key={category}
+                                type="button"
+                                onClick={() =>
+                                  setDynamicFieldDraft((current) => ({
+                                    ...current,
+                                    categories: selected
+                                      ? (current.categories || []).filter((item) => item !== category)
+                                      : [...(current.categories || []), category],
+                                  }))
+                                }
+                                className={cn(
+                                  'rounded-lg border px-3 py-1.5 text-[10px] font-black uppercase tracking-widest transition-all',
+                                  selected ? 'border-primary/50 bg-primary/15 text-primary' : 'border-zinc-800 bg-zinc-900 text-zinc-400'
+                                )}
+                              >
+                                {category}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        <p className="text-[10px] text-zinc-500">Se não escolheres nenhuma, o campo aparece em todas as categorias.</p>
+                      </div>
+
+                      <div className="flex items-center justify-between rounded-xl border border-zinc-800 bg-zinc-900/50 p-3">
+                        <span className="text-xs font-bold text-zinc-300">Campo obrigatório</span>
+                        <input
+                          type="checkbox"
+                          checked={dynamicFieldDraft.required}
+                          onChange={(event) => setDynamicFieldDraft((current) => ({ ...current, required: event.target.checked }))}
+                          className="w-4 h-4 accent-primary"
+                        />
+                      </div>
+
+                      <div className="flex gap-3">
+                        <button type="button" onClick={handleSaveDynamicField} className="flex-1 py-3 bg-primary text-black rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-primary/90 transition-all shadow-lg shadow-primary/20">
+                          {editingDynamicFieldId ? 'Atualizar campo' : 'Adicionar campo'}
+                        </button>
+                        {editingDynamicFieldId && (
+                          <button type="button" onClick={() => { setDynamicFieldDraft(createEmptyDynamicField()); setEditingDynamicFieldId(null); }} className="px-4 py-3 bg-zinc-800 text-zinc-300 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-zinc-700 transition-all">
+                            Cancelar
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="space-y-3 border-t border-zinc-800 pt-4">
+                        {reportDynamicFields.length === 0 && (
+                          <div className="rounded-xl border border-dashed border-zinc-800 p-4 text-xs text-zinc-500">
+                            Ainda não existem campos dinâmicos configurados.
+                          </div>
+                        )}
+                        {reportDynamicFields.length > 0 && (
+                          <div className="rounded-xl border border-zinc-800/70 bg-zinc-950/30 p-4">
+                            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                              <div>
+                                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-primary">Preview do formulário</p>
+                                <p className="mt-1 text-xs text-zinc-500">Simulação rápida do que o utilizador vai ver na criação ou edição.</p>
+                              </div>
+                              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                <select
+                                  value={dynamicFieldPreviewCategory}
+                                  onChange={(event) => setDynamicFieldPreviewCategory(event.target.value as Categoria)}
+                                  className="rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-xs text-zinc-200 focus:border-primary focus:outline-none"
+                                >
+                                  <option value="Valores">Valores</option>
+                                  <option value="Perímetro">Perímetro</option>
+                                  <option value="Safety">Safety</option>
+                                  <option value="Operativo">Operativo</option>
+                                  <option value="Logística">Logística</option>
+                                  <option value="Manutenção">Manutenção</option>
+                                  <option value="Informativo">Informativo</option>
+                                </select>
+                                <select
+                                  value={dynamicFieldPreviewScope}
+                                  onChange={(event) => setDynamicFieldPreviewScope(event.target.value as 'create' | 'edit')}
+                                  className="rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-xs text-zinc-200 focus:border-primary focus:outline-none"
+                                >
+                                  <option value="create">Modo criação</option>
+                                  <option value="edit">Modo edição</option>
+                                </select>
+                              </div>
+                            </div>
+
+                            <div className="mt-4 rounded-2xl border border-zinc-800 bg-zinc-950/50 p-4">
+                              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                <div className="space-y-2">
+                                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Título da ocorrência</label>
+                                  <div className="rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm text-zinc-500">Exemplo de título</div>
+                                </div>
+                                <div className="space-y-2">
+                                  <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Categoria</label>
+                                  <div className="rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm text-zinc-200">{dynamicFieldPreviewCategory}</div>
+                                </div>
+                                {reportDynamicFields
+                                  .filter((field) => {
+                                    if (!field.active) return false;
+                                    if (!(field.scope === 'both' || field.scope === dynamicFieldPreviewScope)) return false;
+                                    if (field.categories && field.categories.length > 0 && !field.categories.includes(dynamicFieldPreviewCategory)) return false;
+                                    return true;
+                                  })
+                                  .map((field) => (
+                                    <div key={`preview-${field.id}`} className={cn('space-y-2', (field.type === 'textarea' || field.type === 'multiselect' || field.type === 'checkbox') && 'sm:col-span-2')}>
+                                      <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">
+                                        {field.label}
+                                        {field.required && <span className="ml-1 text-red-400">*</span>}
+                                      </label>
+                                      <div className="rounded-lg border border-dashed border-zinc-700 bg-zinc-900/60 px-4 py-3 text-sm text-zinc-500">
+                                        {field.type === 'checkbox'
+                                          ? field.placeholder || 'Toggle'
+                                          : field.type === 'select'
+                                            ? `Seleção: ${(field.options || []).join(', ') || 'sem opções'}`
+                                            : field.type === 'multiselect'
+                                              ? `Múltipla seleção: ${(field.options || []).join(', ') || 'sem opções'}`
+                                              : field.placeholder || `Campo ${field.type}`}
+                                      </div>
+                                    </div>
+                                  ))}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        {reportDynamicFields.map((field, index) => (
+                          <div
+                            key={field.id}
+                            draggable
+                            onDragStart={() => setDraggedDynamicFieldId(field.id)}
+                            onDragEnd={() => setDraggedDynamicFieldId(null)}
+                            onDragOver={(event) => event.preventDefault()}
+                            onDrop={() => draggedDynamicFieldId && handleReorderDynamicFields(draggedDynamicFieldId, field.id)}
+                            className={cn(
+                              "rounded-xl border border-zinc-800 bg-zinc-900/40 p-3 transition-all",
+                              draggedDynamicFieldId === field.id && "border-primary/50 bg-primary/5"
+                            )}
+                          >
+                            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                              <div className="flex items-start gap-3">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-zinc-800 bg-zinc-950 text-zinc-500 cursor-grab active:cursor-grabbing">
+                                  <MoreVertical size={16} />
+                                </div>
+                                <div>
+                                <p className="text-xs font-black uppercase text-zinc-200">{field.label}</p>
+                                <p className="mt-1 text-[10px] uppercase tracking-widest text-zinc-500">{field.type} • {field.scope} • {field.required ? 'obrigatório' : 'opcional'}</p>
+                                </div>
+                              </div>
+                              <div className="flex gap-2">
+                                <button type="button" onClick={() => handleMoveDynamicField(field.id, 'up')} disabled={index === 0} className="px-3 py-2 rounded-lg bg-zinc-800 text-zinc-300 text-[10px] font-black uppercase disabled:opacity-40">↑</button>
+                                <button type="button" onClick={() => handleMoveDynamicField(field.id, 'down')} disabled={index === reportDynamicFields.length - 1} className="px-3 py-2 rounded-lg bg-zinc-800 text-zinc-300 text-[10px] font-black uppercase disabled:opacity-40">↓</button>
+                                <button type="button" onClick={() => handleEditDynamicField(field.id)} className="px-3 py-2 rounded-lg bg-blue-600 text-white text-[10px] font-black uppercase">Editar</button>
+                                <button type="button" onClick={() => handleDeleteDynamicField(field.id)} className="px-3 py-2 rounded-lg bg-red-600/20 text-red-400 text-[10px] font-black uppercase">Remover</button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </Card>
                 </div>
 
@@ -3154,6 +3579,7 @@ export default function App() {
           newReport={newReport}
           newReportStep={newReportStep}
           systemSettings={systemSettings as any}
+          dynamicFields={reportDynamicFields as any}
           onClose={closeNewReportModal}
           onSubmit={handleCreateReport}
           onPreview={handlePreviewNewReport}
@@ -3191,6 +3617,7 @@ export default function App() {
           report={selectedReport as any}
           currentUser={currentUser}
           systemSettings={systemSettings as any}
+          dynamicFields={reportDynamicFields as any}
           isEditing={isEditingReport}
           editingData={editingReportData}
           onClose={closeReportDetails}

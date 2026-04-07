@@ -1089,6 +1089,7 @@ async function startServer() {
       acao_imediata,
       testemunhas,
       potencial_risco,
+      metadata,
       captions
     } = req.body;
 
@@ -1118,7 +1119,8 @@ async function startServer() {
         { key: "equipamento", value: equipamento },
         { key: "acao_imediata", value: acao_imediata },
         { key: "testemunhas", value: testemunhas },
-        { key: "potencial_risco", value: potencial_risco }
+        { key: "potencial_risco", value: potencial_risco },
+        { key: "metadata", value: metadata }
       ];
 
       editableFields.forEach(({ key, value }) => {

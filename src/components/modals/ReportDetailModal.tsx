@@ -4,6 +4,12 @@ import { Camera, CheckCircle2, Clock, FileText, Images, MapPin, Printer, Shield,
 import { Badge } from '../ui/LayoutComponents';
 import { cn } from '../../lib/utils';
 import { formatDateTime } from '../../lib/datetime';
+import {
+  DynamicFieldDefinition,
+  formatDynamicFieldValue,
+  getDynamicFieldValues,
+  getVisibleDynamicFields,
+} from '../../lib/reportDynamicFields';
 
 interface ReportPhoto {
   id: number;
@@ -28,6 +34,7 @@ interface ReportData {
   acao_imediata?: string;
   testemunhas?: string;
   potencial_risco?: string;
+  metadata?: any;
   photos?: ReportPhoto[];
 }
 
@@ -39,6 +46,8 @@ interface EditingReportData {
   acao_imediata: string;
   testemunhas: string;
   potencial_risco: string;
+  metadata?: any;
+  dynamicFieldValues: Record<string, any>;
   fotos: Array<{ file: File; caption: string }>;
 }
 
@@ -46,6 +55,7 @@ interface ReportDetailModalProps {
   report: ReportData | null;
   currentUser: any;
   systemSettings: Array<{ key: string; value: string }>;
+  dynamicFields: DynamicFieldDefinition[];
   isEditing: boolean;
   editingData: EditingReportData;
   onClose: () => void;
@@ -69,6 +79,7 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
   report,
   currentUser,
   systemSettings,
+  dynamicFields,
   isEditing,
   editingData,
   onClose,
@@ -84,6 +95,114 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
   if (!report) return null;
 
   const configuredSectors = getConfiguredSectors(systemSettings);
+  const editFields = getVisibleDynamicFields(dynamicFields, report.categoria, 'edit');
+  const reportDynamicValues = getDynamicFieldValues(report.metadata);
+
+  const renderDynamicFieldInput = (field: DynamicFieldDefinition) => {
+    const value = editingData.dynamicFieldValues?.[field.id];
+
+    if (field.type === 'textarea') {
+      return (
+        <textarea
+          value={value || ''}
+          onChange={(event) =>
+            setEditingData((current: EditingReportData) => ({
+              ...current,
+              dynamicFieldValues: { ...current.dynamicFieldValues, [field.id]: event.target.value },
+            }))
+          }
+          className="min-h-[90px] w-full rounded-xl border border-zinc-800 bg-zinc-900 p-3 text-sm text-zinc-300 focus:border-primary focus:outline-none"
+        />
+      );
+    }
+
+    if (field.type === 'select') {
+      return (
+        <select
+          value={value || ''}
+          onChange={(event) =>
+            setEditingData((current: EditingReportData) => ({
+              ...current,
+              dynamicFieldValues: { ...current.dynamicFieldValues, [field.id]: event.target.value },
+            }))
+          }
+          className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-2 text-sm focus:border-primary focus:outline-none"
+        >
+          <option value="">Selecione...</option>
+          {(field.options || []).map((option) => (
+            <option key={option} value={option}>{option}</option>
+          ))}
+        </select>
+      );
+    }
+
+    if (field.type === 'multiselect') {
+      const selectedValues = Array.isArray(value) ? value : [];
+      return (
+        <div className="flex flex-wrap gap-2 rounded-xl border border-zinc-800 bg-zinc-950/30 p-3">
+          {(field.options || []).map((option) => {
+            const selected = selectedValues.includes(option);
+            return (
+              <button
+                key={option}
+                type="button"
+                onClick={() =>
+                  setEditingData((current: EditingReportData) => ({
+                    ...current,
+                    dynamicFieldValues: {
+                      ...current.dynamicFieldValues,
+                      [field.id]: selected ? selectedValues.filter((item) => item !== option) : [...selectedValues, option],
+                    },
+                  }))
+                }
+                className={cn(
+                  'rounded-lg border px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest transition-all',
+                  selected
+                    ? 'border-primary/50 bg-primary/15 text-primary'
+                    : 'border-zinc-800 bg-zinc-900 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200'
+                )}
+              >
+                {option}
+              </button>
+            );
+          })}
+        </div>
+      );
+    }
+
+    if (field.type === 'checkbox') {
+      return (
+        <label className="flex items-center gap-3 rounded-xl border border-zinc-800 bg-zinc-900/50 p-4">
+          <input
+            type="checkbox"
+            checked={Boolean(value)}
+            onChange={(event) =>
+              setEditingData((current: EditingReportData) => ({
+                ...current,
+                dynamicFieldValues: { ...current.dynamicFieldValues, [field.id]: event.target.checked },
+              }))
+            }
+            className="h-5 w-5 cursor-pointer rounded border-zinc-700 bg-zinc-900 text-primary focus:ring-primary/20"
+          />
+          <span className="text-sm font-bold text-zinc-300">{field.placeholder || field.label}</span>
+        </label>
+      );
+    }
+
+    return (
+      <input
+        type={field.type === 'number' ? 'number' : field.type === 'date' ? 'date' : 'text'}
+        value={value || ''}
+        onChange={(event) =>
+          setEditingData((current: EditingReportData) => ({
+            ...current,
+            dynamicFieldValues: { ...current.dynamicFieldValues, [field.id]: event.target.value },
+          }))
+        }
+        className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-2 text-sm focus:border-primary focus:outline-none"
+      />
+    );
+  };
 
   return (
     <div key="report-details-modal" className="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 p-0 backdrop-blur-xl no-print md:p-4">
@@ -252,6 +371,34 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
                   </div>
                 </div>
               </div>
+
+              {editFields.length > 0 && (
+                <div className="space-y-4 rounded-2xl border border-zinc-800/70 bg-zinc-950/30 p-4">
+                  <div>
+                    <label className="mb-1 block text-[10px] font-black uppercase tracking-widest text-zinc-500">Campos personalizados</label>
+                    <p className="text-xs text-zinc-500">Estrutura adicional configurada pelo superadmin para esta ocorrência.</p>
+                  </div>
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    {editFields.map((field) => (
+                      <div key={field.id} className={cn('space-y-2', (field.type === 'textarea' || field.type === 'multiselect' || field.type === 'checkbox') && 'sm:col-span-2')}>
+                        {isEditing ? (
+                          <>
+                            {field.type !== 'checkbox' && <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{field.label}</label>}
+                            {renderDynamicFieldInput(field)}
+                          </>
+                        ) : (
+                          <>
+                            <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{field.label}</label>
+                            <div className="rounded-lg border border-zinc-800/50 bg-zinc-900/50 p-3 text-sm font-bold text-zinc-300">
+                              {formatDynamicFieldValue(field, reportDynamicValues[field.id]) || 'N/A'}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div>
                 <label className="mb-2 block text-[10px] font-black uppercase tracking-widest text-zinc-500">Agente responsável</label>
