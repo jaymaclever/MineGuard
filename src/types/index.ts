@@ -23,6 +23,17 @@ export interface ReportPhoto {
   timestamp: string;
 }
 
+export interface ReportParticipant {
+  id: number;
+  report_id: number;
+  user_id: number;
+  nome: string;
+  funcao: string;
+  numero_mecanografico: string;
+  nivel_hierarquico: NivelHierarquico;
+  added_at?: string;
+}
+
 export interface Report {
   id: number;
   agente_id: number;
@@ -46,6 +57,8 @@ export interface Report {
   requer_investigacao?: boolean;
   testemunhas?: string;
   potencial_risco?: string;
+  participants?: ReportParticipant[];
+  can_edit?: boolean;
 }
 
 export interface Notification {

@@ -8,6 +8,8 @@ import {
   getDynamicFieldValues,
 } from '../../lib/reportDynamicFields';
 import { PhotoLightbox } from '../ui/PhotoLightbox';
+import { ReportParticipantsField } from '../ui/ReportParticipantsField';
+import { User } from '../../types';
 
 type NewReportPhoto = { file: File; caption: string };
 
@@ -35,6 +37,7 @@ interface NewReportState {
   testemunhas: string;
   potencial_risco: string;
   fotos: NewReportPhoto[];
+  participant_ids: number[];
   metadata?: Record<string, any>;
 }
 
@@ -51,6 +54,8 @@ interface NewReportModalProps {
   systemSettings: SettingItem[];
   dynamicFields: DynamicFieldDefinition[];
   formItems: FormItem[];
+  availableParticipantUsers: User[];
+  currentUserId?: number;
   onClose: () => void;
   onSubmit: (event: React.FormEvent) => void;
   onPreview: () => void;
@@ -82,6 +87,8 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({
   newReport,
   systemSettings,
   formItems,
+  availableParticipantUsers,
+  currentUserId,
   onClose,
   onSubmit,
   onPreview,
@@ -265,7 +272,15 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({
                 <button type="button" onClick={onClose} className="text-zinc-500 transition-colors hover:text-white"><XCircle size={24} /></button>
               </div>
               <div className="custom-scrollbar min-h-0 flex-1 overflow-y-auto p-4 sm:p-6 md:max-h-[72vh]">
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">{visibleItems.map(renderField)}</div>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  {visibleItems.map(renderField)}
+                  <ReportParticipantsField
+                    availableUsers={availableParticipantUsers}
+                    selectedUserIds={newReport.participant_ids}
+                    onChange={(participantIds) => setNewReport((c: NewReportState) => ({ ...c, participant_ids: participantIds }))}
+                    currentUserId={currentUserId}
+                  />
+                </div>
               </div>
               <div className="no-print flex flex-col-reverse justify-end gap-3 border-t border-zinc-800 bg-zinc-900/40 p-4 sm:flex-row md:p-6">
                 <button type="button" onClick={onClose} className="w-full rounded-lg border border-zinc-800 bg-zinc-900/50 px-6 py-2.5 text-[10px] font-black uppercase tracking-widest text-zinc-500 transition-all hover:text-white sm:w-auto">Cancelar</button>

@@ -18,6 +18,7 @@ import https from "https";
 import { execFileSync } from "child_process";
 import bcrypt from "bcryptjs";
 import { Parser } from "json2csv";
+import * as XLSX from "xlsx";
 import {
   approveDailyReport,
   exportDailyReportsBatch,
@@ -89,15 +90,27 @@ db.exec(`
   );
 
   CREATE TABLE IF NOT EXISTS report_photos (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    report_id INTEGER NOT NULL,
-    photo_path TEXT NOT NULL,
-    caption TEXT,
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      report_id INTEGER NOT NULL,
+      photo_path TEXT NOT NULL,
+      caption TEXT,
     timestamp TEXT DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY(report_id) REFERENCES reports(id) ON DELETE CASCADE
-  );
+      FOREIGN KEY(report_id) REFERENCES reports(id) ON DELETE CASCADE
+    );
 
-  CREATE TABLE IF NOT EXISTS alerts (
+    CREATE TABLE IF NOT EXISTS report_participants (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      report_id INTEGER NOT NULL,
+      user_id INTEGER NOT NULL,
+      added_by INTEGER,
+      added_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(report_id, user_id),
+      FOREIGN KEY(report_id) REFERENCES reports(id) ON DELETE CASCADE,
+      FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY(added_by) REFERENCES users(id) ON DELETE SET NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS alerts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     created_by INTEGER NOT NULL,
     titulo TEXT NOT NULL,
@@ -155,8 +168,6 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_reports_agente_timestamp ON reports(agente_id, timestamp);
   CREATE INDEX IF NOT EXISTS idx_audit_logs_timestamp ON audit_logs(timestamp);
   CREATE INDEX IF NOT EXISTS idx_alerts_timestamp ON alerts(timestamp);
-  CREATE INDEX IF NOT EXISTS idx_alerts_expires_at ON alerts(expires_at);
-  CREATE INDEX IF NOT EXISTS idx_alerts_target_audience ON alerts(target_audience);
 
   -- Seed default system settings if empty
   INSERT OR IGNORE INTO system_settings (key, value, description) VALUES ('app_name', 'MINEGUARD', 'Nome da aplicação');
@@ -167,11 +178,11 @@ db.exec(`
   INSERT OR IGNORE INTO system_settings (key, value, description) VALUES ('app_layout', 'default', 'Layout da aplicação (default, compact)');
 `);
 
-try {
-  const alertColumns = db.prepare("PRAGMA table_info(alerts)").all() as Array<{ name: string }>;
-  const alertColumnNames = alertColumns.map((column) => column.name);
-  if (!alertColumnNames.includes("is_temporary")) {
-    db.exec("ALTER TABLE alerts ADD COLUMN is_temporary BOOLEAN DEFAULT 1;");
+  try {
+    const alertColumns = db.prepare("PRAGMA table_info(alerts)").all() as Array<{ name: string }>;
+    const alertColumnNames = alertColumns.map((column) => column.name);
+    if (!alertColumnNames.includes("is_temporary")) {
+      db.exec("ALTER TABLE alerts ADD COLUMN is_temporary BOOLEAN DEFAULT 1;");
   }
   if (!alertColumnNames.includes("expires_at")) {
     db.exec("ALTER TABLE alerts ADD COLUMN expires_at TEXT;");
@@ -179,12 +190,16 @@ try {
   if (!alertColumnNames.includes("target_audience")) {
     db.exec("ALTER TABLE alerts ADD COLUMN target_audience TEXT DEFAULT 'all';");
   }
-  if (!alertColumnNames.includes("pinned")) {
-    db.exec("ALTER TABLE alerts ADD COLUMN pinned BOOLEAN DEFAULT 0;");
+    if (!alertColumnNames.includes("pinned")) {
+      db.exec("ALTER TABLE alerts ADD COLUMN pinned BOOLEAN DEFAULT 0;");
+    }
+    db.exec(`
+      CREATE INDEX IF NOT EXISTS idx_alerts_expires_at ON alerts(expires_at);
+      CREATE INDEX IF NOT EXISTS idx_alerts_target_audience ON alerts(target_audience);
+    `);
+  } catch (error) {
+    console.error("Migration: unable to extend alerts table", error);
   }
-} catch (error) {
-  console.error("Migration: unable to extend alerts table", error);
-}
 
 // Migration: Add password column if it doesn't exist (for existing databases)
 try {
@@ -423,6 +438,26 @@ async function startServer() {
   }
 
   const io = new Server(server);
+  const socketPresence = new Map<string, number>();
+  const emitOnlineUsersCount = () => {
+    io.emit('online_users_count', new Set(socketPresence.values()).size);
+  };
+
+  io.on('connection', (socket) => {
+    emitOnlineUsersCount();
+
+    socket.on('presence:join', (userId: number) => {
+      if (Number.isInteger(userId) && userId > 0) {
+        socketPresence.set(socket.id, userId);
+        emitOnlineUsersCount();
+      }
+    });
+
+    socket.on('disconnect', () => {
+      socketPresence.delete(socket.id);
+      emitOnlineUsersCount();
+    });
+  });
 
   // Multer for file uploads
   const storage = multer.diskStorage({
@@ -438,6 +473,10 @@ async function startServer() {
     }
   });
   const upload = multer({ storage });
+  const importUpload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 8 * 1024 * 1024 }
+  });
 
   app.use(cookieParser());
   app.use(express.json());
@@ -489,6 +528,42 @@ async function startServer() {
     console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
     next();
   });
+
+  const normalizeImportHeader = (value: string) =>
+    String(value || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '');
+
+  const pickImportCell = (row: Record<string, any>, aliases: string[]) => {
+    const entries = Object.entries(row);
+    for (const alias of aliases) {
+      const normalizedAlias = normalizeImportHeader(alias);
+      const match = entries.find(([key]) => normalizeImportHeader(key) === normalizedAlias);
+      if (match && String(match[1] ?? '').trim() !== '') {
+        return String(match[1]).trim();
+      }
+    }
+    return '';
+  };
+
+  const normalizeImportedLanguage = (value: string) => {
+    const normalized = normalizeImportHeader(value);
+    if (normalized.startsWith('en')) return 'en';
+    return 'pt';
+  };
+
+  const parseImportedUsersSheet = (buffer: Buffer) => {
+    const workbook = XLSX.read(buffer, { type: 'buffer' });
+    const sheetName = workbook.SheetNames[0];
+    if (!sheetName) {
+      throw new Error('Nenhuma folha encontrada no ficheiro Excel.');
+    }
+    const sheet = workbook.Sheets[sheetName];
+    return XLSX.utils.sheet_to_json<Record<string, any>>(sheet, { defval: '' });
+  };
 
   // --- Auth API ---
   app.post("/api/login", (req, res) => {
@@ -813,6 +888,68 @@ async function startServer() {
     }
   };
 
+  const getReportParticipants = (reportId: number | string) =>
+    db.prepare(`
+      SELECT
+        rp.id,
+        rp.report_id,
+        rp.user_id,
+        rp.added_at,
+        u.nome,
+        u.funcao,
+        u.numero_mecanografico,
+        u.nivel_hierarquico
+      FROM report_participants rp
+      JOIN users u ON u.id = rp.user_id
+      WHERE rp.report_id = ?
+      ORDER BY u.nome COLLATE NOCASE ASC
+    `).all(reportId) as any[];
+
+  const hydrateReportRelations = (report: any, currentUserId?: number) => {
+    if (!report) return report;
+    report.photos = db.prepare("SELECT * FROM report_photos WHERE report_id = ? ORDER BY id DESC").all(report.id);
+    report.participants = getReportParticipants(report.id);
+    report.can_edit =
+      currentUserId != null &&
+      (report.agente_id === currentUserId || report.participants.some((participant: any) => participant.user_id === currentUserId));
+    return report;
+  };
+
+  const userCanEditReport = (reportId: number | string, userId: number, role: string) => {
+    if (role === 'Superadmin') return true;
+    const report = db.prepare("SELECT agente_id FROM reports WHERE id = ?").get(reportId) as any;
+    if (!report) return false;
+    if (report.agente_id === userId) return true;
+    const participant = db.prepare("SELECT 1 FROM report_participants WHERE report_id = ? AND user_id = ?").get(reportId, userId);
+    return Boolean(participant);
+  };
+
+  const parseParticipantIds = (rawValue: unknown) => {
+    if (rawValue == null) return [] as number[];
+    let values: unknown[] = [];
+
+    if (Array.isArray(rawValue)) {
+      values = rawValue;
+    } else if (typeof rawValue === 'string') {
+      try {
+        const parsed = JSON.parse(rawValue);
+        values = Array.isArray(parsed) ? parsed : [rawValue];
+      } catch {
+        values = rawValue.includes(',') ? rawValue.split(',') : [rawValue];
+      }
+    } else {
+      values = [rawValue];
+    }
+
+    return Array.from(
+      new Set(
+        values
+          .map((value) => Number(value))
+          .filter((value) => Number.isInteger(value) && value > 0),
+      ),
+    );
+  };
+
   const isGitRepo = () => fs.existsSync(path.join(process.cwd(), '.git'));
 
   const runGit = (args: string[]) => execFileSync('git', args, {
@@ -882,6 +1019,7 @@ async function startServer() {
       const resetTransaction = db.transaction(() => {
         db.prepare("DELETE FROM alert_reads").run();
         db.prepare("DELETE FROM alerts").run();
+        db.prepare("DELETE FROM report_participants").run();
         db.prepare("DELETE FROM report_photos").run();
         db.prepare("DELETE FROM telegram_queue").run();
         db.prepare("DELETE FROM reports").run();
@@ -1058,12 +1196,130 @@ async function startServer() {
     }
   });
 
+  app.post("/api/users/import-excel", authenticate, checkPermission('manage_users'), importUpload.single('file'), (req: any, res) => {
+    try {
+      if (!req.file?.buffer) {
+        return res.status(400).json({ status: "error", message: "Selecione um ficheiro Excel para importar." });
+      }
+
+      const rows = parseImportedUsersSheet(req.file.buffer);
+      if (!rows.length) {
+        return res.status(400).json({ status: "error", message: "A planilha está vazia." });
+      }
+
+      const validRoles = new Set(
+        (db.prepare("SELECT nivel_hierarquico FROM role_weights").all() as Array<{ nivel_hierarquico: string }>)
+          .map((role) => role.nivel_hierarquico)
+      );
+      const existingNumbers = new Set(
+        (db.prepare("SELECT numero_mecanografico FROM users").all() as Array<{ numero_mecanografico: string }>)
+          .map((user) => String(user.numero_mecanografico).trim().toLowerCase())
+      );
+      const numbersInFile = new Set<string>();
+      const insertUserStmt = db.prepare(
+        "INSERT INTO users (nome, funcao, numero_mecanografico, nivel_hierarquico, password, preferred_language) VALUES (?, ?, ?, ?, ?, ?)"
+      );
+
+      let imported = 0;
+      let ignoredExisting = 0;
+      const ignoredInvalid: Array<{ row: number; reason: string; numero_mecanografico?: string }> = [];
+
+      const importTransaction = db.transaction(() => {
+        rows.forEach((rawRow, index) => {
+          const rowNumber = index + 2;
+          const nome = pickImportCell(rawRow, ['nome', 'name', 'agente']);
+          const funcao = pickImportCell(rawRow, ['funcao', 'função', 'cargo', 'role_function']);
+          const numero = pickImportCell(rawRow, ['numero_mecanografico', 'número mecanográfico', 'numero', 'mecanografico', 'username', 'utilizador']);
+          const nivel = pickImportCell(rawRow, ['nivel_hierarquico', 'nível hierárquico', 'nivel', 'perfil', 'role']);
+          const password = pickImportCell(rawRow, ['password', 'senha']);
+          const preferredLanguage = pickImportCell(rawRow, ['preferred_language', 'idioma', 'language']);
+
+          if (!nome && !funcao && !numero && !nivel) {
+            return;
+          }
+
+          if (!nome || !funcao || !numero || !nivel) {
+            ignoredInvalid.push({ row: rowNumber, reason: 'Linha incompleta', numero_mecanografico: numero || undefined });
+            return;
+          }
+
+          if (!validRoles.has(nivel)) {
+            ignoredInvalid.push({ row: rowNumber, reason: `Perfil inválido: ${nivel}`, numero_mecanografico: numero });
+            return;
+          }
+
+          const normalizedNumber = numero.trim().toLowerCase();
+          if (numbersInFile.has(normalizedNumber)) {
+            ignoredInvalid.push({ row: rowNumber, reason: 'Número mecanográfico duplicado na planilha', numero_mecanografico: numero });
+            return;
+          }
+          numbersInFile.add(normalizedNumber);
+
+          if (existingNumbers.has(normalizedNumber)) {
+            ignoredExisting += 1;
+            return;
+          }
+
+          insertUserStmt.run(
+            nome.trim(),
+            funcao.trim(),
+            numero.trim(),
+            nivel,
+            bcrypt.hashSync((password || '123456').trim(), 10),
+            normalizeImportedLanguage(preferredLanguage)
+          );
+          existingNumbers.add(normalizedNumber);
+          imported += 1;
+        });
+      });
+
+      importTransaction();
+
+      res.json({
+        status: "success",
+        summary: {
+          imported,
+          ignored_existing: ignoredExisting,
+          ignored_invalid: ignoredInvalid.length,
+          processed_rows: rows.length
+        },
+        ignored_invalid_rows: ignoredInvalid.slice(0, 30)
+      });
+    } catch (err: any) {
+      console.error("Erro ao importar utilizadores por Excel:", err);
+      res.status(500).json({ status: "error", message: err.message || "Erro ao importar utilizadores." });
+    }
+  });
+
+  app.get("/api/users/report-participants", authenticate, checkPermission('create_reports'), (req: any, res) => {
+    try {
+      const userWeight = (db.prepare("SELECT peso FROM role_weights WHERE nivel_hierarquico = ?").get(req.user.nivel_hierarquico) as any)?.peso || 0;
+      let query = `
+        SELECT u.id, u.nome, u.funcao, u.numero_mecanografico, u.nivel_hierarquico, u.preferred_language
+        FROM users u
+        JOIN role_weights rw ON rw.nivel_hierarquico = u.nivel_hierarquico
+        WHERE u.id != ?
+      `;
+      const params: any[] = [req.user.id];
+
+      if (req.user.nivel_hierarquico !== 'Superadmin') {
+        query += ` AND rw.peso <= ?`;
+        params.push(userWeight);
+      }
+
+      query += ` ORDER BY u.nome COLLATE NOCASE ASC`;
+      res.json(db.prepare(query).all(...params));
+    } catch (err: any) {
+      res.status(500).json({ status: "error", message: err.message });
+    }
+  });
+
   app.post("/api/users", authenticate, checkPermission('manage_users'), (req, res) => {
     try {
       const { nome, funcao, numero_mecanografico, nivel_hierarquico, password, preferred_language } = req.body;
       const hashedPassword = bcrypt.hashSync(password || '123456', 10);
       const stmt = db.prepare("INSERT INTO users (nome, funcao, numero_mecanografico, nivel_hierarquico, password, preferred_language) VALUES (?, ?, ?, ?, ?, ?)");
-      const result = stmt.run(nome, funcao, numero_mecanografico, nivel_hierarquico, hashedPassword, preferred_language || 'pt-BR');
+      const result = stmt.run(nome, funcao, numero_mecanografico, nivel_hierarquico, hashedPassword, preferred_language || 'pt');
       res.json({ status: "success", id: result.lastInsertRowid });
     } catch (err: any) {
       res.status(500).json({ status: "error", message: err.message });
@@ -1076,7 +1332,7 @@ async function startServer() {
       const { nome, funcao, numero_mecanografico, nivel_hierarquico, password, preferred_language } = req.body;
       
       let query = "UPDATE users SET nome = ?, funcao = ?, numero_mecanografico = ?, nivel_hierarquico = ?, preferred_language = ?";
-      const params = [nome, funcao, numero_mecanografico, nivel_hierarquico, preferred_language || 'pt-BR'];
+      const params = [nome, funcao, numero_mecanografico, nivel_hierarquico, preferred_language || 'pt'];
       
       if (password && password.trim().length > 0) {
         query += ", password = ?";
@@ -1265,9 +1521,10 @@ async function startServer() {
       acao_imediata,
       testemunhas,
       potencial_risco,
-      metadata,
-      captions
-    } = req.body;
+        metadata,
+        captions,
+        participant_ids
+      } = req.body;
 
     try {
       // Check if report exists and is open
@@ -1281,7 +1538,7 @@ async function startServer() {
       }
 
       // Check permission (only original agent or superadmin can edit)
-      if (report.agente_id !== req.user.id && req.user.nivel_hierarquico !== 'Superadmin') {
+      if (!userCanEditReport(id, req.user.id, req.user.nivel_hierarquico)) {
         return res.status(403).json({ status: 'error', message: 'Permissão insuficiente para editar este relatório' });
       }
 
@@ -1334,6 +1591,23 @@ async function startServer() {
         });
       }
 
+      if (participant_ids !== undefined) {
+        const participantIds = parseParticipantIds(participant_ids).filter((userId) => userId !== report.agente_id);
+        db.prepare("DELETE FROM report_participants WHERE report_id = ?").run(id);
+
+        if (participantIds.length > 0) {
+          const existingUsers = db.prepare(
+            `SELECT id FROM users WHERE id IN (${participantIds.map(() => '?').join(',')})`
+          ).all(...participantIds) as Array<{ id: number }>;
+          const insertParticipant = db.prepare(
+            "INSERT OR IGNORE INTO report_participants (report_id, user_id, added_by) VALUES (?, ?, ?)"
+          );
+          existingUsers.forEach((user) => {
+            insertParticipant.run(id, user.id, req.user.id);
+          });
+        }
+      }
+
       // Fetch updated report with photos
       const updatedReport = db.prepare(`
         SELECT r.*, u.nome as agente_nome, u.nivel_hierarquico as agente_nivel 
@@ -1342,8 +1616,7 @@ async function startServer() {
         WHERE r.id = ?
       `).get(id) as any;
       
-      const photos = db.prepare("SELECT * FROM report_photos WHERE report_id = ?").all(id);
-      updatedReport.photos = photos;
+      hydrateReportRelations(updatedReport, req.user.id);
 
       io.emit('report_updated', updatedReport);
       res.json({ status: 'success', message: 'Relatório atualizado com sucesso', report: updatedReport });
@@ -1353,26 +1626,38 @@ async function startServer() {
     }
   });
 
-  app.get("/api/reports/:id(\\d+)", authenticate, checkPermission('view_reports'), (req: any, res) => {
-    try {
-      const { id } = req.params;
-      const report = db.prepare(`
-        SELECT r.*, u.nome as agente_nome, u.nivel_hierarquico as agente_nivel
+    app.get("/api/reports/:id(\\d+)", authenticate, checkPermission('view_reports'), (req: any, res) => {
+      try {
+        const { id } = req.params;
+        const report = db.prepare(`
+          SELECT r.*, u.nome as agente_nome, u.nivel_hierarquico as agente_nivel
         FROM reports r
         LEFT JOIN users u ON r.agente_id = u.id
         WHERE r.id = ?
       `).get(id) as any;
 
-      if (!report) {
-        return res.status(404).json({ status: 'error', message: 'Relatório não encontrado' });
-      }
+        if (!report) {
+          return res.status(404).json({ status: 'error', message: 'Relatório não encontrado' });
+        }
 
-      report.photos = db.prepare("SELECT * FROM report_photos WHERE report_id = ? ORDER BY id DESC").all(id);
-      res.json({ status: 'success', report });
-    } catch (err: any) {
-      console.error("Erro ao obter relatório:", err);
-      res.status(500).json({ status: 'error', message: err.message });
-    }
+        const userWeight = (db.prepare("SELECT peso FROM role_weights WHERE nivel_hierarquico = ?").get(req.user.nivel_hierarquico) as any)?.peso || 0;
+        const reportWeight = (db.prepare("SELECT peso FROM role_weights WHERE nivel_hierarquico = ?").get(report.agente_nivel) as any)?.peso || 0;
+        const canView =
+          req.user.nivel_hierarquico === 'Superadmin' ||
+          report.agente_id === req.user.id ||
+          Boolean(db.prepare("SELECT 1 FROM report_participants WHERE report_id = ? AND user_id = ?").get(id, req.user.id)) ||
+          (userWeight >= 60 && reportWeight <= userWeight);
+
+        if (!canView) {
+          return res.status(403).json({ status: 'error', message: 'Permissão insuficiente para visualizar este relatório' });
+        }
+
+        hydrateReportRelations(report, req.user.id);
+        res.json({ status: 'success', report });
+      } catch (err: any) {
+        console.error("Erro ao obter relatório:", err);
+        res.status(500).json({ status: 'error', message: err.message });
+      }
   });
 
   app.get("/api/github/status", authenticate, checkPermission('manage_settings'), (req, res) => {
@@ -1523,8 +1808,8 @@ async function startServer() {
 
     // Se o peso for inferior a 60 (Oficial), vê apenas as suas próprias ocorrências
     if (userWeight < 60) {
-      query += ` AND r.agente_id = ?`;
-      params.push(userId);
+      query += ` AND (r.agente_id = ? OR EXISTS (SELECT 1 FROM report_participants rp WHERE rp.report_id = r.id AND rp.user_id = ?))`;
+      params.push(userId, userId);
     } else {
       // Se for Oficial ou superior, vê a hierarquia (seu peso e abaixo)
       query += ` AND rw.peso <= ?`;
@@ -1570,10 +1855,7 @@ async function startServer() {
     params.push(limit, offset);
 
     const reports = db.prepare(query).all(...params) as any[];
-    // Add photos to each report
-    reports.forEach((report) => {
-      report.photos = db.prepare("SELECT * FROM report_photos WHERE report_id = ?").all(report.id);
-    });
+    reports.forEach((report) => hydrateReportRelations(report, userId));
     
     res.json({
       data: reports,
@@ -1628,13 +1910,13 @@ async function startServer() {
       const userId = req.user.id;
       const { startDate, endDate } = req.query;
       
-      let query = `
-        SELECT r.*, u.nome as agente_nome, u.nivel_hierarquico as agente_nivel 
-        FROM reports r 
-        JOIN users u ON r.agente_id = u.id 
-        WHERE r.agente_id = ?
-      `;
-      const params: any[] = [userId];
+        let query = `
+          SELECT r.*, u.nome as agente_nome, u.nivel_hierarquico as agente_nivel 
+          FROM reports r 
+          JOIN users u ON r.agente_id = u.id 
+          WHERE (r.agente_id = ? OR EXISTS (SELECT 1 FROM report_participants rp WHERE rp.report_id = r.id AND rp.user_id = ?))
+        `;
+        const params: any[] = [userId, userId];
 
       if (startDate) {
         query += ` AND DATE(r.timestamp, '${LUANDA_SQL_OFFSET}') >= ?`;
@@ -1647,10 +1929,8 @@ async function startServer() {
 
       query += ` ORDER BY r.timestamp DESC`;
 
-      const reports = db.prepare(query).all(...params) as any[];
-      reports.forEach((report) => {
-        report.photos = db.prepare("SELECT * FROM report_photos WHERE report_id = ?").all(report.id);
-      });
+        const reports = db.prepare(query).all(...params) as any[];
+        reports.forEach((report) => hydrateReportRelations(report, userId));
       console.log(`[API personal] user=${userId} start=${startDate || "-"} end=${endDate || "-"} total=${reports.length}`);
       res.json(reports);
     } catch (err: any) {
@@ -1663,10 +1943,11 @@ async function startServer() {
     try {
       const userId = req.user.id;
       
-      const reports = db.prepare(`
-        SELECT r.* FROM reports r 
-        WHERE r.agente_id = ? AND DATE(r.timestamp, '${LUANDA_SQL_OFFSET}') = DATE('now', '${LUANDA_SQL_OFFSET}')
-      `).all(userId) as any[];
+        const reports = db.prepare(`
+          SELECT r.* FROM reports r 
+          WHERE (r.agente_id = ? OR EXISTS (SELECT 1 FROM report_participants rp WHERE rp.report_id = r.id AND rp.user_id = ?))
+            AND DATE(r.timestamp, '${LUANDA_SQL_OFFSET}') = DATE('now', '${LUANDA_SQL_OFFSET}')
+        `).all(userId, userId) as any[];
 
       const summary = {
         totalReports: reports.length,
@@ -1725,9 +2006,10 @@ async function startServer() {
 
   app.post("/api/reports", authenticate, checkPermission('create_reports'), upload.array("fotos", 20), async (req: any, res) => {
     try {
-      const { titulo, categoria, gravidade, descricao, coords_lat, coords_lng, metadata, captions, setor, pessoas_envolvidas, equipamento, acao_imediata, requer_investigacao, testemunhas, potencial_risco } = req.body;
-      const agente_id = req.user.id;
-      const fotos_path = req.files && req.files.length > 0 ? `/uploads/${req.files[0].filename}` : null;
+        const { titulo, categoria, gravidade, descricao, coords_lat, coords_lng, metadata, captions, setor, pessoas_envolvidas, equipamento, acao_imediata, requer_investigacao, testemunhas, potencial_risco, participant_ids } = req.body;
+        const agente_id = req.user.id;
+        const fotos_path = req.files && req.files.length > 0 ? `/uploads/${req.files[0].filename}` : null;
+        const participantIds = parseParticipantIds(participant_ids).filter((id) => id !== agente_id);
       
       if (!categoria || !gravidade || !descricao) {
         return res.status(400).json({ status: "error", message: "Missing required fields" });
@@ -1751,24 +2033,36 @@ async function startServer() {
       const result = stmt.run(agente_id, titulo || null, categoria, gravidade, descricao, metadata || null, fotos_path, coords_lat || null, coords_lng || null, setor || null, pessoas_envolvidas || null, equipamento || null, acao_imediata || null, requer_investigacao ? 1 : 0, testemunhas || null, potencial_risco || null);
       
       // Add photos to report_photos table
-      if (req.files && req.files.length > 0) {
-        const photoCaptions = Array.isArray(captions) ? captions : (captions ? [captions] : []);
-        const insertPhoto = db.prepare("INSERT INTO report_photos (report_id, photo_path, caption) VALUES (?, ?, ?)");
+        if (req.files && req.files.length > 0) {
+          const photoCaptions = Array.isArray(captions) ? captions : (captions ? [captions] : []);
+          const insertPhoto = db.prepare("INSERT INTO report_photos (report_id, photo_path, caption) VALUES (?, ?, ?)");
         
         req.files.forEach((file: any, index: number) => {
           const photoPath = `/uploads/${file.filename}`;
           const caption = photoCaptions[index] || '';
-          insertPhoto.run(result.lastInsertRowid, photoPath, caption);
-        });
-      }
+            insertPhoto.run(result.lastInsertRowid, photoPath, caption);
+          });
+        }
+
+        if (participantIds.length > 0) {
+          const existingUsers = db.prepare(
+            `SELECT id FROM users WHERE id IN (${participantIds.map(() => '?').join(',')})`
+          ).all(...participantIds) as Array<{ id: number }>;
+          const insertParticipant = db.prepare(
+            "INSERT OR IGNORE INTO report_participants (report_id, user_id, added_by) VALUES (?, ?, ?)"
+          );
+          existingUsers.forEach((user) => {
+            insertParticipant.run(result.lastInsertRowid, user.id, agente_id);
+          });
+        }
       
-      const newReport = db.prepare(`
-        SELECT r.*, u.nome as agente_nome, u.nivel_hierarquico as agente_nivel
-        FROM reports r
-        LEFT JOIN users u ON r.agente_id = u.id
-        WHERE r.id = ?
-      `).get(result.lastInsertRowid) as any;
-      newReport.photos = db.prepare("SELECT * FROM report_photos WHERE report_id = ? ORDER BY id DESC").all(result.lastInsertRowid);
+        const newReport = db.prepare(`
+          SELECT r.*, u.nome as agente_nome, u.nivel_hierarquico as agente_nivel
+          FROM reports r
+          LEFT JOIN users u ON r.agente_id = u.id
+          WHERE r.id = ?
+        `).get(result.lastInsertRowid) as any;
+        hydrateReportRelations(newReport, agente_id);
 
       // Notify via Socket.io
       io.emit("new_report", newReport);

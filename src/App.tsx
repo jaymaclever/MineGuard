@@ -507,6 +507,7 @@ export default function App() {
   // Data State
   const [reports, setReports] = useState<Report[]>([]);
   const [users, setUsers] = useState<User[]>([]);
+  const [participantUsers, setParticipantUsers] = useState<User[]>([]);
   const [roles, setRoles] = useState<{ nivel_hierarquico: string, peso: number }[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [dailyReports, setDailyReports] = useState<any[]>([]);
@@ -543,6 +544,7 @@ export default function App() {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isBellShaking, setIsBellShaking] = useState(false);
   const [alerts, setAlerts] = useState<any[]>([]);
+  const [onlineUsersCount, setOnlineUsersCount] = useState(1);
   const [newAlert, setNewAlert] = useState({ titulo: '', mensagem: '', tipo: 'aviso', expiresInHours: '24', isTemporary: true, targetAudience: 'all', pinned: false });
   const [editingAlert, setEditingAlert] = useState<any>(null);
   const [editAlertForm, setEditAlertForm] = useState({ titulo: '', mensagem: '', tipo: 'aviso', expiresInHours: '24', isTemporary: true, targetAudience: 'all', pinned: false });
@@ -557,6 +559,7 @@ export default function App() {
   const [showInstallBtn, setShowInstallBtn] = useState(false);
   const [showInstallGuide, setShowInstallGuide] = useState(false);
   const canManageSystem = currentUser?.permissions?.manage_settings === true || currentUser?.nivel_hierarquico === 'Superadmin';
+  const isCompactNavigation = publicSettings.app_layout === 'compact' || focusMode;
   const canGenerateDailyReports =
     canManageSystem ||
     ['Oficial', 'Sierra 1', 'Sierra 2'].includes(currentUser?.nivel_hierarquico || '');
@@ -657,7 +660,8 @@ export default function App() {
       potencial_risco: '',
       metadata: {} as any,
       dynamicFieldValues: {} as Record<string, any>,
-      fotos: [] as Array<{ file: File; caption: string }>
+      fotos: [] as Array<{ file: File; caption: string }>,
+      participant_ids: [] as number[],
     };
   }
 
@@ -678,6 +682,7 @@ export default function App() {
       testemunhas: '',
       potencial_risco: '',
       fotos: [] as Array<{ file: File; caption: string }>,
+      participant_ids: [] as number[],
       metadata: { dynamicFields: {} } as any
     };
   }
@@ -693,6 +698,7 @@ export default function App() {
     metadata: any;
     dynamicFieldValues: Record<string, any>;
     fotos: Array<{ file: File; caption: string }>;
+    participant_ids: number[];
   }>(createEmptyEditingReportData());
   
   // Form States
@@ -708,8 +714,10 @@ export default function App() {
     funcao: '',
     numero_mecanografico: '',
     nivel_hierarquico: 'Agente' as NivelHierarquico,
-    password: ''
+    password: '',
+    preferred_language: 'pt'
   });
+  const [isImportingUsers, setIsImportingUsers] = useState(false);
   const [dynamicFieldDraft, setDynamicFieldDraft] = useState(createEmptyDynamicField());
   const [editingDynamicFieldId, setEditingDynamicFieldId] = useState<string | null>(null);
   const [draggedFormLayoutItemId, setDraggedFormLayoutItemId] = useState<string | null>(null);
@@ -776,6 +784,19 @@ export default function App() {
   useEffect(() => {
     const socket = io();
     const currentRole = (currentUser?.nivel_hierarquico || currentUser?.funcao || '').toString();
+    const joinPresence = () => {
+      if (currentUser?.id) {
+        socket.emit('presence:join', currentUser.id);
+        setOnlineUsersCount((current) => Math.max(current, 1));
+      }
+    };
+
+    socket.on('connect', joinPresence);
+    joinPresence();
+
+    socket.on('online_users_count', (count: number) => {
+      setOnlineUsersCount(Math.max(1, Number(count) || 1));
+    });
 
     socket.on('new_report', (incomingReport: Report) => {
       const report = normalizeReportRecord(incomingReport);
@@ -837,14 +858,12 @@ export default function App() {
 
     socket.on('report_deleted', ({ id }: { id: number }) => {
       setReports(prev => prev.filter(r => r.id !== id));
-      if (selectedReport && selectedReport.id === id) {
-        setSelectedReport(null);
-      }
+      setSelectedReport(prev => (prev && prev.id === id ? null : prev));
       toast.info("Ocorrência removida");
     });
 
     return () => { socket.disconnect(); };
-  }, [currentUser, selectedReport]);
+  }, [currentUser?.id, currentUser?.nivel_hierarquico, currentUser?.funcao]);
 
   // Check Auth on Mount
   useEffect(() => {
@@ -932,6 +951,10 @@ export default function App() {
         promises.push(fetch('/api/users', { credentials: 'include' }));
         keys.push('users');
       }
+      if (perms.create_reports === true) {
+        promises.push(fetch('/api/users/report-participants', { credentials: 'include' }));
+        keys.push('participant_users');
+      }
       if (perms.manage_permissions === true) {
         promises.push(fetch('/api/roles', { credentials: 'include' }));
         keys.push('roles');
@@ -973,6 +996,7 @@ export default function App() {
           }
         }
         if (key === 'users') setUsers(data);
+        if (key === 'participant_users') setParticipantUsers(Array.isArray(data) ? data : []);
         if (key === 'roles') setRoles(data);
         if (key === 'stats') setStats(data);
         if (key === 'daily') setDailyReports(Array.isArray(data) ? data : []);
@@ -1467,7 +1491,8 @@ export default function App() {
       potencial_risco: selectedReport.potencial_risco || '',
       metadata: parseJsonObject(selectedReport.metadata),
       dynamicFieldValues: coerceDynamicFieldValues(reportDynamicFields, getDynamicFieldValues(selectedReport.metadata)),
-      fotos: []
+      fotos: [],
+      participant_ids: (selectedReport.participants || []).map((participant: any) => participant.user_id),
     });
     setIsEditingReport(true);
   };
@@ -1533,12 +1558,13 @@ export default function App() {
       formData.append('equipamento', newReport.equipamento);
       formData.append('acao_imediata', newReport.acao_imediata);
       formData.append('requer_investigacao', newReport.requer_investigacao ? '1' : '0');
-      formData.append('testemunhas', newReport.testemunhas);
-      formData.append('potencial_risco', newReport.potencial_risco);
-      formData.append(
-        'metadata',
-        JSON.stringify(buildMetadataWithDynamicFields(newReport.metadata, getDynamicFieldValues(newReport.metadata)))
-      );
+        formData.append('testemunhas', newReport.testemunhas);
+        formData.append('potencial_risco', newReport.potencial_risco);
+        formData.append('participant_ids', JSON.stringify(newReport.participant_ids || []));
+        formData.append(
+          'metadata',
+          JSON.stringify(buildMetadataWithDynamicFields(newReport.metadata, getDynamicFieldValues(newReport.metadata)))
+        );
       
       for (const foto of newReport.fotos) {
         try {
@@ -1694,7 +1720,7 @@ export default function App() {
         toast.success(editingUser ? "Utilizador atualizado!" : "Utilizador criado!");
         setIsNewUserModalOpen(false);
         setEditingUser(null);
-        setNewUser({ nome: '', funcao: '', numero_mecanografico: '', nivel_hierarquico: 'Agente', password: '' });
+        setNewUser({ nome: '', funcao: '', numero_mecanografico: '', nivel_hierarquico: 'Agente', password: '', preferred_language: 'pt' });
         fetchData();
       }
     } catch (err) {
@@ -1778,11 +1804,12 @@ export default function App() {
       formData.append('equipamento', editingReportData.equipamento);
       formData.append('acao_imediata', editingReportData.acao_imediata);
       formData.append('testemunhas', editingReportData.testemunhas);
-      formData.append('potencial_risco', editingReportData.potencial_risco);
-      formData.append(
-        'metadata',
-        JSON.stringify(buildMetadataWithDynamicFields(editingReportData.metadata, editingReportData.dynamicFieldValues))
-      );
+        formData.append('potencial_risco', editingReportData.potencial_risco);
+        formData.append('participant_ids', JSON.stringify(editingReportData.participant_ids || []));
+        formData.append(
+          'metadata',
+          JSON.stringify(buildMetadataWithDynamicFields(editingReportData.metadata, editingReportData.dynamicFieldValues))
+        );
       
       for (const foto of editingReportData.fotos) {
         if (foto.file) {
@@ -1863,6 +1890,36 @@ export default function App() {
     permissions: { title: t('app.sidebar.permissionsRoles'), subtitle: 'Perfis, hierarquia e matriz de permissões.' },
     settings: { title: t('app.sidebar.settings'), subtitle: 'Integrações, notificações e ajustes do sistema.' },
     parametrization: { title: t('app.sidebar.parametrization'), subtitle: 'Comportamentos operacionais e identidade do produto.' },
+  };
+
+  const handleImportUsers = async (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    setIsImportingUsers(true);
+    try {
+      const res = await fetch('/api/users/import-excel', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+      });
+      const data = await res.json();
+      if (!res.ok || data.status !== 'success') {
+        throw new Error(data.message || 'Erro ao importar utilizadores');
+      }
+
+      const summary = data.summary || {};
+      toast.success(
+        `Importação concluída: ${summary.imported || 0} utilizador${summary.imported === 1 ? '' : 'es'} criado${summary.imported === 1 ? '' : 's'}.`,
+        {
+          description: `${summary.ignored_existing || 0} já existiam e ${summary.ignored_invalid || 0} linha${summary.ignored_invalid === 1 ? '' : 's'} foram ignorada${summary.ignored_invalid === 1 ? '' : 's'}.`
+        }
+      );
+      fetchData();
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao importar utilizadores');
+    } finally {
+      setIsImportingUsers(false);
+    }
   };
   const handleStartEditReport = (report: Report) => {
     setSelectedReport(report);
@@ -1964,26 +2021,25 @@ export default function App() {
   const selectedTemplate = themeTemplates.find((template) => template.id === resolveThemeTemplate(interfaceSettingsForm.app_theme_template)) || themeTemplates[0];
 
   return (
-    <div className={cn("app-shell flex h-screen bg-[var(--bg-main)] text-[var(--text-main)] font-sans selection:bg-primary/30 relative overflow-hidden transition-all duration-700", focusMode && "brightness-50 sepia-[.4] hue-rotate-[-10deg] saturate-[1.5] contrast-125")}>
-      <div className="absolute inset-0 industrial-grid opacity-[0.03] pointer-events-none" />
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[50vh] bg-gradient-to-b from-primary/10 to-transparent opacity-30 pointer-events-none" />
+    <div className={cn("app-shell flex h-screen bg-[var(--bg-main)] text-[var(--text-main)] font-sans selection:bg-primary/30 relative overflow-hidden transition-all duration-300", focusMode && "focus-mode")}>
+      {!focusMode && <div className="absolute inset-0 industrial-grid opacity-[0.03] pointer-events-none" />}
+      {!focusMode && <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[50vh] bg-gradient-to-b from-primary/10 to-transparent opacity-30 pointer-events-none" />}
       
       <Toaster position="top-right" theme={publicSettings.app_theme_mode === 'light' ? 'light' : 'dark'} richColors />
       
       {/* Sidebar */}
       <aside className={cn(
         "app-sidebar hidden md:flex flex-col no-print border-r border-[var(--border)] transition-all duration-300",
-        publicSettings.app_layout === 'compact' ? "w-[5.25rem]" : "w-[var(--template-sidebar-width)]",
-        focusMode && "!hidden"
+        isCompactNavigation ? "w-[5.25rem]" : "w-[var(--template-sidebar-width)]"
       )}>
         <div className={cn(
           "flex items-center gap-3 border-b border-[var(--border)] px-4 py-4 xl:px-5",
-          publicSettings.app_layout === 'compact' && "justify-center px-3 py-4"
+          isCompactNavigation && "justify-center px-3 py-4"
         )}>
           <div className="h-10 w-10 shrink-0 rounded-[1rem] bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
             <Shield className="text-primary-foreground" size={20} strokeWidth={2.5} />
           </div>
-          {publicSettings.app_layout !== 'compact' && (
+          {!isCompactNavigation && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
               <h1 className="text-[1.55rem] font-black tracking-tight leading-none uppercase">{publicSettings.app_name}</h1>
               <p className="mt-1 text-[9px] font-bold uppercase tracking-[0.2em] text-[var(--text-muted)]">{publicSettings.app_slogan}</p>
@@ -1992,41 +2048,41 @@ export default function App() {
         </div>
         
         <nav className="custom-scrollbar flex-1 overflow-y-auto px-2.5 py-4 space-y-1">
-          {publicSettings.app_layout !== 'compact' && <p className="nav-section-label">Operação</p>}
-          {currentUser.permissions?.view_dashboard === true && <SidebarItem icon={Activity} label={t('app.sidebar.dashboard')} active={activeTab === 'dashboard'} compact={publicSettings.app_layout === 'compact'} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('dashboard')} />}
-          {currentUser.permissions?.view_dashboard === true && <SidebarItem icon={Shield} label={'Centro de Comando'} active={activeTab === 'command_center'} compact={publicSettings.app_layout === 'compact'} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('command_center')} />}
-          {currentUser.permissions?.view_reports === true && <SidebarItem icon={AlertTriangle} label={'Ocorrências Críticas'} active={activeTab === 'critical_occurrences'} compact={publicSettings.app_layout === 'compact'} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('critical_occurrences')} />}
-          {currentUser.permissions?.view_dashboard === true && <SidebarItem icon={Clock} label={'Linha do Tempo'} active={activeTab === 'timeline'} compact={publicSettings.app_layout === 'compact'} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('timeline')} />}
-          {currentUser.permissions?.view_reports === true && <SidebarItem icon={Camera} label={'Biblioteca de Evidências'} active={activeTab === 'evidence_library'} compact={publicSettings.app_layout === 'compact'} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('evidence_library')} />}
-          {currentUser.permissions?.view_team_daily && <SidebarItem icon={Users} label={'Turnos'} active={activeTab === 'shifts'} compact={publicSettings.app_layout === 'compact'} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('shifts')} />}
-          {currentUser.permissions?.view_reports === true && <SidebarItem icon={FileText} label={t('app.sidebar.occurrences')} active={activeTab === 'reports'} compact={publicSettings.app_layout === 'compact'} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('reports')} />}
-          {currentUser.permissions?.view_daily_reports === true && <SidebarItem icon={Calendar} label={t('app.sidebar.dailyReports')} active={activeTab === 'daily_reports'} compact={publicSettings.app_layout === 'compact'} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('daily_reports')} />}
-          <SidebarItem icon={FileText} label={t('app.sidebar.myReports')} active={activeTab === 'personal_reports'} compact={publicSettings.app_layout === 'compact'} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('personal_reports')} />
-          <SidebarItem icon={Calendar} label={t('app.sidebar.myDay')} active={activeTab === 'daily_report_personal'} compact={publicSettings.app_layout === 'compact'} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('daily_report_personal')} />
-          {currentUser.permissions?.view_team_daily && <SidebarItem icon={Users} label={t('app.sidebar.teamDay')} active={activeTab === 'daily_report_team'} compact={publicSettings.app_layout === 'compact'} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('daily_report_team')} />}
-          <SidebarItem icon={AlertTriangle} label={t('app.sidebar.alerts')} active={activeTab === 'alerts'} compact={publicSettings.app_layout === 'compact'} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('alerts')} />
-          {(currentUser.permissions?.manage_users === true || currentUser.permissions?.manage_permissions === true || canManageSystem) && publicSettings.app_layout !== 'compact' && <p className="nav-section-label mt-6">Administração</p>}
-          {currentUser.permissions?.manage_users === true && <SidebarItem icon={Users} label={t('app.sidebar.staffManagement')} active={activeTab === 'users'} compact={publicSettings.app_layout === 'compact'} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('users')} />}
-          {currentUser.permissions?.manage_permissions === true && <SidebarItem icon={Lock} label={t('app.sidebar.permissionsRoles')} active={activeTab === 'permissions'} compact={publicSettings.app_layout === 'compact'} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('permissions')} />}
-          {canManageSystem && <SidebarItem icon={SettingsIcon} label={t('app.sidebar.settings')} active={activeTab === 'settings'} compact={publicSettings.app_layout === 'compact'} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('settings')} />}
-          {canManageSystem && <SidebarItem icon={SettingsIcon} label={t('app.sidebar.parametrization')} active={activeTab === 'parametrization'} compact={publicSettings.app_layout === 'compact'} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('parametrization')} />}
+          {!isCompactNavigation && <p className="nav-section-label">Operação</p>}
+          {currentUser.permissions?.view_dashboard === true && <SidebarItem icon={Activity} label={t('app.sidebar.dashboard')} active={activeTab === 'dashboard'} compact={isCompactNavigation} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('dashboard')} />}
+          {currentUser.permissions?.view_dashboard === true && <SidebarItem icon={Shield} label={'Centro de Comando'} active={activeTab === 'command_center'} compact={isCompactNavigation} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('command_center')} />}
+          {currentUser.permissions?.view_reports === true && <SidebarItem icon={AlertTriangle} label={'Ocorrências Críticas'} active={activeTab === 'critical_occurrences'} compact={isCompactNavigation} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('critical_occurrences')} />}
+          {currentUser.permissions?.view_dashboard === true && <SidebarItem icon={Clock} label={'Linha do Tempo'} active={activeTab === 'timeline'} compact={isCompactNavigation} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('timeline')} />}
+          {currentUser.permissions?.view_reports === true && <SidebarItem icon={Camera} label={'Biblioteca de Evidências'} active={activeTab === 'evidence_library'} compact={isCompactNavigation} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('evidence_library')} />}
+          {currentUser.permissions?.view_team_daily && <SidebarItem icon={Users} label={'Turnos'} active={activeTab === 'shifts'} compact={isCompactNavigation} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('shifts')} />}
+          {currentUser.permissions?.view_reports === true && <SidebarItem icon={FileText} label={t('app.sidebar.occurrences')} active={activeTab === 'reports'} compact={isCompactNavigation} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('reports')} />}
+          {currentUser.permissions?.view_daily_reports === true && <SidebarItem icon={Calendar} label={t('app.sidebar.dailyReports')} active={activeTab === 'daily_reports'} compact={isCompactNavigation} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('daily_reports')} />}
+          <SidebarItem icon={FileText} label={t('app.sidebar.myReports')} active={activeTab === 'personal_reports'} compact={isCompactNavigation} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('personal_reports')} />
+          <SidebarItem icon={Calendar} label={t('app.sidebar.myDay')} active={activeTab === 'daily_report_personal'} compact={isCompactNavigation} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('daily_report_personal')} />
+          {currentUser.permissions?.view_team_daily && <SidebarItem icon={Users} label={t('app.sidebar.teamDay')} active={activeTab === 'daily_report_team'} compact={isCompactNavigation} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('daily_report_team')} />}
+          <SidebarItem icon={AlertTriangle} label={t('app.sidebar.alerts')} active={activeTab === 'alerts'} compact={isCompactNavigation} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('alerts')} />
+          {(currentUser.permissions?.manage_users === true || currentUser.permissions?.manage_permissions === true || canManageSystem) && !isCompactNavigation && <p className="nav-section-label mt-6">Administração</p>}
+          {currentUser.permissions?.manage_users === true && <SidebarItem icon={Users} label={t('app.sidebar.staffManagement')} active={activeTab === 'users'} compact={isCompactNavigation} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('users')} />}
+          {currentUser.permissions?.manage_permissions === true && <SidebarItem icon={Lock} label={t('app.sidebar.permissionsRoles')} active={activeTab === 'permissions'} compact={isCompactNavigation} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('permissions')} />}
+          {canManageSystem && <SidebarItem icon={SettingsIcon} label={t('app.sidebar.settings')} active={activeTab === 'settings'} compact={isCompactNavigation} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('settings')} />}
+          {canManageSystem && <SidebarItem icon={SettingsIcon} label={t('app.sidebar.parametrization')} active={activeTab === 'parametrization'} compact={isCompactNavigation} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('parametrization')} />}
         </nav>
 
         <div className="mt-auto border-t border-[var(--border)] p-3">
           <div className={cn(
             "flex items-center gap-2.5 rounded-[1.15rem] border border-[var(--border)] bg-[var(--surface-1)]/85 p-2.5 group cursor-pointer hover:border-[var(--border-strong)] transition-all",
-            publicSettings.app_layout === 'compact' && "justify-center p-2"
+            isCompactNavigation && "justify-center p-2"
           )}>
             <div className="h-9 w-9 shrink-0 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center text-[12px] font-black text-black shadow-inner">
               {currentUser.nome.split(' ').map(n => n[0]).join('')}
             </div>
-            {publicSettings.app_layout !== 'compact' && (
+            {!isCompactNavigation && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 min-w-0">
                 <p className="truncate text-[11px] font-bold group-hover:text-primary transition-colors">{currentUser.nome}</p>
                 <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-[var(--text-muted)]">{currentUser.nivel_hierarquico}</p>
               </motion.div>
             )}
-            {publicSettings.app_layout !== 'compact' && (
+            {!isCompactNavigation && (
               <button onClick={handleLogout} className="p-1 text-[var(--text-faint)] hover:text-red-400 transition-colors">
                 <LogOut size={14} />
               </button>
@@ -2036,7 +2092,7 @@ export default function App() {
       </aside>
 
       <AnimatePresence>
-        {publicSettings.app_layout === 'compact' && compactSidebarHint && !focusMode && (
+        {isCompactNavigation && compactSidebarHint && (
           <motion.div
             initial={{ opacity: 0, x: -8, scale: 0.98 }}
             animate={{ opacity: 1, x: 0, scale: 1 }}
@@ -2067,9 +2123,17 @@ export default function App() {
             <div className="min-w-0">
               <p className="text-[9px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">{publicSettings.app_name}</p>
               <h1 className="truncate text-[13px] font-black uppercase tracking-[0.05em] text-[var(--text-main)] md:text-[1.15rem]">{currentViewMeta.title}</h1>
-              <p className="hidden max-w-2xl truncate text-[11px] text-[var(--text-muted)] xl:block">{currentViewMeta.subtitle}</p>
+              {!focusMode && <p className="hidden max-w-2xl truncate text-[11px] text-[var(--text-muted)] xl:block">{currentViewMeta.subtitle}</p>}
+              {focusMode && (
+                <div className="mt-1 hidden lg:flex items-center gap-2 text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--text-muted)]">
+                  <span className="rounded-full border border-primary/20 bg-primary/10 px-2 py-1 text-primary">Foco operacional</span>
+                  <span>menos ruído</span>
+                  <span className="text-[var(--border-strong)]">•</span>
+                  <span>mais área útil</span>
+                </div>
+              )}
             </div>
-            <div className="hidden xl:flex items-center gap-3 flex-1 max-w-[34rem] ml-3">
+            {!focusMode && <div className="hidden xl:flex items-center gap-3 flex-1 max-w-[34rem] ml-3">
               <div className="relative w-full group">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] group-focus-within:text-primary transition-colors" size={16} />
                 <input 
@@ -2080,26 +2144,35 @@ export default function App() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-            </div>
+            </div>}
           </div>
           
           <div className="flex items-center gap-2 md:gap-3 shrink-0">
             {/* Network Status Indicator */}
-            <div className="hidden xl:flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface-1)] px-2.5 py-1.5" title={isOnline ? "Conexão Segura e Sincronizada" : "Modo Offline (Gravando Localmente)"}>
-              <div className={cn("w-2 h-2 rounded-full", isOnline ? "bg-green-500 animate-pulse" : "bg-orange-500")} />
-              <span className={cn("text-[9px] font-bold uppercase tracking-[0.14em]", isOnline ? "text-green-500" : "text-orange-500")}>
-                {isOnline ? "Online" : "Offline / L"}
-              </span>
+            <div className="hidden lg:flex items-center overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface-1)] shadow-sm" title="Estado de ligação e utilizadores online neste momento">
+              <div className="flex items-center gap-2 px-2.5 py-1.5">
+                <div className={cn("w-2 h-2 rounded-full", isOnline ? "bg-green-500 animate-pulse" : "bg-orange-500")} />
+                <span className={cn("text-[9px] font-bold uppercase tracking-[0.14em]", isOnline ? "text-green-500" : "text-orange-500")}>
+                  {isOnline ? "Online" : "Offline"}
+                </span>
+              </div>
+              <div className="h-6 w-px bg-[var(--border)]" />
+              <div className="flex items-center gap-2 px-2.5 py-1.5">
+                <div className="w-2 h-2 rounded-full bg-sky-500 animate-pulse" />
+                <span className="text-[9px] font-bold uppercase tracking-[0.14em] text-sky-500">
+                  {onlineUsersCount} utilizador{onlineUsersCount === 1 ? '' : 'es'} online
+                </span>
+              </div>
             </div>
 
             {/* Focus Mode Toggle */}
             <button 
               onClick={() => setFocusMode(!focusMode)}
-              className={cn("hidden lg:flex items-center gap-2 rounded-xl border px-2.5 py-1.5 transition-all shadow-sm", focusMode ? "bg-red-500/10 border-red-500/30 text-red-500" : "bg-[var(--surface-1)] border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text-main)]")}
-              title="Modo Operação Noturna"
+              className={cn("hidden lg:flex items-center gap-2 rounded-xl border px-2.5 py-1.5 transition-all shadow-sm", focusMode ? "bg-primary/12 border-primary/30 text-primary shadow-[0_0_24px_rgba(var(--primary-rgb),0.16)]" : "bg-[var(--surface-1)] border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text-main)]")}
+              title={focusMode ? "Sair do modo foco" : "Ativar modo foco operacional"}
             >
               <Activity size={12} className={focusMode ? "animate-pulse" : ""} />
-              <span className="text-[9px] font-bold uppercase tracking-[0.14em]">{focusMode ? "Foco Ativo" : "Modo Foco"}</span>
+              <span className="text-[9px] font-bold uppercase tracking-[0.14em]">{focusMode ? "Sair do Foco" : "Modo Foco"}</span>
             </button>
 
             <button 
@@ -2247,8 +2320,8 @@ export default function App() {
         </header>
 
         {/* Content Area */}
-        <div className="app-content flex-1 overflow-auto custom-scrollbar">
-          <div className="section-shell p-4 pb-28 md:p-8 md:pb-8">
+        <div className={cn("app-content flex-1 overflow-auto custom-scrollbar", focusMode && "focus-content")}>
+          <div className={cn("section-shell p-4 pb-28 md:p-8 md:pb-8", focusMode && "md:px-6 md:py-5")}>
           <AnimatePresence mode="wait">
             {activeTab === 'dashboard' && (
               <motion.div 
@@ -3166,7 +3239,7 @@ export default function App() {
                 users={users}
                 onCreateUser={() => {
                   setEditingUser(null);
-                  setNewUser({ nome: '', funcao: '', numero_mecanografico: '', nivel_hierarquico: 'Agente', password: '' });
+                  setNewUser({ nome: '', funcao: '', numero_mecanografico: '', nivel_hierarquico: 'Agente', password: '', preferred_language: 'pt' });
                   setIsNewUserModalOpen(true);
                 }}
                 onEditUser={(user) => {
@@ -3182,6 +3255,8 @@ export default function App() {
                   setIsNewUserModalOpen(true);
                 }}
                 onDeleteUser={handleDeleteUser}
+                onImportUsers={handleImportUsers}
+                isImportingUsers={isImportingUsers}
               />
             )}
 
@@ -3987,15 +4062,17 @@ export default function App() {
 
       {/* Modals */}
       <AnimatePresence>
-        <NewReportModal
-          isOpen={isNewReportModalOpen}
-          showPreview={showReportPreview}
-          newReport={newReport}
-          newReportStep={newReportStep}
-          systemSettings={systemSettings as any}
-          dynamicFields={reportDynamicFields as any}
-          formItems={reportFormItems as any}
-          onClose={closeNewReportModal}
+          <NewReportModal
+            isOpen={isNewReportModalOpen}
+            showPreview={showReportPreview}
+            newReport={newReport}
+            newReportStep={newReportStep}
+            systemSettings={systemSettings as any}
+            dynamicFields={reportDynamicFields as any}
+            formItems={reportFormItems as any}
+            availableParticipantUsers={participantUsers}
+            currentUserId={currentUser?.id}
+            onClose={closeNewReportModal}
           onSubmit={handleCreateReport}
           onPreview={handlePreviewNewReport}
           onClosePreview={() => setShowReportPreview(false)}
@@ -4028,13 +4105,14 @@ export default function App() {
           onApply={applyDashboardCustomRange}
         />
 
-        <ReportDetailModal
-          report={selectedReport as any}
-          currentUser={currentUser}
-          systemSettings={systemSettings as any}
-          dynamicFields={reportDynamicFields as any}
-          formItems={reportFormItems as any}
-          isEditing={isEditingReport}
+          <ReportDetailModal
+            report={selectedReport as any}
+            currentUser={currentUser}
+            systemSettings={systemSettings as any}
+            dynamicFields={reportDynamicFields as any}
+            formItems={reportFormItems as any}
+            availableParticipantUsers={participantUsers}
+            isEditing={isEditingReport}
           editingData={editingReportData}
           onClose={closeReportDetails}
           onStartEditing={startEditingSelectedReport}

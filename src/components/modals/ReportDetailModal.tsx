@@ -6,18 +6,22 @@ import { cn } from '../../lib/utils';
 import { formatDateTime } from '../../lib/datetime';
 import { DynamicFieldDefinition, formatDynamicFieldValue, getDynamicFieldValues } from '../../lib/reportDynamicFields';
 import { PhotoLightbox } from '../ui/PhotoLightbox';
+import { ReportParticipantsField } from '../ui/ReportParticipantsField';
+import { User } from '../../types';
 
 interface ReportPhoto { id: number; photo_path: string; caption: string; }
+interface ReportParticipant { id: number; user_id: number; nome: string; funcao: string; numero_mecanografico: string; nivel_hierarquico: string; }
 interface ReportData {
   id: number; titulo: string; categoria: string; gravidade: string; descricao: string;
   coords_lat: number | string; coords_lng: number | string; status: string; timestamp: string;
   agente_nome: string; agente_nivel: string; setor?: string; equipamento?: string; acao_imediata?: string;
-  testemunhas?: string; potencial_risco?: string; metadata?: any; photos?: ReportPhoto[];
+  testemunhas?: string; potencial_risco?: string; metadata?: any; photos?: ReportPhoto[]; participants?: ReportParticipant[];
 }
 interface EditingReportData {
   titulo: string; descricao: string; setor: string; equipamento: string; acao_imediata: string;
   testemunhas: string; potencial_risco: string; metadata?: any; dynamicFieldValues: Record<string, any>;
   fotos: Array<{ file: File; caption: string }>;
+  participant_ids: number[];
 }
 type FormItem = { id: string; label: string; type: string; scope: string; categories?: string[]; active: boolean; isDynamic: boolean; field?: DynamicFieldDefinition | null };
 interface ReportDetailModalProps {
@@ -26,6 +30,7 @@ interface ReportDetailModalProps {
   systemSettings: Array<{ key: string; value: string }>;
   dynamicFields: DynamicFieldDefinition[];
   formItems: FormItem[];
+  availableParticipantUsers?: User[];
   isEditing: boolean;
   editingData: EditingReportData;
   onClose: () => void;
@@ -57,6 +62,7 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
   currentUser,
   systemSettings,
   formItems,
+  availableParticipantUsers,
   isEditing,
   editingData,
   onClose,

@@ -211,6 +211,13 @@ export const UserModal: React.FC<UserModalProps> = ({ isOpen, editingUser, newUs
                 ))}
               </select>
             </div>
+            <div>
+              <label className={labelClass}>Idioma</label>
+              <select value={newUser.preferred_language || 'pt'} onChange={(event) => setNewUser((current: any) => ({ ...current, preferred_language: event.target.value }))} className={inputClass}>
+                <option value="pt">Português</option>
+                <option value="en">English</option>
+              </select>
+            </div>
           </div>
           <div>
             <label className={labelClass}>{editingUser ? 'Nova senha (opcional)' : 'Senha'}</label>
