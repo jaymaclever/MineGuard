@@ -22,7 +22,7 @@ export const SidebarItem = ({ icon: Icon, label, active, onClick }: { icon: any,
       "w-full flex items-center gap-3 px-6 py-4 text-sm font-bold uppercase tracking-widest transition-all duration-300 relative group",
       active 
         ? "text-primary bg-primary/5" 
-        : "text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-white/5"
+        : "text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--surface-2)]"
     )}
   >
     {active && <motion.div layoutId="active-nav" className="absolute left-0 w-1 h-2/3 bg-primary rounded-r-full" />}
@@ -53,12 +53,15 @@ export const Card = ({ children, className, title, subtitle, action, onClick }: 
     onClick={onClick}
     className={cn(
       "glass-card rounded-2xl overflow-hidden group", 
-      onClick && "cursor-pointer hover:bg-zinc-900/40 active:scale-[0.99]",
+      onClick && "cursor-pointer hover:bg-[var(--surface-2)] active:scale-[0.99]",
       className
     )}
+    style={{
+      borderRadius: 'var(--template-card-radius)',
+    }}
   >
     {(title || action) && (
-      <div className="p-4 md:p-6 border-b border-[var(--border)] flex items-center justify-between bg-white/[0.03]">
+      <div className="p-4 md:p-6 border-b border-[var(--border)] flex items-center justify-between bg-[var(--surface-2)]/80">
         <div>
           {title && <h3 className="text-xs font-black text-[var(--text-main)] uppercase tracking-[0.2em]">{title}</h3>}
           {subtitle && <p className="text-[10px] text-[var(--text-muted)] mt-1 font-bold">{subtitle}</p>}
@@ -66,7 +69,7 @@ export const Card = ({ children, className, title, subtitle, action, onClick }: 
         {action}
       </div>
     )}
-    <div className="p-4 md:p-6">{children}</div>
+    <div style={{ padding: 'var(--template-card-padding)' }}>{children}</div>
   </div>
 );
 

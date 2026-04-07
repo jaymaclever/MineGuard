@@ -168,17 +168,17 @@ const SidebarItem = ({ icon: Icon, label, active, onClick }: { icon: any, label:
   <button 
     onClick={onClick}
     className={cn(
-      "w-full flex items-center gap-3 rounded-2xl px-4 py-3 text-[11px] font-black uppercase tracking-[0.16em] transition-all duration-300 relative group text-left overflow-hidden",
+      "w-full flex items-center gap-2.5 rounded-[1.15rem] px-3 py-2.5 text-[10px] font-black uppercase tracking-[0.11em] transition-all duration-300 relative group text-left overflow-hidden xl:px-3.5 xl:py-2.5",
       active 
         ? "text-primary bg-primary/8 shadow-[inset_0_0_0_1px_rgba(249,115,22,0.12)]" 
         : "text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-white/[0.03]"
     )}
   >
-    {active && <motion.div layoutId="active-nav" className="absolute left-0 top-1/2 h-8 w-1 -translate-y-1/2 rounded-r-full bg-primary" />}
-    <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border transition-all", active ? "border-primary/20 bg-primary/12 text-primary shadow-[0_0_30px_rgba(var(--primary-rgb),0.18)]" : "border-[var(--border)] bg-[var(--surface-1)] text-[var(--text-faint)] group-hover:border-[var(--border-strong)] group-hover:text-[var(--text-main)]")}>
-      <Icon size={18} className={cn("transition-transform group-hover:scale-110", active && "glow-amber")} />
+    {active && <motion.div layoutId="active-nav" className="absolute left-0 top-1/2 h-7 w-1 -translate-y-1/2 rounded-r-full bg-primary" />}
+    <div className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-[1rem] border transition-all", active ? "border-primary/20 bg-primary/12 text-primary shadow-[0_0_30px_rgba(var(--primary-rgb),0.18)]" : "border-[var(--border)] bg-[var(--surface-1)] text-[var(--text-faint)] group-hover:border-[var(--border-strong)] group-hover:text-[var(--text-main)]")}>
+      <Icon size={16} className={cn("transition-transform group-hover:scale-110", active && "glow-amber")} />
     </div>
-    <span className="truncate text-left leading-tight">{label}</span>
+    <span className="min-w-0 truncate text-left leading-tight">{label}</span>
   </button>
 );
 
@@ -1326,6 +1326,16 @@ export default function App() {
         body: JSON.stringify({ settings }),
         credentials: 'include',
       });
+      const nextPublicSettings = {
+        ...publicSettings,
+        ...Object.fromEntries(
+          settings
+            .filter((item) => typeof item.key === 'string' && String(item.key).startsWith('app_'))
+            .map((item) => [item.key, item.value]),
+        ),
+      };
+      setPublicSettings(nextPublicSettings);
+      applyThemeSettings(document.documentElement, nextPublicSettings);
       fetchData();
       return true;
     } catch (err) {
@@ -1934,25 +1944,25 @@ export default function App() {
       {/* Sidebar */}
       <aside className={cn(
         "app-sidebar hidden md:flex flex-col no-print border-r border-[var(--border)] transition-all duration-300",
-        publicSettings.app_layout === 'compact' ? "w-24" : "w-[var(--template-sidebar-width)]",
+        publicSettings.app_layout === 'compact' ? "w-[5.25rem]" : "w-[var(--template-sidebar-width)]",
         focusMode && "!hidden"
       )}>
         <div className={cn(
-          "p-6 flex items-center gap-4 border-b border-[var(--border)]",
-          publicSettings.app_layout === 'compact' && "justify-center p-4"
+          "flex items-center gap-3 border-b border-[var(--border)] px-4 py-4 xl:px-5",
+          publicSettings.app_layout === 'compact' && "justify-center px-3 py-4"
         )}>
-          <div className="w-11 h-11 bg-primary rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20 shrink-0">
-            <Shield className="text-primary-foreground" size={22} strokeWidth={2.5} />
+          <div className="h-10 w-10 shrink-0 rounded-[1rem] bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
+            <Shield className="text-primary-foreground" size={20} strokeWidth={2.5} />
           </div>
           {publicSettings.app_layout !== 'compact' && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-              <h1 className="font-black tracking-tighter text-2xl leading-none uppercase">{publicSettings.app_name}</h1>
-              <p className="text-[10px] text-[var(--text-muted)] font-bold tracking-[0.26em] mt-1 uppercase">{publicSettings.app_slogan}</p>
+              <h1 className="text-[1.55rem] font-black tracking-tight leading-none uppercase">{publicSettings.app_name}</h1>
+              <p className="mt-1 text-[9px] font-bold uppercase tracking-[0.2em] text-[var(--text-muted)]">{publicSettings.app_slogan}</p>
             </motion.div>
           )}
         </div>
         
-        <nav className="custom-scrollbar flex-1 overflow-y-auto px-3 py-5 space-y-1">
+        <nav className="custom-scrollbar flex-1 overflow-y-auto px-2.5 py-4 space-y-1">
           {publicSettings.app_layout !== 'compact' && <p className="nav-section-label">Operação</p>}
           {currentUser.permissions?.view_dashboard === true && <SidebarItem icon={Activity} label={publicSettings.app_layout === 'compact' ? "" : t('app.sidebar.dashboard')} active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} />}
           {currentUser.permissions?.view_dashboard === true && <SidebarItem icon={Shield} label={publicSettings.app_layout === 'compact' ? "" : 'Centro de Comando'} active={activeTab === 'command_center'} onClick={() => setActiveTab('command_center')} />}
@@ -1973,18 +1983,18 @@ export default function App() {
           {canManageSystem && <SidebarItem icon={SettingsIcon} label={publicSettings.app_layout === 'compact' ? '' : t('app.sidebar.parametrization')} active={activeTab === 'parametrization'} onClick={() => setActiveTab('parametrization')} />}
         </nav>
 
-        <div className="p-4 mt-auto border-t border-[var(--border)]">
+        <div className="mt-auto border-t border-[var(--border)] p-3">
           <div className={cn(
-            "flex items-center gap-3 p-3 rounded-2xl bg-zinc-950/60 border border-zinc-800/70 group cursor-pointer hover:border-zinc-700 transition-all",
+            "flex items-center gap-2.5 rounded-[1.15rem] border border-zinc-800/70 bg-zinc-950/60 p-2.5 group cursor-pointer hover:border-zinc-700 transition-all",
             publicSettings.app_layout === 'compact' && "justify-center p-2"
           )}>
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center text-sm font-black text-black shadow-inner shrink-0">
+            <div className="h-9 w-9 shrink-0 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center text-[12px] font-black text-black shadow-inner">
               {currentUser.nome.split(' ').map(n => n[0]).join('')}
             </div>
             {publicSettings.app_layout !== 'compact' && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 min-w-0">
-                <p className="text-xs font-bold truncate group-hover:text-primary transition-colors">{currentUser.nome}</p>
-                <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-bold">{currentUser.nivel_hierarquico}</p>
+                <p className="truncate text-[11px] font-bold group-hover:text-primary transition-colors">{currentUser.nome}</p>
+                <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-zinc-500">{currentUser.nivel_hierarquico}</p>
               </motion.div>
             )}
             {publicSettings.app_layout !== 'compact' && (
@@ -2000,23 +2010,23 @@ export default function App() {
       <main className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
         <header className="app-header border-b border-[var(--border)] z-40 transition-all no-print">
-          <div className="section-shell flex items-center justify-between gap-3 px-4 py-3 md:px-8 md:py-4">
+          <div className="section-shell flex items-center justify-between gap-3 px-4 py-3 md:px-6 md:py-3.5 xl:px-8">
           <div className="flex items-center gap-3 min-w-0">
             <div className="md:hidden w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-lg shadow-primary/20 shrink-0">
               <Shield className="text-black" size={18} strokeWidth={3} />
             </div>
             <div className="min-w-0">
-              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-zinc-500">{publicSettings.app_name}</p>
-              <h1 className="truncate text-sm font-black uppercase tracking-[0.08em] text-white md:text-xl">{currentViewMeta.title}</h1>
-              <p className="hidden max-w-xl truncate text-xs text-zinc-500 md:block">{currentViewMeta.subtitle}</p>
+              <p className="text-[9px] font-black uppercase tracking-[0.16em] text-zinc-500">{publicSettings.app_name}</p>
+              <h1 className="truncate text-[13px] font-black uppercase tracking-[0.05em] text-white md:text-[1.15rem]">{currentViewMeta.title}</h1>
+              <p className="hidden max-w-2xl truncate text-[11px] text-zinc-500 xl:block">{currentViewMeta.subtitle}</p>
             </div>
-            <div className="hidden xl:flex items-center gap-4 flex-1 max-w-xl ml-4">
+            <div className="hidden xl:flex items-center gap-3 flex-1 max-w-[34rem] ml-3">
               <div className="relative w-full group">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] group-focus-within:text-primary transition-colors" size={16} />
                 <input 
                   type="text" 
                   placeholder="Pesquisar registos..." 
-                  className="w-full bg-[var(--bg-main)]/50 border border-[var(--border)] rounded-lg py-2 pl-10 pr-4 text-sm focus:outline-none focus:border-primary/50 focus:bg-[var(--bg-main)] transition-all"
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-main)]/50 py-2 pl-10 pr-4 text-[13px] focus:outline-none focus:border-primary/50 focus:bg-[var(--bg-main)] transition-all"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -2024,11 +2034,11 @@ export default function App() {
             </div>
           </div>
           
-          <div className="flex items-center gap-2 md:gap-4 shrink-0">
+          <div className="flex items-center gap-2 md:gap-3 shrink-0">
             {/* Network Status Indicator */}
-            <div className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-xl bg-zinc-900/60 border border-zinc-800/60" title={isOnline ? "Conexão Segura e Sincronizada" : "Modo Offline (Gravando Localmente)"}>
+            <div className="hidden xl:flex items-center gap-2 rounded-xl border border-zinc-800/60 bg-zinc-900/60 px-2.5 py-1.5" title={isOnline ? "Conexão Segura e Sincronizada" : "Modo Offline (Gravando Localmente)"}>
               <div className={cn("w-2 h-2 rounded-full", isOnline ? "bg-green-500 animate-pulse" : "bg-orange-500")} />
-              <span className={cn("text-[10px] font-bold uppercase tracking-widest", isOnline ? "text-green-500" : "text-orange-500")}>
+              <span className={cn("text-[9px] font-bold uppercase tracking-[0.14em]", isOnline ? "text-green-500" : "text-orange-500")}>
                 {isOnline ? "Online" : "Offline / L"}
               </span>
             </div>
@@ -2036,11 +2046,11 @@ export default function App() {
             {/* Focus Mode Toggle */}
             <button 
               onClick={() => setFocusMode(!focusMode)}
-              className={cn("hidden md:flex items-center gap-2 px-3 py-2 rounded-xl border transition-all shadow-sm", focusMode ? "bg-red-500/10 border-red-500/30 text-red-500" : "bg-zinc-900/50 border-zinc-800/50 text-zinc-500 hover:text-zinc-300")}
+              className={cn("hidden lg:flex items-center gap-2 rounded-xl border px-2.5 py-1.5 transition-all shadow-sm", focusMode ? "bg-red-500/10 border-red-500/30 text-red-500" : "bg-zinc-900/50 border-zinc-800/50 text-zinc-500 hover:text-zinc-300")}
               title="Modo Operação Noturna"
             >
               <Activity size={12} className={focusMode ? "animate-pulse" : ""} />
-              <span className="text-[10px] font-bold uppercase tracking-widest">{focusMode ? "Foco Ativo" : "Modo Foco"}</span>
+              <span className="text-[9px] font-bold uppercase tracking-[0.14em]">{focusMode ? "Foco Ativo" : "Modo Foco"}</span>
             </button>
 
             <button 

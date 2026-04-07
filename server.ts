@@ -15,6 +15,7 @@ import cookieParser from "cookie-parser";
 import { Server } from "socket.io";
 import http from "http";
 import https from "https";
+import { execFileSync } from "child_process";
 import bcrypt from "bcryptjs";
 import { Parser } from "json2csv";
 import {
@@ -757,6 +758,47 @@ async function startServer() {
   });
 
   // --- Backup API ---
+  const backupsDir = path.join(process.cwd(), 'backups');
+  const ensureBackupsDir = () => {
+    if (!fs.existsSync(backupsDir)) {
+      fs.mkdirSync(backupsDir, { recursive: true });
+    }
+  };
+
+  const getDatabaseInfo = () => {
+    const dbPath = path.join(process.cwd(), 'mina_seguranca.db');
+    const stats = fs.existsSync(dbPath) ? fs.statSync(dbPath) : null;
+    return {
+      exists: Boolean(stats),
+      size: stats?.size || 0,
+      modifiedAt: stats ? stats.mtime.toISOString() : null,
+    };
+  };
+
+  const listBackupFiles = () => {
+    ensureBackupsDir();
+    return fs.readdirSync(backupsDir)
+      .filter((file) => file.endsWith('.db') || file.endsWith('.backup'))
+      .map((file) => {
+        const fullPath = path.join(backupsDir, file);
+        const stats = fs.statSync(fullPath);
+        return {
+          name: file,
+          size: stats.size,
+          modifiedAt: stats.mtime.toISOString(),
+        };
+      })
+      .sort((a, b) => b.modifiedAt.localeCompare(a.modifiedAt));
+  };
+
+  const isGitRepo = () => fs.existsSync(path.join(process.cwd(), '.git'));
+
+  const runGit = (args: string[]) => execFileSync('git', args, {
+    cwd: process.cwd(),
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+  }).trim();
+
   app.get("/api/backup", authenticate, checkPermission('manage_settings'), (req, res) => {
     try {
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0];
@@ -771,6 +813,18 @@ async function startServer() {
     }
   });
 
+  app.get("/api/backup/status", authenticate, checkPermission('manage_settings'), (req, res) => {
+    try {
+      res.json({
+        status: "ok",
+        database: getDatabaseInfo(),
+        backups: listBackupFiles(),
+      });
+    } catch (error: any) {
+      res.status(500).json({ status: "error", message: error.message || "Erro ao ler estado do backup" });
+    }
+  });
+
   app.post("/api/backup/restore", authenticate, checkPermission('manage_settings'), (req: any, res) => {
     try {
       if (!req.files || !req.files.backupFile) {
@@ -780,7 +834,8 @@ async function startServer() {
       const backupFileArray = req.files.backupFile as any[];
       const backupFile = Array.isArray(backupFileArray) ? backupFileArray[0] : backupFileArray;
       const dbPath = path.join(process.cwd(), 'mina_seguranca.db');
-      const backupPath = path.join(process.cwd(), `mina_seguranca-${Date.now()}.backup`);
+      ensureBackupsDir();
+      const backupPath = path.join(backupsDir, `mina_seguranca-${Date.now()}.backup`);
 
       fs.copyFileSync(dbPath, backupPath);
       fs.writeFileSync(dbPath, backupFile.data || backupFile);
@@ -1235,6 +1290,59 @@ async function startServer() {
     } catch (err: any) {
       console.error("Erro ao obter relatório:", err);
       res.status(500).json({ status: 'error', message: err.message });
+    }
+  });
+
+  app.get("/api/github/status", authenticate, checkPermission('manage_settings'), (req, res) => {
+    try {
+      if (!isGitRepo()) {
+        return res.json({
+          status: "ok",
+          repoAvailable: false,
+          message: "Repositório Git não encontrado neste diretório.",
+        });
+      }
+
+      const branch = runGit(['rev-parse', '--abbrev-ref', 'HEAD']);
+      const commit = runGit(['rev-parse', '--short', 'HEAD']);
+      const remote = runGit(['remote', 'get-url', 'origin']);
+      const dirty = runGit(['status', '--porcelain']);
+
+      res.json({
+        status: "ok",
+        repoAvailable: true,
+        branch,
+        commit,
+        remote,
+        clean: dirty.length === 0,
+        dirtyFiles: dirty.split('\n').filter(Boolean).length,
+      });
+    } catch (error: any) {
+      res.status(500).json({ status: "error", message: error.message || "Não foi possível ler o estado do Git." });
+    }
+  });
+
+  app.post("/api/github/update", authenticate, checkPermission('manage_settings'), (req, res) => {
+    try {
+      if (!isGitRepo()) {
+        return res.status(400).json({ status: "error", message: "Repositório Git não encontrado neste diretório." });
+      }
+
+      const branch = String(req.body?.branch || 'main');
+      const beforeCommit = runGit(['rev-parse', '--short', 'HEAD']);
+      const pullResult = runGit(['pull', '--ff-only', 'origin', branch]);
+      const afterCommit = runGit(['rev-parse', '--short', 'HEAD']);
+
+      res.json({
+        status: "ok",
+        message: "Atualização aplicada com sucesso.",
+        beforeCommit,
+        afterCommit,
+        branch,
+        output: pullResult,
+      });
+    } catch (error: any) {
+      res.status(500).json({ status: "error", message: error.message || "Falha ao atualizar via GitHub." });
     }
   });
 

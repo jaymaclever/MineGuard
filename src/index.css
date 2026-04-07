@@ -81,6 +81,44 @@
   --panel-highlight: rgba(255, 255, 255, 0.72);
 }
 
+.light .app-shell {
+  background:
+    radial-gradient(circle at top, rgba(201, 122, 16, 0.08), transparent 30%),
+    radial-gradient(circle at 86% 8%, rgba(51, 102, 204, 0.07), transparent 24%),
+    linear-gradient(180deg, #f8fbff 0%, #eff4fb 48%, #e7edf6 100%);
+}
+
+.light .app-sidebar {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(244, 247, 252, 0.98)),
+    var(--bg-sidebar);
+}
+
+.light .app-header {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(247, 249, 253, 0.94)),
+    var(--bg-card);
+}
+
+.light .glass-card {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(246, 249, 253, 0.94)),
+    radial-gradient(circle at top left, rgba(201, 122, 16, 0.06), transparent 42%);
+  box-shadow: 0 20px 48px rgba(27, 39, 58, 0.08);
+}
+
+.light .glass-card:hover {
+  box-shadow: 0 28px 64px rgba(27, 39, 58, 0.12);
+}
+
+.light .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(93, 108, 132, 0.28);
+}
+
+.light .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(93, 108, 132, 0.42);
+}
+
 .theme-obsidian-amber {
   --primary: #f59e0b;
   --primary-rgb: 245, 158, 11;
@@ -156,19 +194,19 @@
 .template-executive {
   --template-card-radius: 1.6rem;
   --template-card-padding: 1.5rem;
-  --template-sidebar-width: 21rem;
+  --template-sidebar-width: clamp(17.5rem, 17vw, 19rem);
 }
 
 .template-operations {
   --template-card-radius: 1.3rem;
   --template-card-padding: 1.15rem;
-  --template-sidebar-width: 19.5rem;
+  --template-sidebar-width: clamp(16.5rem, 16vw, 18rem);
 }
 
 .template-tactical {
   --template-card-radius: 1.1rem;
   --template-card-padding: 1rem;
-  --template-sidebar-width: 20rem;
+  --template-sidebar-width: clamp(16.75rem, 16.5vw, 18.25rem);
   --border-strong: rgba(var(--primary-rgb), 0.5);
 }
 
@@ -249,6 +287,14 @@
   }
 }
 
+.light body {
+  color-scheme: light;
+}
+
+.dark body {
+  color-scheme: dark;
+}
+
 @media print {
   .no-print { display: none !important; }
   body { background: white !important; color: black !important; }
@@ -324,9 +370,45 @@
     transparent;
 }
 
+.light .app-shell {
+  background:
+    radial-gradient(circle at top, rgba(201, 122, 16, 0.08), transparent 30%),
+    radial-gradient(circle at 86% 8%, rgba(51, 102, 204, 0.07), transparent 24%),
+    linear-gradient(180deg, #f8fbff 0%, #eff4fb 48%, #e7edf6 100%);
+}
+
+.light .app-sidebar {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(244, 247, 252, 0.98)),
+    var(--bg-sidebar);
+}
+
+.light .app-header {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(247, 249, 253, 0.94)),
+    var(--bg-card);
+}
+
+.light .glass-card {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(246, 249, 253, 0.94)),
+    radial-gradient(circle at top left, rgba(201, 122, 16, 0.06), transparent 42%);
+  box-shadow: 0 20px 48px rgba(27, 39, 58, 0.08);
+}
+
+.light .glass-card:hover {
+  box-shadow: 0 28px 64px rgba(27, 39, 58, 0.12);
+}
+
+.light .bottom-sheet {
+  border-color: var(--border) !important;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(247, 249, 253, 0.98)) !important;
+  box-shadow: 0 -18px 50px rgba(27, 39, 58, 0.14) !important;
+}
+
 .section-shell {
   width: 100%;
-  max-width: 1580px;
+  max-width: 1720px;
   margin: 0 auto;
 }
 
@@ -413,11 +495,75 @@
     background-color: var(--surface-3) !important;
   }
 
-  .light .hover\:text-zinc-200:hover,
-  .light .hover\:text-zinc-300:hover,
-  .light .hover\:text-white:hover {
-    color: var(--text-main) !important;
+.light .hover\:text-zinc-200:hover,
+.light .hover\:text-zinc-300:hover,
+.light .hover\:text-white:hover {
+  color: var(--text-main) !important;
+}
+
+.light [class*="bg-zinc-950"],
+.light [class*="bg-zinc-900"],
+.light [class*="bg-zinc-800"] {
+  background-color: var(--surface-2) !important;
+  background-image: none !important;
+}
+
+  .light [class*="bg-black/"] {
+    background-color: rgba(255, 255, 255, 0.6) !important;
+    background-image: none !important;
   }
+
+  .light [class*="bg-[#050505]"],
+  .light [class*="bg-[#0a0a0a]"],
+  .light [class*="bg-[#0b0b0b]"],
+  .light [class*="bg-[#0d0d0d]"] {
+    background-color: var(--surface-2) !important;
+    background-image: none !important;
+  }
+
+.light [class*="border-zinc-"] {
+  border-color: var(--border) !important;
+}
+
+.light [class*="text-zinc-100"],
+.light [class*="text-zinc-200"] {
+  color: var(--text-main) !important;
+}
+
+.light [class*="text-zinc-300"] {
+  color: var(--text-soft) !important;
+}
+
+.light [class*="text-zinc-400"],
+.light [class*="text-zinc-500"] {
+  color: var(--text-muted) !important;
+}
+
+.light [class*="text-zinc-600"],
+.light [class*="text-zinc-700"] {
+  color: var(--text-faint) !important;
+}
+
+  .light [class*="hover:bg-zinc-900"]:hover,
+  .light [class*="hover:bg-zinc-800"]:hover,
+  .light [class*="hover:bg-zinc-700"]:hover {
+    background-color: var(--surface-3) !important;
+  }
+
+  .light [class*="linear-gradient(180deg,rgba(18,18,22"],
+  .light [class*="linear-gradient(180deg,rgba(17,18,22"],
+  .light [class*="linear-gradient(180deg,rgba(24,24,27"],
+  .light [class*="linear-gradient(180deg,rgba(22,23,29"] {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(246, 249, 253, 0.98)) !important;
+    background-image: none !important;
+  }
+
+.light [class*="bg-\[linear-gradient\(180deg,rgba\(18,18,22,0.98\),rgba\(7,7,10,0.98\)\)\]"],
+.light [class*="bg-\[linear-gradient\(180deg,rgba\(17,18,22,0.98\),rgba\(9,9,11,0.98\)\)\]"],
+.light [class*="bg-\[linear-gradient\(180deg,rgba\(24,24,27,0.92\),rgba\(9,9,11,0.98\)\)\]"],
+.light [class*="bg-\[linear-gradient\(180deg,rgba\(22,23,29,0.94\),rgba\(10,10,13,0.96\)\)\]"] {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(246, 249, 253, 0.98)) !important;
+}
 
   .light .shadow-white\/10 {
     --tw-shadow-color: rgba(20, 33, 53, 0.14) !important;
@@ -427,6 +573,17 @@
   .light textarea,
   .light select {
     color-scheme: light;
+  }
+}
+
+@media (min-width: 1024px) {
+  html {
+    font-size: 90%;
+  }
+
+  .section-shell {
+    padding-left: 1rem;
+    padding-right: 1rem;
   }
 }
 
