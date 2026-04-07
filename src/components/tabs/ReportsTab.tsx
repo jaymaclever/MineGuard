@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { CheckCircle2, ChevronRight, Clock, Download, Edit2, Search, Trash2 } from 'lucide-react';
+import { CheckCircle2, ChevronRight, Clock, Download, Edit2, Lock, Search, Trash2 } from 'lucide-react';
 import { Badge, PaginationControls } from '../ui/LayoutComponents';
 import { cn } from '../../lib/utils';
 import { Report, User } from '../../types';
@@ -237,7 +237,7 @@ export const ReportsTab: React.FC<ReportsTabProps> = ({
                               : 'border-[var(--border)] bg-[var(--surface-3)] text-[var(--text-muted)]'
                         )}
                       >
-                        {report.status === 'Concluído' ? <CheckCircle2 size={10} /> : <Clock size={10} />}
+                        {report.status === 'Concluído' ? <CheckCircle2 size={10} /> : report.status === 'Aprovado' ? <Lock size={10} /> : <Clock size={10} />}
                         {report.status || 'Aberto'}
                       </div>
                     </td>

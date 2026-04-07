@@ -2503,12 +2503,12 @@ export default function App() {
               />
             )}
 
-            {activeTab === 'evidence_library' && (
-              <EvidenceLibraryTab
-                reports={reports}
-                setSelectedReport={setSelectedReport}
-              />
-            )}
+              {activeTab === 'evidence_library' && (
+                <EvidenceLibraryTab
+                  reports={reports}
+                  onOpenReportDetails={openReportDetails}
+                />
+              )}
 
             {activeTab === 'shifts' && (
               <ShiftsTab reports={reports} />
@@ -2638,7 +2638,10 @@ export default function App() {
                               report.status === 'Aprovado' ? 'bg-blue-500/10 text-blue-400' :
                               'bg-amber-500/10 text-amber-400'
                             )}>
-                              {report.status || 'Aberto'}
+                              <span className="inline-flex items-center gap-1.5">
+                                {report.status === 'Concluído' ? <CheckCircle2 size={12} /> : report.status === 'Aprovado' ? <Lock size={12} /> : <Clock size={12} />}
+                                <span>{report.status || 'Aberto'}</span>
+                              </span>
                             </span>
                           </td>
                           <td className="px-6 py-4 text-right">

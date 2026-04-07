@@ -92,8 +92,6 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({
 }) => {
   const [photoViewerIndex, setPhotoViewerIndex] = useState<number | null>(null);
 
-  if (!isOpen && !showPreview) return null;
-
   const configuredSectors = getConfiguredSectors(systemSettings);
   const dynamicFieldValues = getDynamicFieldValues(newReport.metadata);
   const visibleItems = formItems.filter((item) => isVisible(item, newReport.categoria));
@@ -115,6 +113,8 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({
       });
     };
   }, [photoItems]);
+
+  if (!isOpen && !showPreview) return null;
 
   const updateDynamicFieldValue = (fieldId: string, value: any) => {
     setNewReport((current: NewReportState) => ({
