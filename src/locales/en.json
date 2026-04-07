@@ -237,6 +237,71 @@
         }
       }
     },
+    "mapTab": {
+      "navLabel": "Map",
+      "badge": "Operational Geography",
+      "title": "Map",
+      "subtitle": "Visual foundation to link available sectors to real locations and improve operational reading by area.",
+      "metrics": {
+        "georeferenced": "Georeferenced occurrences",
+        "mappedSectors": "Mapped sectors",
+        "pendingSectors": "Pending sectors"
+      },
+      "mapCardTitle": "Operational map",
+      "mapCardSubtitle": "Central occurrence view and the future base for geographic sectors",
+      "editor": {
+        "sidebarTitle": "Sectors",
+        "sidebarSubtitle": "Quick selection of the available sectors",
+        "instructions": "Select a sector, click on the map to mark its position, and save the location. This does not change old reports, it only adds the visual sector linkage.",
+        "loading": "Loading sectors...",
+        "empty": "There are no sectors configured yet in the operational settings.",
+        "statusMapped": "Location configured",
+        "statusPending": "No location defined",
+        "mapTitle": "Geographic sector editor",
+        "mapSubtitle": "Click on the map to mark or correct the official position of each sector",
+        "selectedSectorHint": "Active sector: {{sector}}",
+        "pickSectorHint": "Select a sector and click on the map to position it",
+        "currentSector": "Current sector",
+        "noSectorSelected": "No sector selected",
+        "coordinates": "Coordinates",
+        "coordinatesEmpty": "Click on the map to choose the sector point.",
+        "notes": "Internal notes",
+        "notesPlaceholder": "Ex.: main access, north side, near the gate...",
+        "save": "Save location",
+        "clear": "Remove location",
+        "updatedBy": "Updated by {{user}}",
+        "selectSectorFirst": "Select a sector first.",
+        "pickPointFirst": "Pick a point on the map first."
+      },
+      "feedback": {
+        "loadError": "Unable to load map sectors.",
+        "saveError": "Unable to save the sector location.",
+        "saveSuccess": "Sector location saved successfully.",
+        "clearError": "Unable to remove the sector location.",
+        "clearSuccess": "Sector location removed successfully.",
+        "selectSectorFirst": "Select a sector first.",
+        "pickPointFirst": "Click on the map to define the sector location."
+      },
+      "cards": {
+        "sectors": {
+          "title": "Available sectors",
+          "subtitle": "Active map linkage",
+          "body": "Each sector can now receive an official map position, preparing the system for filters, reports, and assisted filling."
+        },
+        "access": {
+          "title": "Hierarchical access",
+          "subtitle": "Officer and above",
+          "body": "Map access is now available to Officer, Sierra 2, Sierra 1, Admin, and Superadmin."
+        },
+        "roadmap": {
+          "title": "Planned evolution",
+          "subtitle": "Next improvements",
+          "item1": "Mark points and areas directly on the map.",
+          "item2": "Associate locations with the available sectors.",
+          "item3": "Use sector and map data when registering occurrences."
+        }
+      }
+    },
     "tabs": {
       "occurrencesLog": "OCCURRENCES LOG",
       "occurrencesLogSubtitle": "Complete history of operational records.",
@@ -483,6 +548,7 @@
       "notAssessed": "Not assessed",
       "noActionRecorded": "No action recorded",
       "noConfiguredSector": "No configured sector.",
+      "locationHint": "The official location of {{sector}} will be applied automatically to the occurrence.",
       "photoCount_one": "{{count}} photo",
       "photoCount_other": "{{count}} photos",
       "fields": {

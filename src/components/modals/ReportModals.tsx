@@ -47,12 +47,20 @@ interface SettingItem {
   value: string;
 }
 
+interface SectorLocation {
+  sector_name: string;
+  lat: number | null;
+  lng: number | null;
+  is_mapped: boolean;
+}
+
 interface NewReportModalProps {
   isOpen: boolean;
   showPreview: boolean;
   newReport: NewReportState;
   newReportStep: number;
   systemSettings: SettingItem[];
+  sectorLocations: SectorLocation[];
   dynamicFields: DynamicFieldDefinition[];
   formItems: FormItem[];
   availableParticipantUsers: User[];
@@ -87,6 +95,7 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({
   showPreview,
   newReport,
   systemSettings,
+  sectorLocations,
   formItems,
   availableParticipantUsers,
   currentUserId,
@@ -219,7 +228,7 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({
       case 'base:safety_ppe':
         return <div key={item.id} className="space-y-2"><label className="text-[10px] font-black uppercase tracking-widest text-orange-400">Uso de EPI</label><select value={newReport.metadata?.ppeUsage || ''} onChange={(e) => setNewReport((c: NewReportState) => ({ ...c, metadata: { ...(c.metadata || {}), ppeUsage: e.target.value } }))} className="w-full rounded-xl border border-orange-500/40 bg-zinc-950 px-4 py-3 text-sm focus:border-orange-500 focus:outline-none"><option value="">Selecione...</option><option value="Total">Sim, todos adequados</option><option value="Parcial">Parcial / inadequado</option><option value="Nenhum">Não estava a usar</option></select></div>;
       case 'base:sector':
-        return <div key={item.id} className="space-y-2 md:col-span-2"><label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{t('app.reportModal.fields.sector')}</label><div className="flex flex-wrap gap-2 rounded-xl border border-zinc-800 bg-zinc-950/30 p-3">{configuredSectors.map((sector) => { const selected = newReport.setor ? newReport.setor.split(', ').includes(sector) : false; return <button key={sector} type="button" onClick={() => { const selectedItems = newReport.setor ? newReport.setor.split(', ').filter(Boolean) : []; const next = selected ? selectedItems.filter((item) => item !== sector) : [...selectedItems, sector]; setNewReport((c: NewReportState) => ({ ...c, setor: next.join(', ') })); }} className={cn('rounded-lg border px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest transition-all', selected ? 'border-primary/50 bg-primary/15 text-primary' : 'border-zinc-800 bg-zinc-900 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200')}>{sector}</button>; })}{configuredSectors.length === 0 && <p className="text-xs italic text-zinc-600">{t('app.reportModal.noConfiguredSector')}</p>}</div></div>;
+        return <div key={item.id} className="space-y-2 md:col-span-2"><label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{t('app.reportModal.fields.sector')}</label><div className="flex flex-wrap gap-2 rounded-xl border border-zinc-800 bg-zinc-950/30 p-3">{configuredSectors.map((sector) => { const selected = newReport.setor ? newReport.setor.split(', ').includes(sector) : false; return <button key={sector} type="button" onClick={() => { const selectedItems = newReport.setor ? newReport.setor.split(', ').filter(Boolean) : []; const next = selected ? selectedItems.filter((item) => item !== sector) : [...selectedItems, sector]; setNewReport((c: NewReportState) => ({ ...c, setor: next.join(', ') })); }} className={cn('rounded-lg border px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest transition-all', selected ? 'border-primary/50 bg-primary/15 text-primary' : 'border-zinc-800 bg-zinc-900 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200')}>{sector}</button>; })}{configuredSectors.length === 0 && <p className="text-xs italic text-zinc-600">{t('app.reportModal.noConfiguredSector')}</p>}</div>{(() => { const mappedSector = String(newReport.setor || '').split(',').map((item) => item.trim()).filter(Boolean).map((sectorName) => sectorLocations.find((sector) => sector.sector_name === sectorName && sector.is_mapped)).find(Boolean); if (!mappedSector) return null; return <p className="text-[11px] text-emerald-400">{t('app.reportModal.locationHint', { sector: mappedSector.sector_name })}</p>; })()}</div>;
       case 'base:people':
         return <div key={item.id} className="space-y-2"><label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{t('app.reportModal.fields.people')}</label><input type="number" min="0" value={newReport.pessoas_envolvidas} onChange={(e) => setNewReport((c: NewReportState) => ({ ...c, pessoas_envolvidas: e.target.value }))} className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm focus:border-primary focus:outline-none" /></div>;
       case 'base:equipment':

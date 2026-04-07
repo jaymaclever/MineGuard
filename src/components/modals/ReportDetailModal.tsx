@@ -19,16 +19,18 @@ interface ReportData {
   testemunhas?: string; potencial_risco?: string; metadata?: any; photos?: ReportPhoto[]; participants?: ReportParticipant[];
 }
 interface EditingReportData {
-  titulo: string; descricao: string; setor: string; equipamento: string; acao_imediata: string;
+  titulo: string; descricao: string; coords_lat: string; coords_lng: string; setor: string; equipamento: string; acao_imediata: string;
   testemunhas: string; potencial_risco: string; metadata?: any; dynamicFieldValues: Record<string, any>;
   fotos: Array<{ file: File; caption: string }>;
   participant_ids: number[];
 }
+interface SectorLocation { sector_name: string; lat: number | null; lng: number | null; is_mapped: boolean; }
 type FormItem = { id: string; label: string; type: string; scope: string; categories?: string[]; active: boolean; isDynamic: boolean; field?: DynamicFieldDefinition | null };
 interface ReportDetailModalProps {
   report: ReportData | null;
   currentUser: any;
   systemSettings: Array<{ key: string; value: string }>;
+  sectorLocations: SectorLocation[];
   dynamicFields: DynamicFieldDefinition[];
   formItems: FormItem[];
   availableParticipantUsers?: User[];
@@ -62,6 +64,7 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
   report,
   currentUser,
   systemSettings,
+  sectorLocations,
   formItems,
   availableParticipantUsers,
   isEditing,
@@ -205,7 +208,7 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
       case 'base:severity':
         return <div key={item.id} className="space-y-2"><label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{t('forms.severity')}</label><div><Badge gravidade={report.gravidade as any} /></div></div>;
       case 'base:sector':
-        return <div key={item.id} className="space-y-2 md:col-span-2"><label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{t('app.reportModal.fields.sector')}</label>{isEditing ? <div className="flex flex-wrap gap-2 rounded-xl border border-zinc-800 bg-zinc-950/30 p-3">{configuredSectors.map((sector) => { const selected = editingData.setor ? editingData.setor.split(', ').includes(sector) : false; return <button key={sector} type="button" onClick={() => { const selectedItems = editingData.setor ? editingData.setor.split(', ').filter(Boolean) : []; const next = selected ? selectedItems.filter((item) => item !== sector) : [...selectedItems, sector]; setEditingData((c: EditingReportData) => ({ ...c, setor: next.join(', ') })); }} className={cn('rounded-lg border px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest transition-all', selected ? 'border-primary/50 bg-primary/15 text-primary' : 'border-zinc-800 bg-zinc-900 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200')}>{sector}</button>; })}</div> : <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-3 text-sm text-zinc-300">{viewValue}</div>}</div>;
+        return <div key={item.id} className="space-y-2 md:col-span-2"><label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{t('app.reportModal.fields.sector')}</label>{isEditing ? <><div className="flex flex-wrap gap-2 rounded-xl border border-zinc-800 bg-zinc-950/30 p-3">{configuredSectors.map((sector) => { const selected = editingData.setor ? editingData.setor.split(', ').includes(sector) : false; return <button key={sector} type="button" onClick={() => { const selectedItems = editingData.setor ? editingData.setor.split(', ').filter(Boolean) : []; const next = selected ? selectedItems.filter((item) => item !== sector) : [...selectedItems, sector]; setEditingData((c: EditingReportData) => ({ ...c, setor: next.join(', ') })); }} className={cn('rounded-lg border px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest transition-all', selected ? 'border-primary/50 bg-primary/15 text-primary' : 'border-zinc-800 bg-zinc-900 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200')}>{sector}</button>; })}</div>{(() => { const mappedSector = String(editingData.setor || '').split(',').map((item) => item.trim()).filter(Boolean).map((sectorName) => sectorLocations.find((sector) => sector.sector_name === sectorName && sector.is_mapped)).find(Boolean); if (!mappedSector) return null; return <p className="text-[11px] text-emerald-400">{t('app.reportModal.locationHint', { sector: mappedSector.sector_name })}</p>; })()}</> : <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-3 text-sm text-zinc-300">{viewValue}</div>}</div>;
       case 'base:equipment':
         return <div key={item.id} className="space-y-2"><label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{t('app.reportModal.fields.equipment')}</label>{isEditing ? <input type="text" value={editingData.equipamento} onChange={(e) => setEditingData((c: EditingReportData) => ({ ...c, equipamento: e.target.value }))} className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm focus:border-primary focus:outline-none" /> : <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-3 text-sm text-zinc-300">{viewValue}</div>}</div>;
       case 'base:risk':

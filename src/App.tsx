@@ -67,6 +67,7 @@ import { CriticalOccurrencesTab } from './components/tabs/CriticalOccurrencesTab
 import { TimelineTab } from './components/tabs/TimelineTab';
 import { EvidenceLibraryTab } from './components/tabs/EvidenceLibraryTab';
 import { ShiftsTab } from './components/tabs/ShiftsTab';
+import { MapTab } from './components/tabs/MapTab';
 import { AlertsTab } from './components/tabs/AlertsTab';
 import { UsersTab } from './components/tabs/UsersTab';
 import { SettingsTab } from './components/tabs/SettingsTab';
@@ -160,6 +161,18 @@ interface Stats {
   reportsByCategory: { name: string, value: number }[];
   reportsBySeverity: { name: string, value: number }[];
   reportsLast7Days: { date: string, count: number }[];
+}
+
+interface SectorLocation {
+  id: number | null;
+  sector_name: string;
+  location_type: 'point';
+  lat: number | null;
+  lng: number | null;
+  notes?: string;
+  is_mapped: boolean;
+  updated_at?: string | null;
+  updated_by_name?: string | null;
 }
 
 // --- UI Components ---
@@ -461,6 +474,7 @@ export default function App() {
     'command_center' |
     'critical_occurrences' |
     'timeline' |
+    'map' |
     'evidence_library' |
     'shifts' |
     'reports' |
@@ -479,6 +493,7 @@ export default function App() {
       'command_center' |
       'critical_occurrences' |
       'timeline' |
+      'map' |
       'evidence_library' |
       'shifts' |
       'reports' |
@@ -518,6 +533,7 @@ export default function App() {
   const [dailyReportTeam, setDailyReportTeam] = useState<any>(null);
   const [showReportPreview, setShowReportPreview] = useState(false);
   const [systemSettings, setSystemSettings] = useState<any[]>([]);
+  const [sectorLocations, setSectorLocations] = useState<SectorLocation[]>([]);
   const [publicSettings, setPublicSettings] = useState<any>({
     app_name: 'MINEGUARD',
     app_slogan: 'Security Operating System',
@@ -559,6 +575,9 @@ export default function App() {
   const [showInstallBtn, setShowInstallBtn] = useState(false);
   const [showInstallGuide, setShowInstallGuide] = useState(false);
   const canManageSystem = currentUser?.permissions?.manage_settings === true || currentUser?.nivel_hierarquico === 'Superadmin';
+  const canAccessMap =
+    canManageSystem ||
+    ['Oficial', 'Sierra 1', 'Sierra 2', 'Admin', 'Superadmin'].includes(currentUser?.nivel_hierarquico || '');
   const isCompactNavigation = publicSettings.app_layout === 'compact' || focusMode;
   const canGenerateDailyReports =
     canManageSystem ||
@@ -653,6 +672,8 @@ export default function App() {
     return {
       titulo: '',
       descricao: '',
+      coords_lat: '',
+      coords_lng: '',
       setor: '',
       equipamento: '',
       acao_imediata: '',
@@ -690,6 +711,8 @@ export default function App() {
   const [editingReportData, setEditingReportData] = useState<{
     titulo: string;
     descricao: string;
+    coords_lat: string;
+    coords_lng: string;
     setor: string;
     equipamento: string;
     acao_imediata: string;
@@ -703,6 +726,61 @@ export default function App() {
   
   // Form States
   const [newReport, setNewReport] = useState(createEmptyNewReport());
+
+  const getOfficialSectorCoordinates = (sectorValue: string) => {
+    const selectedSectors = String(sectorValue || '')
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean);
+
+    for (const sectorName of selectedSectors) {
+      const mappedSector = sectorLocations.find(
+        (sector) =>
+          sector.sector_name === sectorName &&
+          sector.is_mapped &&
+          Number.isFinite(Number(sector.lat)) &&
+          Number.isFinite(Number(sector.lng)),
+      );
+
+      if (mappedSector) {
+        return {
+          lat: String(mappedSector.lat),
+          lng: String(mappedSector.lng),
+          sector_name: mappedSector.sector_name,
+        };
+      }
+    }
+
+    return null;
+  };
+
+  useEffect(() => {
+    const officialCoords = getOfficialSectorCoordinates(newReport.setor);
+    const nextLat = officialCoords?.lat || '';
+    const nextLng = officialCoords?.lng || '';
+
+    if (newReport.coords_lat !== nextLat || newReport.coords_lng !== nextLng) {
+      setNewReport((current: any) => ({
+        ...current,
+        coords_lat: nextLat,
+        coords_lng: nextLng,
+      }));
+    }
+  }, [newReport.setor, sectorLocations]);
+
+  useEffect(() => {
+    const officialCoords = getOfficialSectorCoordinates(editingReportData.setor);
+    const nextLat = officialCoords?.lat || '';
+    const nextLng = officialCoords?.lng || '';
+
+    if (editingReportData.coords_lat !== nextLat || editingReportData.coords_lng !== nextLng) {
+      setEditingReportData((current) => ({
+        ...current,
+        coords_lat: nextLat,
+        coords_lng: nextLng,
+      }));
+    }
+  }, [editingReportData.setor, sectorLocations]);
 
   useEffect(() => {
     const defaultHeatmap = getSettingValue('show_heatmap_by_default', 'false') === 'true';
@@ -954,6 +1032,8 @@ export default function App() {
       if (perms.create_reports === true) {
         promises.push(fetch('/api/users/report-participants', { credentials: 'include' }));
         keys.push('participant_users');
+        promises.push(fetch('/api/map/sectors', { credentials: 'include' }));
+        keys.push('sector_locations');
       }
       if (perms.manage_permissions === true) {
         promises.push(fetch('/api/roles', { credentials: 'include' }));
@@ -997,6 +1077,7 @@ export default function App() {
         }
         if (key === 'users') setUsers(data);
         if (key === 'participant_users') setParticipantUsers(Array.isArray(data) ? data : []);
+        if (key === 'sector_locations') setSectorLocations(Array.isArray(data?.sectors) ? data.sectors : []);
         if (key === 'roles') setRoles(data);
         if (key === 'stats') setStats(data);
         if (key === 'daily') setDailyReports(Array.isArray(data) ? data : []);
@@ -1181,6 +1262,8 @@ export default function App() {
       setEditingReportData({
         titulo: selectedReport.titulo || '',
         descricao: selectedReport.descricao || '',
+        coords_lat: selectedReport.coords_lat ? String(selectedReport.coords_lat) : '',
+        coords_lng: selectedReport.coords_lng ? String(selectedReport.coords_lng) : '',
         setor: (selectedReport as any).setor || '',
         equipamento: (selectedReport as any).equipamento || '',
         acao_imediata: (selectedReport as any).acao_imediata || '',
@@ -1484,6 +1567,8 @@ export default function App() {
     setEditingReportData({
       titulo: selectedReport.titulo || '',
       descricao: selectedReport.descricao || '',
+      coords_lat: selectedReport.coords_lat ? String(selectedReport.coords_lat) : '',
+      coords_lng: selectedReport.coords_lng ? String(selectedReport.coords_lng) : '',
       setor: selectedReport.setor || '',
       equipamento: selectedReport.equipamento || '',
       acao_imediata: selectedReport.acao_imediata || '',
@@ -1502,6 +1587,8 @@ export default function App() {
       setEditingReportData({
         titulo: selectedReport.titulo || '',
         descricao: selectedReport.descricao || '',
+        coords_lat: selectedReport.coords_lat ? String(selectedReport.coords_lat) : '',
+        coords_lng: selectedReport.coords_lng ? String(selectedReport.coords_lng) : '',
         setor: selectedReport.setor || '',
         equipamento: selectedReport.equipamento || '',
         acao_imediata: selectedReport.acao_imediata || '',
@@ -1811,6 +1898,8 @@ export default function App() {
       const formData = new FormData();
       formData.append('titulo', editingReportData.titulo.trim());
       formData.append('descricao', editingReportData.descricao.trim());
+      formData.append('coords_lat', editingReportData.coords_lat || '');
+      formData.append('coords_lng', editingReportData.coords_lng || '');
       formData.append('setor', editingReportData.setor);
       formData.append('equipamento', editingReportData.equipamento);
       formData.append('acao_imediata', editingReportData.acao_imediata);
@@ -1889,6 +1978,7 @@ export default function App() {
     command_center: { title: t('app.shell.views.commandCenter.title'), subtitle: t('app.shell.views.commandCenter.subtitle') },
     critical_occurrences: { title: t('app.shell.views.criticalOccurrences.title'), subtitle: t('app.shell.views.criticalOccurrences.subtitle') },
     timeline: { title: t('app.shell.views.timeline.title'), subtitle: t('app.shell.views.timeline.subtitle') },
+    map: { title: t('app.mapTab.title'), subtitle: t('app.mapTab.subtitle') },
     evidence_library: { title: t('app.shell.views.evidenceLibrary.title'), subtitle: t('app.shell.views.evidenceLibrary.subtitle') },
     shifts: { title: t('app.shell.views.shifts.title'), subtitle: t('app.shell.views.shifts.subtitle') },
     reports: { title: t('app.sidebar.occurrences'), subtitle: t('app.shell.views.reports.subtitle') },
@@ -1938,6 +2028,8 @@ export default function App() {
     setEditingReportData({
       titulo: report.titulo || '',
       descricao: report.descricao,
+      coords_lat: report.coords_lat ? String(report.coords_lat) : '',
+      coords_lng: report.coords_lng ? String(report.coords_lng) : '',
       setor: report.setor || '',
       equipamento: report.equipamento || '',
       acao_imediata: report.acao_imediata || '',
@@ -2064,6 +2156,7 @@ export default function App() {
           {currentUser.permissions?.view_dashboard === true && <SidebarItem icon={Shield} label={t('app.shell.views.commandCenter.title')} active={activeTab === 'command_center'} compact={isCompactNavigation} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('command_center')} />}
           {currentUser.permissions?.view_reports === true && <SidebarItem icon={AlertTriangle} label={t('app.shell.views.criticalOccurrences.title')} active={activeTab === 'critical_occurrences'} compact={isCompactNavigation} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('critical_occurrences')} />}
           {currentUser.permissions?.view_dashboard === true && <SidebarItem icon={Clock} label={t('app.shell.views.timeline.title')} active={activeTab === 'timeline'} compact={isCompactNavigation} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('timeline')} />}
+          {canAccessMap && <SidebarItem icon={MapPin} label={t('app.mapTab.navLabel')} active={activeTab === 'map'} compact={isCompactNavigation} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('map')} />}
           {currentUser.permissions?.view_reports === true && <SidebarItem icon={Camera} label={t('app.shell.views.evidenceLibrary.title')} active={activeTab === 'evidence_library'} compact={isCompactNavigation} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('evidence_library')} />}
           {currentUser.permissions?.view_team_daily && <SidebarItem icon={Users} label={t('app.shell.views.shifts.title')} active={activeTab === 'shifts'} compact={isCompactNavigation} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('shifts')} />}
           {currentUser.permissions?.view_reports === true && <SidebarItem icon={FileText} label={t('app.sidebar.occurrences')} active={activeTab === 'reports'} compact={isCompactNavigation} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('reports')} />}
@@ -2587,6 +2680,16 @@ export default function App() {
               />
             )}
 
+            {activeTab === 'map' && canAccessMap && (
+              <MapTab
+                reports={reports}
+                mapCenter={mapCenter}
+                showHeatmap={showHeatmap}
+                onToggleHeatmap={() => setShowHeatmap(!showHeatmap)}
+                onOpenReportDetails={openReportDetails}
+              />
+            )}
+
               {activeTab === 'evidence_library' && (
                 <EvidenceLibraryTab
                   reports={reports}
@@ -2738,6 +2841,8 @@ export default function App() {
                                   setEditingReportData({
                                     titulo: report.titulo || '',
                                     descricao: report.descricao,
+                                    coords_lat: report.coords_lat ? String(report.coords_lat) : '',
+                                    coords_lng: report.coords_lng ? String(report.coords_lng) : '',
                                     setor: report.setor || '',
                                     equipamento: report.equipamento || '',
                                     acao_imediata: report.acao_imediata || '',
@@ -4079,6 +4184,7 @@ export default function App() {
             newReport={newReport}
             newReportStep={newReportStep}
             systemSettings={systemSettings as any}
+            sectorLocations={sectorLocations as any}
             dynamicFields={reportDynamicFields as any}
             formItems={reportFormItems as any}
             availableParticipantUsers={participantUsers}
@@ -4120,6 +4226,7 @@ export default function App() {
             report={selectedReport as any}
             currentUser={currentUser}
             systemSettings={systemSettings as any}
+            sectorLocations={sectorLocations as any}
             dynamicFields={reportDynamicFields as any}
             formItems={reportFormItems as any}
             availableParticipantUsers={participantUsers}
@@ -4235,6 +4342,7 @@ export default function App() {
                   currentUser.permissions?.view_dashboard === true ? { key: 'command_center', label: 'Centro de Comando', icon: Shield } : null,
                   currentUser.permissions?.view_reports === true ? { key: 'critical_occurrences', label: 'Ocorrências Críticas', icon: AlertTriangle } : null,
                   currentUser.permissions?.view_dashboard === true ? { key: 'timeline', label: 'Linha do Tempo', icon: Clock } : null,
+                  canAccessMap ? { key: 'map', label: t('app.mapTab.navLabel'), icon: MapPin } : null,
                   currentUser.permissions?.view_reports === true ? { key: 'evidence_library', label: 'Biblioteca', icon: Camera } : null,
                   currentUser.permissions?.view_team_daily ? { key: 'shifts', label: 'Turnos', icon: Users } : null,
                   { key: 'personal_reports', label: 'Meus Relatórios', icon: FileText },

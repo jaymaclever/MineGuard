@@ -98,7 +98,7 @@ db.exec(`
       FOREIGN KEY(report_id) REFERENCES reports(id) ON DELETE CASCADE
     );
 
-    CREATE TABLE IF NOT EXISTS report_participants (
+  CREATE TABLE IF NOT EXISTS report_participants (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       report_id INTEGER NOT NULL,
       user_id INTEGER NOT NULL,
@@ -108,6 +108,18 @@ db.exec(`
       FOREIGN KEY(report_id) REFERENCES reports(id) ON DELETE CASCADE,
       FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
       FOREIGN KEY(added_by) REFERENCES users(id) ON DELETE SET NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS sector_locations (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      sector_name TEXT UNIQUE NOT NULL,
+      location_type TEXT NOT NULL DEFAULT 'point',
+      lat REAL,
+      lng REAL,
+      notes TEXT,
+      updated_by INTEGER,
+      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY(updated_by) REFERENCES users(id) ON DELETE SET NULL
     );
 
     CREATE TABLE IF NOT EXISTS alerts (
@@ -166,6 +178,7 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_reports_gravidade ON reports(gravidade);
   CREATE INDEX IF NOT EXISTS idx_reports_timestamp ON reports(timestamp);
   CREATE INDEX IF NOT EXISTS idx_reports_agente_timestamp ON reports(agente_id, timestamp);
+  CREATE INDEX IF NOT EXISTS idx_sector_locations_name ON sector_locations(sector_name);
   CREATE INDEX IF NOT EXISTS idx_audit_logs_timestamp ON audit_logs(timestamp);
   CREATE INDEX IF NOT EXISTS idx_alerts_timestamp ON alerts(timestamp);
 
@@ -759,6 +772,76 @@ async function startServer() {
     );
   };
 
+  const canAccessMap = (user: any) => {
+    const role = String(user?.nivel_hierarquico || user?.funcao || '').toLowerCase();
+    return (
+      user?.nivel_hierarquico === 'Superadmin' ||
+      user?.permissions?.manage_settings === true ||
+      ['oficial', 'sierra 1', 'sierra 2', 'supervisor', 'admin'].includes(role)
+    );
+  };
+
+  const requireMapAccess = (req: any, res: any, next: any) => {
+    if (!canAccessMap(req.user)) {
+      return res.status(403).json({ status: "error", message: "Forbidden: Insufficient permissions" });
+    }
+    next();
+  };
+
+  const getDecryptedSettingValue = (key: string, fallback = '') => {
+    const setting = db.prepare("SELECT value FROM system_settings WHERE key = ?").get(key) as { value?: string } | undefined;
+    if (!setting?.value) return fallback;
+    try {
+      return decrypt(setting.value);
+    } catch (error) {
+      return setting.value || fallback;
+    }
+  };
+
+  const listConfiguredSectors = () =>
+    getDecryptedSettingValue('form_sectors', '')
+      .split(',')
+      .map((value) => value.trim())
+      .filter(Boolean);
+
+  const listSectorLocations = () => {
+    const configuredSectors = Array.from(new Set(listConfiguredSectors()));
+    const savedLocations = db.prepare(`
+      SELECT sl.id, sl.sector_name, sl.location_type, sl.lat, sl.lng, sl.notes, sl.updated_at, sl.updated_by, u.nome as updated_by_name
+      FROM sector_locations sl
+      LEFT JOIN users u ON u.id = sl.updated_by
+      ORDER BY sl.sector_name COLLATE NOCASE ASC
+    `).all() as any[];
+
+    const bySector = new Map(savedLocations.map((location) => [String(location.sector_name), location]));
+    const merged = configuredSectors.map((sectorName) => {
+      const saved = bySector.get(sectorName);
+      return {
+        id: saved?.id ?? null,
+        sector_name: sectorName,
+        location_type: saved?.location_type ?? 'point',
+        lat: saved?.lat ?? null,
+        lng: saved?.lng ?? null,
+        notes: saved?.notes ?? '',
+        is_mapped: Number.isFinite(Number(saved?.lat)) && Number.isFinite(Number(saved?.lng)),
+        updated_at: saved?.updated_at ?? null,
+        updated_by: saved?.updated_by ?? null,
+        updated_by_name: saved?.updated_by_name ?? null,
+      };
+    });
+
+    savedLocations.forEach((location) => {
+      if (!configuredSectors.includes(String(location.sector_name))) {
+        merged.push({
+          ...location,
+          is_mapped: Number.isFinite(Number(location.lat)) && Number.isFinite(Number(location.lng)),
+        });
+      }
+    });
+
+    return merged.sort((a, b) => String(a.sector_name).localeCompare(String(b.sector_name), 'pt'));
+  };
+
   app.post("/api/reports/generate-now", authenticate, (req: any, res, next) => {
     if (!canGenerateDailyReports(req.user)) {
       return res.status(403).json({ status: "error", message: "Forbidden: Insufficient permissions" });
@@ -774,6 +857,74 @@ async function startServer() {
         file: path.basename(result.filePath),
         reportId: result.id,
         reportDate: result.snapshot.reportDate,
+      });
+    } catch (err: any) {
+      res.status(500).json({ status: "error", message: err.message });
+    }
+  });
+
+  app.get("/api/map/sectors", authenticate, (req, res) => {
+    try {
+      res.json({ status: "ok", sectors: listSectorLocations() });
+    } catch (err: any) {
+      res.status(500).json({ status: "error", message: err.message });
+    }
+  });
+
+  app.put("/api/map/sectors", authenticate, requireMapAccess, (req: any, res) => {
+    try {
+      const sectorName = String(req.body?.sector_name || '').trim();
+      const lat = Number(req.body?.lat);
+      const lng = Number(req.body?.lng);
+      const notes = String(req.body?.notes || '').trim();
+
+      if (!sectorName) {
+        return res.status(400).json({ status: "error", message: "Sector name is required." });
+      }
+
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+        return res.status(400).json({ status: "error", message: "Valid coordinates are required." });
+      }
+
+      const knownSectors = listConfiguredSectors();
+      if (knownSectors.length > 0 && !knownSectors.includes(sectorName)) {
+        return res.status(400).json({ status: "error", message: "Unknown sector." });
+      }
+
+      db.prepare(`
+        INSERT INTO sector_locations (sector_name, location_type, lat, lng, notes, updated_by, updated_at)
+        VALUES (?, 'point', ?, ?, ?, ?, CURRENT_TIMESTAMP)
+        ON CONFLICT(sector_name) DO UPDATE SET
+          location_type = 'point',
+          lat = excluded.lat,
+          lng = excluded.lng,
+          notes = excluded.notes,
+          updated_by = excluded.updated_by,
+          updated_at = CURRENT_TIMESTAMP
+      `).run(sectorName, lat, lng, notes, req.user.id);
+
+      res.json({
+        status: "ok",
+        message: "Localização do setor guardada com sucesso.",
+        sectors: listSectorLocations(),
+      });
+    } catch (err: any) {
+      res.status(500).json({ status: "error", message: err.message });
+    }
+  });
+
+  app.delete("/api/map/sectors/:sectorName", authenticate, requireMapAccess, (req, res) => {
+    try {
+      const sectorName = decodeURIComponent(String(req.params.sectorName || '')).trim();
+      if (!sectorName) {
+        return res.status(400).json({ status: "error", message: "Sector name is required." });
+      }
+
+      db.prepare("DELETE FROM sector_locations WHERE sector_name = ?").run(sectorName);
+      res.json({
+        status: "ok",
+        message: "Localização do setor removida com sucesso.",
+        sectors: listSectorLocations(),
       });
     } catch (err: any) {
       res.status(500).json({ status: "error", message: err.message });
@@ -1520,6 +1671,8 @@ async function startServer() {
       titulo,
       descricao,
       setor,
+      coords_lat,
+      coords_lng,
       equipamento,
       acao_imediata,
       testemunhas,
@@ -1552,6 +1705,8 @@ async function startServer() {
         { key: "titulo", value: titulo },
         { key: "descricao", value: descricao },
         { key: "setor", value: setor },
+        { key: "coords_lat", value: coords_lat },
+        { key: "coords_lng", value: coords_lng },
         { key: "equipamento", value: equipamento },
         { key: "acao_imediata", value: acao_imediata },
         { key: "testemunhas", value: testemunhas },

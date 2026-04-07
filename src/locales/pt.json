@@ -237,6 +237,71 @@
         }
       }
     },
+    "mapTab": {
+      "navLabel": "Mapa",
+      "badge": "Geografia Operacional",
+      "title": "Mapa",
+      "subtitle": "Base visual para ligar setores disponíveis a localizações reais e melhorar a leitura operacional por zona.",
+      "metrics": {
+        "georeferenced": "Ocorrências georreferenciadas",
+        "mappedSectors": "Setores mapeados",
+        "pendingSectors": "Setores pendentes"
+      },
+      "mapCardTitle": "Mapa operacional",
+      "mapCardSubtitle": "Visualização central das ocorrências e futura base para os setores geográficos",
+      "editor": {
+        "sidebarTitle": "Setores",
+        "sidebarSubtitle": "Seleção rápida dos setores disponíveis",
+        "instructions": "Selecione um setor, clique no mapa para marcar a posição e guarde a localização. Isso não altera relatórios antigos, apenas a ligação visual do setor.",
+        "loading": "A carregar setores...",
+        "empty": "Ainda não existem setores disponíveis nas parametrizações operacionais.",
+        "statusMapped": "Localização configurada",
+        "statusPending": "Sem localização definida",
+        "mapTitle": "Editor geográfico de setores",
+        "mapSubtitle": "Clique no mapa para marcar ou corrigir a posição oficial de cada setor",
+        "selectedSectorHint": "Setor ativo: {{sector}}",
+        "pickSectorHint": "Selecione um setor e clique no mapa para posicionar",
+        "currentSector": "Setor atual",
+        "noSectorSelected": "Nenhum setor selecionado",
+        "coordinates": "Coordenadas",
+        "coordinatesEmpty": "Clique no mapa para escolher o ponto do setor.",
+        "notes": "Notas internas",
+        "notesPlaceholder": "Ex.: acesso principal, lado norte, próximo ao portão...",
+        "save": "Guardar localização",
+        "clear": "Remover localização",
+        "updatedBy": "Atualizado por {{user}}",
+        "selectSectorFirst": "Selecione primeiro um setor.",
+        "pickPointFirst": "Escolha primeiro um ponto no mapa."
+      },
+      "feedback": {
+        "loadError": "Não foi possível carregar os setores do mapa.",
+        "saveError": "Não foi possível guardar a localização do setor.",
+        "saveSuccess": "Localização do setor guardada com sucesso.",
+        "clearError": "Não foi possível remover a localização do setor.",
+        "clearSuccess": "Localização do setor removida com sucesso.",
+        "selectSectorFirst": "Selecione primeiro um setor.",
+        "pickPointFirst": "Clique no mapa para definir a localização do setor."
+      },
+      "cards": {
+        "sectors": {
+          "title": "Setores disponíveis",
+          "subtitle": "Ligação ativa ao mapa",
+          "body": "Cada setor pode agora receber uma posição oficial no mapa, preparando o sistema para filtros, relatórios e preenchimento assistido."
+        },
+        "access": {
+          "title": "Acesso hierárquico",
+          "subtitle": "Oficial e acima",
+          "body": "O acesso ao mapa está agora disponível para Oficial, Sierra 2, Sierra 1, Admin e Superadmin."
+        },
+        "roadmap": {
+          "title": "Evolução prevista",
+          "subtitle": "Próximas melhorias",
+          "item1": "Marcar pontos e áreas diretamente no mapa.",
+          "item2": "Associar localizações aos setores disponíveis.",
+          "item3": "Usar setor e mapa no registo das ocorrências."
+        }
+      }
+    },
     "tabs": {
       "occurrencesLog": "LOG DE OCORRÊNCIAS",
       "occurrencesLogSubtitle": "Histórico completo de registos operacionais.",
@@ -483,6 +548,7 @@
       "notAssessed": "Não avaliado",
       "noActionRecorded": "Nenhuma ação registada",
       "noConfiguredSector": "Nenhum setor parametrizado.",
+      "locationHint": "A localização oficial de {{sector}} será aplicada automaticamente à ocorrência.",
       "photoCount_one": "{{count}} fotografia",
       "photoCount_other": "{{count}} fotografias",
       "fields": {
