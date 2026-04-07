@@ -47,6 +47,7 @@ import {
 } from 'recharts';
 import { Toaster, toast } from 'sonner';
 import { cn } from './lib/utils';
+import { formatDate, formatDateTime, formatTime, LUANDA_TIMEZONE_LABEL } from './lib/datetime';
 import { OperationsMapPanel } from './components/ui/OperationsMapPanel';
 import { DailyReportsWorkspaceTab } from './components/tabs/DailyReportsWorkspaceTab';
 import { ReportsTab } from './components/tabs/ReportsTab';
@@ -512,6 +513,8 @@ export default function App() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallBtn, setShowInstallBtn] = useState(false);
   const [showInstallGuide, setShowInstallGuide] = useState(false);
+  const canManageSystem = currentUser?.permissions?.manage_settings === true || currentUser?.nivel_hierarquico === 'Superadmin';
+  const getSettingValue = (key: string, fallback = '') => systemSettings.find((setting) => setting.key === key)?.value || fallback;
 
   // PWA Logic
   useEffect(() => {
@@ -565,8 +568,8 @@ export default function App() {
   function createEmptyNewReport() {
     return {
       titulo: '',
-      categoria: 'Valores' as Categoria,
-      gravidade: 'G1' as Gravidade,
+      categoria: (getSettingValue('default_report_category', 'Valores') as Categoria),
+      gravidade: (getSettingValue('default_report_severity', 'G1') as Gravidade),
       descricao: '',
       coords_lat: '',
       coords_lng: '',
@@ -595,6 +598,11 @@ export default function App() {
   
   // Form States
   const [newReport, setNewReport] = useState(createEmptyNewReport());
+
+  useEffect(() => {
+    const defaultHeatmap = getSettingValue('show_heatmap_by_default', 'false') === 'true';
+    setShowHeatmap(defaultHeatmap);
+  }, [systemSettings]);
 
   const [newUser, setNewUser] = useState({
     nome: '',
@@ -794,7 +802,7 @@ export default function App() {
         promises.push(fetch('/api/reports/daily', { credentials: 'include' }));
         keys.push('daily');
       }
-      if (perms.manage_settings === true) {
+      if (currentUser && (perms.manage_settings === true || currentUser.nivel_hierarquico === 'Superadmin')) {
         promises.push(fetch('/api/settings', { credentials: 'include' }));
         keys.push('settings');
       }
@@ -1592,11 +1600,11 @@ export default function App() {
           <SidebarItem icon={Calendar} label={publicSettings.app_layout === 'compact' ? "" : t('app.sidebar.myDay')} active={activeTab === 'daily_report_personal'} onClick={() => setActiveTab('daily_report_personal')} />
           {currentUser.permissions?.view_team_daily && <SidebarItem icon={Users} label={publicSettings.app_layout === 'compact' ? "" : t('app.sidebar.teamDay')} active={activeTab === 'daily_report_team'} onClick={() => setActiveTab('daily_report_team')} />}
           <SidebarItem icon={AlertTriangle} label={publicSettings.app_layout === 'compact' ? "" : t('app.sidebar.alerts')} active={activeTab === 'alerts'} onClick={() => setActiveTab('alerts')} />
-          {(currentUser.permissions?.manage_users === true || currentUser.permissions?.manage_permissions === true || currentUser.permissions?.manage_settings === true) && publicSettings.app_layout !== 'compact' && <p className="nav-section-label mt-6">Administração</p>}
+          {(currentUser.permissions?.manage_users === true || currentUser.permissions?.manage_permissions === true || canManageSystem) && publicSettings.app_layout !== 'compact' && <p className="nav-section-label mt-6">Administração</p>}
           {currentUser.permissions?.manage_users === true && <SidebarItem icon={Users} label={publicSettings.app_layout === 'compact' ? "" : t('app.sidebar.staffManagement')} active={activeTab === 'users'} onClick={() => setActiveTab('users')} />}
           {currentUser.permissions?.manage_permissions === true && <SidebarItem icon={Lock} label={publicSettings.app_layout === 'compact' ? "" : t('app.sidebar.permissionsRoles')} active={activeTab === 'permissions'} onClick={() => setActiveTab('permissions')} />}
-          {currentUser.permissions?.manage_settings === true && <SidebarItem icon={SettingsIcon} label={publicSettings.app_layout === 'compact' ? '' : t('app.sidebar.settings')} active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} />}
-          {currentUser.permissions?.manage_settings === true && <SidebarItem icon={SettingsIcon} label={publicSettings.app_layout === 'compact' ? '' : t('app.sidebar.parametrization')} active={activeTab === 'parametrization'} onClick={() => setActiveTab('parametrization')} />}
+          {canManageSystem && <SidebarItem icon={SettingsIcon} label={publicSettings.app_layout === 'compact' ? '' : t('app.sidebar.settings')} active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} />}
+          {canManageSystem && <SidebarItem icon={SettingsIcon} label={publicSettings.app_layout === 'compact' ? '' : t('app.sidebar.parametrization')} active={activeTab === 'parametrization'} onClick={() => setActiveTab('parametrization')} />}
         </nav>
 
         <div className="p-4 mt-auto border-t border-[var(--border)]">
@@ -1772,7 +1780,7 @@ export default function App() {
                                   </div>
                                   <p className="text-[10px] text-[var(--text-muted)] mt-1 line-clamp-2 leading-relaxed">{notif.message}</p>
                                   <p className="text-[9px] text-zinc-600 mt-2 font-mono">
-                                    {new Date(notif.timestamp).toLocaleTimeString()}
+                                    {formatTime(notif.timestamp, normalizeLanguage(i18n.language))}
                                   </p>
                                 </div>
                                 {!notif.read && (
@@ -1978,7 +1986,7 @@ export default function App() {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between mb-0.5">
                               <p className="text-xs font-black text-zinc-200 uppercase truncate group-hover:text-primary transition-colors">{report.titulo || 'Sem Título'}</p>
-                              <span className="text-[9px] font-bold text-zinc-600">{new Date(report.timestamp).toLocaleTimeString()}</span>
+                              <span className="text-[9px] font-bold text-zinc-600">{formatTime(report.timestamp, normalizeLanguage(i18n.language))}</span>
                             </div>
                             <p className="text-[10px] text-zinc-500 line-clamp-1">{report.descricao}</p>
                             <button className="sm:hidden mt-1 text-[8px] font-black text-primary uppercase tracking-widest">Mais detalhes</button>
@@ -2031,7 +2039,7 @@ export default function App() {
                               <div className="flex-1 min-w-0">
                                 <p className="text-xs font-bold truncate">{alert.titulo}</p>
                                 <p className="text-[10px] opacity-70 mt-0.5 line-clamp-2">{alert.mensagem}</p>
-                                <p className="text-[9px] text-zinc-600 mt-1">{new Date(alert.timestamp).toLocaleString('pt-BR')}</p>
+                                <p className="text-[9px] text-zinc-600 mt-1">{formatDateTime(alert.timestamp, normalizeLanguage(i18n.language))}</p>
                               </div>
                             </div>
                           );
@@ -2368,7 +2376,9 @@ export default function App() {
                         const settingsToSave = [
                           { key: 'form_sectors', value: formData.get('form_sectors'), description: 'Setores Disponíveis' },
                           { key: 'enable_witnesses', value: formData.get('enable_witnesses') === 'on' ? 'true' : 'false', description: 'Habilitar Testemunhas' },
-                          { key: 'enable_equipment', value: formData.get('enable_equipment') === 'on' ? 'true' : 'false', description: 'Habilitar Equipamentos' }
+                          { key: 'enable_equipment', value: formData.get('enable_equipment') === 'on' ? 'true' : 'false', description: 'Habilitar Equipamentos' },
+                          { key: 'default_report_category', value: formData.get('default_report_category'), description: 'Categoria padrão da ocorrência' },
+                          { key: 'default_report_severity', value: formData.get('default_report_severity'), description: 'Gravidade padrão da ocorrência' }
                         ];
                         await fetch('/api/settings', {
                           method: 'POST',
@@ -2412,6 +2422,38 @@ export default function App() {
                         </div>
                       </div>
 
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Categoria padrão</label>
+                          <select
+                            name="default_report_category"
+                            defaultValue={getSettingValue('default_report_category', 'Valores')}
+                            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2 px-3 text-sm focus:outline-none focus:border-primary"
+                          >
+                            <option value="Valores">Valores</option>
+                            <option value="Perímetro">Perímetro</option>
+                            <option value="Safety">Safety</option>
+                            <option value="Operativo">Operativo</option>
+                            <option value="Logística">Logística</option>
+                            <option value="Manutenção">Manutenção</option>
+                            <option value="Informativo">Informativo</option>
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Gravidade padrão</label>
+                          <select
+                            name="default_report_severity"
+                            defaultValue={getSettingValue('default_report_severity', 'G1')}
+                            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2 px-3 text-sm focus:outline-none focus:border-primary"
+                          >
+                            <option value="G1">G1</option>
+                            <option value="G2">G2</option>
+                            <option value="G3">G3</option>
+                            <option value="G4">G4</option>
+                          </select>
+                        </div>
+                      </div>
+
                       <button type="submit" className="w-full py-3 bg-zinc-100 text-black rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-white transition-all">
                         Guardar Parâmetros Ativos
                       </button>
@@ -2452,7 +2494,7 @@ export default function App() {
 
             {activeTab === 'daily_reports' && (
               <DailyReportsWorkspaceTab
-                canGenerate={currentUser.permissions?.manage_settings === true}
+                canGenerate={canManageSystem}
                 canExport={currentUser.permissions?.export_reports === true}
               />
             )}
@@ -2809,6 +2851,45 @@ export default function App() {
                     </div>
                   </Card>
 
+                  <Card title="Experiência do mapa" subtitle="Preferências operacionais da dashboard">
+                    <form onSubmit={async (e) => {
+                      e.preventDefault();
+                      const formData = new FormData(e.currentTarget);
+                      try {
+                        await fetch('/api/settings', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            settings: [
+                              { key: 'show_heatmap_by_default', value: formData.get('show_heatmap_by_default') === 'on' ? 'true' : 'false', description: 'Heatmap ativo por defeito' },
+                            ]
+                          }),
+                          credentials: 'include'
+                        });
+                        toast.success("Preferências do mapa guardadas!");
+                        fetchData();
+                      } catch (err) {
+                        toast.error("Erro ao guardar preferências do mapa");
+                      }
+                    }} className="space-y-4">
+                      <div className="flex items-center justify-between rounded-xl border border-zinc-800 bg-zinc-900/50 p-4">
+                        <div>
+                          <p className="text-sm font-bold text-zinc-200">Heatmap ativo por defeito</p>
+                          <p className="text-[10px] text-zinc-500">Ao abrir o dashboard, a camada térmica começa ligada.</p>
+                        </div>
+                        <input
+                          type="checkbox"
+                          name="show_heatmap_by_default"
+                          defaultChecked={getSettingValue('show_heatmap_by_default', 'false') === 'true'}
+                          className="h-4 w-4 accent-primary"
+                        />
+                      </div>
+                      <button type="submit" className="w-full py-3 bg-primary/15 text-primary rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-primary/25 transition-all">
+                        Guardar preferências do mapa
+                      </button>
+                    </form>
+                  </Card>
+
                   <Card title="Personalização da interface" subtitle="Altere a aparência global do sistema" className="lg:col-span-2">
                     <form 
                       key={publicSettings.app_name + publicSettings.app_theme_mode + publicSettings.app_theme_palette}
@@ -3135,7 +3216,7 @@ export default function App() {
       </AnimatePresence>
 
       {/* Bottom Navigation (Mobile) */}
-      <nav className="md:hidden fixed bottom-3 left-3 right-3 h-16 glass no-print flex items-center justify-between px-5 rounded-[1.75rem] z-50 safe-bottom shadow-2xl shadow-black/30">
+      <nav className="md:hidden fixed bottom-3 left-3 right-3 h-16 glass no-print flex items-center justify-between px-4 rounded-[1.75rem] z-50 safe-bottom shadow-2xl shadow-black/30">
         <button 
           onClick={() => setActiveTab('dashboard')} 
           className={cn(
@@ -3204,52 +3285,55 @@ export default function App() {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed bottom-0 left-0 right-0 glass rounded-t-[2rem] z-[100] md:hidden pb-12 pt-8 px-6"
+              className="fixed bottom-0 left-0 right-0 z-[100] md:hidden rounded-t-[2rem] border-t border-zinc-800 bg-[linear-gradient(180deg,rgba(18,18,22,0.98),rgba(7,7,10,0.98))] px-4 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-6 shadow-[0_-30px_80px_rgba(0,0,0,0.55)]"
             >
-              <div className="w-12 h-1 bg-zinc-800 rounded-full mx-auto mb-8 opacity-20" />
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <SidebarItem icon={Shield} label="Centro de Comando" active={activeTab === 'command_center'} onClick={() => { setActiveTab('command_center'); setIsMobileMenuOpen(false); }} />
-                <SidebarItem icon={AlertTriangle} label="Ocorrências Críticas" active={activeTab === 'critical_occurrences'} onClick={() => { setActiveTab('critical_occurrences'); setIsMobileMenuOpen(false); }} />
-                <SidebarItem icon={Clock} label="Linha do Tempo" active={activeTab === 'timeline'} onClick={() => { setActiveTab('timeline'); setIsMobileMenuOpen(false); }} />
-                <SidebarItem icon={Camera} label="Biblioteca de Evidências" active={activeTab === 'evidence_library'} onClick={() => { setActiveTab('evidence_library'); setIsMobileMenuOpen(false); }} />
-                {currentUser.permissions?.view_team_daily && (
-                  <SidebarItem icon={Users} label="Turnos" active={activeTab === 'shifts'} onClick={() => { setActiveTab('shifts'); setIsMobileMenuOpen(false); }} />
-                )}
-                <SidebarItem icon={FileText} label="Meus Relatos" active={activeTab === 'personal_reports'} onClick={() => { setActiveTab('personal_reports'); setIsMobileMenuOpen(false); }} />
-                <SidebarItem icon={Calendar} label="Meu Dia" active={activeTab === 'daily_report_personal'} onClick={() => { setActiveTab('daily_report_personal'); setIsMobileMenuOpen(false); }} />
-                {currentUser.permissions?.view_team_daily && (
-                  <SidebarItem icon={Users} label="Equipa" active={activeTab === 'daily_report_team'} onClick={() => { setActiveTab('daily_report_team'); setIsMobileMenuOpen(false); }} />
-                )}
-                <SidebarItem icon={AlertTriangle} label="Alertas" active={activeTab === 'alerts'} onClick={() => { setActiveTab('alerts'); setIsMobileMenuOpen(false); }} />
-                {currentUser.permissions?.manage_users === true && (
-                  <SidebarItem icon={Users} label="Pessoal" active={activeTab === 'users'} onClick={() => { setActiveTab('users'); setIsMobileMenuOpen(false); }} />
-                )}
-                {currentUser.permissions?.manage_permissions === true && (
-                  <SidebarItem icon={Lock} label="Permissões" active={activeTab === 'permissions'} onClick={() => { setActiveTab('permissions'); setIsMobileMenuOpen(false); }} />
-                )}
-                {currentUser.permissions?.manage_settings === true && (
-                  <>
-                    <SidebarItem icon={SettingsIcon} label='Defini\u00e7\u00f5es' active={activeTab === 'settings'} onClick={() => { setActiveTab('settings'); setIsMobileMenuOpen(false); }} />
-                    <SidebarItem icon={SettingsIcon} label='Parametriza\u00e7\u00e3o' active={activeTab === 'parametrization'} onClick={() => { setActiveTab('parametrization'); setIsMobileMenuOpen(false); }} />
-                  </>
-                )}
-                <motion.button 
-                  whileTap={{ scale: 0.96 }}
-                  onClick={async () => {
-                    if (deferredPrompt) {
-                      await handleInstallClick();
-                    } else {
-                      setIsMobileMenuOpen(false);
-                      setShowInstallGuide(true);
-                    }
-                  }}
-                  className="col-span-2 w-full flex items-center justify-center gap-3 p-3 rounded-xl text-xs font-black uppercase bg-primary text-black border border-primary/30 shadow-lg shadow-primary/20"
-                >
-                  <Download size={16} strokeWidth={3} />
-                  Instalar como App
-                </motion.button>
+              <div className="mx-auto mb-4 h-1 w-12 rounded-full bg-zinc-700/70" />
+              <div className="mb-5 flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.24em] text-primary">Mais opções</p>
+                  <h3 className="mt-2 text-base font-black uppercase tracking-[0.08em] text-white">Navegação rápida</h3>
+                  <p className="mt-1 text-xs text-zinc-500">Atalhos operacionais e áreas administrativas.</p>
+                </div>
+                <button onClick={() => setIsMobileMenuOpen(false)} className="rounded-xl border border-zinc-800 bg-zinc-900/70 p-2 text-zinc-400">
+                  <XCircle size={18} />
+                </button>
               </div>
-              <div className="mt-8 pt-8 border-t border-zinc-800 flex items-center justify-between">
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  currentUser.permissions?.view_dashboard === true ? { key: 'command_center', label: 'Centro de Comando', icon: Shield } : null,
+                  currentUser.permissions?.view_reports === true ? { key: 'critical_occurrences', label: 'Ocorrências Críticas', icon: AlertTriangle } : null,
+                  currentUser.permissions?.view_dashboard === true ? { key: 'timeline', label: 'Linha do Tempo', icon: Clock } : null,
+                  currentUser.permissions?.view_reports === true ? { key: 'evidence_library', label: 'Biblioteca', icon: Camera } : null,
+                  currentUser.permissions?.view_team_daily ? { key: 'shifts', label: 'Turnos', icon: Users } : null,
+                  { key: 'personal_reports', label: 'Meus Relatórios', icon: FileText },
+                  { key: 'daily_report_personal', label: 'Meu Dia', icon: Calendar },
+                  currentUser.permissions?.view_team_daily ? { key: 'daily_report_team', label: 'Dia da Equipa', icon: Users } : null,
+                  { key: 'alerts', label: 'Alertas', icon: AlertTriangle },
+                  currentUser.permissions?.manage_users === true ? { key: 'users', label: 'Utilizadores', icon: Users } : null,
+                  currentUser.permissions?.manage_permissions === true ? { key: 'permissions', label: 'Permissões', icon: Lock } : null,
+                  canManageSystem ? { key: 'settings', label: 'Definições', icon: SettingsIcon } : null,
+                  canManageSystem ? { key: 'parametrization', label: 'Parametrização', icon: SettingsIcon } : null,
+                ].filter(Boolean).map((item: any) => {
+                  const Icon = item.icon;
+                  const active = activeTab === item.key;
+                  return (
+                    <button
+                      key={item.key}
+                      onClick={() => { setActiveTab(item.key); setIsMobileMenuOpen(false); }}
+                      className={cn(
+                        "flex min-h-[76px] flex-col items-start justify-between rounded-2xl border px-4 py-3 text-left transition-all",
+                        active
+                          ? "border-primary/40 bg-primary/12 text-primary"
+                          : "border-zinc-800/80 bg-zinc-950/60 text-zinc-300"
+                      )}
+                    >
+                      <Icon size={18} />
+                      <span className="text-[10px] font-black uppercase tracking-[0.16em] leading-tight">{item.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="mt-6 flex items-center justify-between border-t border-zinc-800 pt-6">
                 <div className="flex items-center gap-3">
                    <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-black font-black">
                      {currentUser.nome.charAt(0)}
@@ -3348,6 +3432,7 @@ export default function App() {
     </div>
   );
 }
+
 
 
 

@@ -3,6 +3,7 @@ import { Activity } from 'lucide-react';
 import { MapContainer, Marker, Popup, TileLayer, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import { cn } from '../../lib/utils';
+import { formatDate, LUANDA_TIMEZONE_LABEL } from '../../lib/datetime';
 
 // @ts-ignore
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
@@ -184,7 +185,7 @@ export const OperationsMapPanel: React.FC<OperationsMapPanelProps> = ({
                 <p className="text-sm font-bold text-white mb-2">{report.agente_nome}</p>
                 <p className="text-[10px] text-zinc-400 line-clamp-3 leading-relaxed mb-3 italic">"{report.descricao}"</p>
                 <div className="pt-2 border-t border-zinc-800 flex items-center justify-between">
-                  <span className="text-[9px] font-bold text-zinc-500">{new Date(report.timestamp).toLocaleDateString()}</span>
+                  <span className="text-[9px] font-bold text-zinc-500">{formatDate(report.timestamp, 'pt')}</span>
                   <button
                     onClick={() => onOpenReportDetails(report)}
                     className="text-[10px] font-black text-primary hover:text-white transition-colors uppercase tracking-widest"
@@ -215,7 +216,7 @@ export const OperationsMapPanel: React.FC<OperationsMapPanelProps> = ({
           <span>SISTEMA ATIVO</span>
         </div>
         <p>
-          COORDENADAS: {Math.abs(currentCenter[0]).toFixed(4)}° {currentCenter[0] < 0 ? 'S' : 'N'},{' '}
+          {LUANDA_TIMEZONE_LABEL} · {Math.abs(currentCenter[0]).toFixed(4)}° {currentCenter[0] < 0 ? 'S' : 'N'},{' '}
           {Math.abs(currentCenter[1]).toFixed(4)}° {currentCenter[1] > 0 ? 'E' : 'W'}
         </p>
       </div>

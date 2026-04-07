@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { Bell, CalendarClock, ChevronRight, FileText } from 'lucide-react';
 import { Badge, Card } from '../ui/LayoutComponents';
 import { Report } from '../../types';
+import { formatDate, formatTime } from '../../lib/datetime';
 
 interface TimelineTabProps {
   reports: Report[];
@@ -50,10 +51,10 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({ reports, alerts, setSe
               <div key={item.id} className="grid gap-4 rounded-2xl border border-zinc-800/70 bg-zinc-950/50 p-4 lg:grid-cols-[90px_1fr_auto] lg:items-center">
                 <div className="rounded-2xl border border-zinc-800 bg-black/20 p-3 text-center">
                   <p className="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-500">
-                    {new Date(item.timestamp).toLocaleDateString('pt-PT', { day: '2-digit', month: 'short' })}
+                    {formatDate(item.timestamp, 'pt')}
                   </p>
                   <p className="mt-2 text-sm font-black text-white">
-                    {new Date(item.timestamp).toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' })}
+                    {formatTime(item.timestamp, 'pt')}
                   </p>
                 </div>
 

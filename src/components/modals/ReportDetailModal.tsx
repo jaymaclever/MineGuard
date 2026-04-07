@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { Camera, CheckCircle2, Clock, FileText, Images, MapPin, Printer, Shield, Trash2, XCircle } from 'lucide-react';
 import { Badge } from '../ui/LayoutComponents';
 import { cn } from '../../lib/utils';
+import { formatDateTime } from '../../lib/datetime';
 
 interface ReportPhoto {
   id: number;
@@ -98,15 +99,15 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
               <FileText size={20} />
             </div>
             <div>
-              <h3 className="text-xl font-black uppercase tracking-tight">Detalhes da ocorrÃªncia</h3>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">ID #{report.id} â€¢ {new Date(report.timestamp).toLocaleString()}</p>
+              <h3 className="text-xl font-black uppercase tracking-tight">Detalhes da ocorrência</h3>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">ID #{report.id} • {formatDateTime(report.timestamp, 'pt')}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {report.status === 'ConcluÃ­do' && (
+            {report.status === 'Concluído' && (
               <div className="hidden items-center gap-2 rounded-full border border-green-500/20 bg-green-500/10 px-3 py-1 md:flex">
                 <CheckCircle2 size={12} className="text-green-500" />
-                <span className="text-[9px] font-black uppercase tracking-widest text-green-500">RelatÃ³rio selado</span>
+                <span className="text-[9px] font-black uppercase tracking-widest text-green-500">Relatório selado</span>
               </div>
             )}
             <button onClick={onClose} className="text-zinc-500 transition-colors hover:text-white">
@@ -119,7 +120,7 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
           <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)] lg:gap-10">
             <div className="space-y-6">
               <div>
-                <label className="mb-2 block text-[10px] font-black uppercase tracking-widest text-zinc-500">TÃ­tulo</label>
+                <label className="mb-2 block text-[10px] font-black uppercase tracking-widest text-zinc-500">Título</label>
                 {isEditing ? (
                   <input
                     type="text"
@@ -128,7 +129,7 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
                     className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm focus:border-primary focus:outline-none"
                   />
                 ) : (
-                  <p className="text-lg font-black uppercase tracking-tight text-white">{report.titulo || 'Sem tÃ­tulo'}</p>
+                  <p className="text-lg font-black uppercase tracking-tight text-white">{report.titulo || 'Sem título'}</p>
                 )}
               </div>
 
@@ -197,7 +198,7 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
               </div>
 
               <div>
-                <label className="mb-2 block text-[10px] font-black uppercase tracking-widest text-zinc-500">AÃ§Ã£o imediata tomada</label>
+                <label className="mb-2 block text-[10px] font-black uppercase tracking-widest text-zinc-500">Ação imediata tomada</label>
                 {isEditing ? (
                   <textarea
                     value={editingData.acao_imediata || ''}
@@ -206,13 +207,13 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
                   />
                 ) : (
                   <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4">
-                    <p className="text-sm italic leading-relaxed text-zinc-300">"{report.acao_imediata || 'Nenhuma aÃ§Ã£o registada'}"</p>
+                    <p className="text-sm italic leading-relaxed text-zinc-300">"{report.acao_imediata || 'Nenhuma ação registada'}"</p>
                   </div>
                 )}
               </div>
 
               <div className="space-y-4">
-                <label className="mb-1 block text-[10px] font-black uppercase tracking-widest text-zinc-500">InformaÃ§Ãµes adicionais</label>
+                <label className="mb-1 block text-[10px] font-black uppercase tracking-widest text-zinc-500">Informações adicionais</label>
                 <div className="grid grid-cols-1 gap-3">
                   <div className="flex items-center justify-between rounded-lg border border-zinc-900 bg-zinc-900/30 p-3">
                     <span className="text-[10px] font-bold uppercase text-zinc-500">Testemunhas</span>
@@ -239,13 +240,13 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
                       >
                         <option value="">Selecione...</option>
                         <option value="Baixo">Baixo</option>
-                        <option value="MÃ©dio">MÃ©dio</option>
+                        <option value="Médio">Médio</option>
                         <option value="Alto">Alto</option>
-                        <option value="CrÃ­tico">CrÃ­tico</option>
+                        <option value="Crítico">Crítico</option>
                       </select>
                     ) : (
-                      <span className={cn('text-[10px] font-black uppercase', report.potencial_risco === 'CrÃ­tico' ? 'text-red-500' : 'text-zinc-300')}>
-                        {report.potencial_risco || 'NÃ£o avaliado'}
+                      <span className={cn('text-[10px] font-black uppercase', report.potencial_risco === 'Crítico' ? 'text-red-500' : 'text-zinc-300')}>
+                        {report.potencial_risco || 'Não avaliado'}
                       </span>
                     )}
                   </div>
@@ -253,7 +254,7 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
               </div>
 
               <div>
-                <label className="mb-2 block text-[10px] font-black uppercase tracking-widest text-zinc-500">Agente responsÃ¡vel</label>
+                <label className="mb-2 block text-[10px] font-black uppercase tracking-widest text-zinc-500">Agente responsável</label>
                 <div className="flex items-center gap-3 rounded-xl border border-zinc-800 bg-zinc-900/50 p-3 shadow-inner">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-sm font-black text-black shadow-lg shadow-primary/20">
                     {report.agente_nome?.charAt(0) || '?'}
@@ -267,7 +268,7 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
             </div>
 
             <div>
-              <label className="mb-2 block text-[10px] font-black uppercase tracking-widest text-zinc-500">Galeria de evidÃªncias</label>
+              <label className="mb-2 block text-[10px] font-black uppercase tracking-widest text-zinc-500">Galeria de evidências</label>
               {isEditing && report.status === 'Aberto' ? (
                 <div className="space-y-3">
                   <div
@@ -361,7 +362,7 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
                   {report.photos.map((photo) => (
                     <div key={photo.id} className="space-y-2">
                       <div className="group relative aspect-square overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900">
-                        <img src={photo.photo_path} alt={photo.caption || 'EvidÃªncia'} className="h-full w-full object-cover" />
+                        <img src={photo.photo_path} alt={photo.caption || 'Evidência'} className="h-full w-full object-cover" />
                         <a
                           href={photo.photo_path}
                           target="_blank"
@@ -386,13 +387,13 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
 
           <div className="space-y-4">
             <div>
-              <label className="mb-2 block text-[10px] font-black uppercase tracking-widest text-zinc-500">DescriÃ§Ã£o detalhada</label>
+              <label className="mb-2 block text-[10px] font-black uppercase tracking-widest text-zinc-500">Descrição detalhada</label>
               {isEditing && report.status === 'Aberto' ? (
                 <textarea
                   value={editingData.descricao}
                   onChange={(event) => setEditingData((current: EditingReportData) => ({ ...current, descricao: event.target.value }))}
                   className="min-h-[120px] w-full resize-none rounded-xl border border-zinc-800 bg-zinc-900 p-4 text-sm text-zinc-300 focus:border-primary focus:outline-none"
-                  placeholder="Edite a descriÃ§Ã£o da ocorrÃªncia..."
+                  placeholder="Edite a descrição da ocorrência..."
                 />
               ) : (
                 <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 text-sm leading-relaxed text-zinc-300">{report.descricao}</div>
@@ -415,7 +416,7 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
         <div className="no-print border-t border-zinc-800 bg-zinc-900/40 p-4 md:p-6">
           <div className="flex flex-col gap-4">
             <div className="flex flex-col items-center justify-between gap-4 rounded-xl border border-zinc-800/50 bg-zinc-900/50 p-3 sm:flex-row sm:gap-2">
-              <p className="text-center text-[9px] font-bold uppercase tracking-widest text-zinc-600 sm:text-left md:text-[10px]">Sistema de SeguranÃ§a MineGuard â€¢ Auditoria ativa</p>
+              <p className="text-center text-[9px] font-bold uppercase tracking-widest text-zinc-600 sm:text-left md:text-[10px]">Sistema de Segurança MineGuard • Auditoria ativa</p>
               <div className="flex items-center gap-2">
                 <button onClick={() => window.print()} className="rounded-lg border border-zinc-700 bg-zinc-800 p-2.5 text-zinc-300 transition-all hover:bg-zinc-700" title="Exportar PDF">
                   <Printer size={16} />
@@ -441,7 +442,7 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
                     onClick={onSaveEdits}
                     className="flex-1 rounded-lg bg-blue-600 px-8 py-2.5 text-[10px] font-black uppercase tracking-widest text-white shadow-lg shadow-blue-900/20 transition-all hover:bg-blue-500 sm:flex-none"
                   >
-                    Guardar alteraÃ§Ãµes
+                    Guardar alterações
                   </button>
                 </>
               ) : (
@@ -455,17 +456,17 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
                       Editar
                     </button>
                   )}
-                  {report.status !== 'Aprovado' && (report.status !== 'ConcluÃ­do' || currentUser?.permissions?.conclude_reports) && (
+                  {report.status !== 'Aprovado' && (report.status !== 'Concluído' || currentUser?.permissions?.conclude_reports) && (
                     <button
                       onClick={() => onConclude(report.id, report.status || 'Aberto')}
                       className={cn(
                         'flex min-w-[120px] items-center justify-center gap-2 rounded-lg px-6 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all',
-                        report.status === 'ConcluÃ­do'
+                        report.status === 'Concluído'
                           ? 'border border-zinc-700 bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
                           : 'bg-green-600 text-white shadow-lg shadow-green-900/20 hover:bg-green-500'
                       )}
                     >
-                      {report.status === 'ConcluÃ­do' ? (
+                      {report.status === 'Concluído' ? (
                         <>
                           <Clock size={14} />
                           Reabrir
@@ -479,7 +480,7 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
                     </button>
                   )}
 
-                  {report.status !== 'Aprovado' && report.status === 'ConcluÃ­do' && currentUser?.permissions?.approve_reports && (
+                  {report.status !== 'Aprovado' && report.status === 'Concluído' && currentUser?.permissions?.approve_reports && (
                     <button
                       onClick={() => onApprove(report.id)}
                       className="col-span-2 flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-6 py-2.5 text-[10px] font-black uppercase tracking-widest text-white shadow-lg shadow-indigo-900/20 transition-all hover:bg-indigo-500"
@@ -510,4 +511,6 @@ export const ReportDetailModal: React.FC<ReportDetailModalProps> = ({
     </div>
   );
 };
+
+
 

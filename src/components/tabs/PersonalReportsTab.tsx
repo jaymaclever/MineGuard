@@ -4,6 +4,7 @@ import { Search, ChevronRight } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { Badge } from '../ui/LayoutComponents';
 import { Report } from '../../types';
+import { formatDateTime } from '../../lib/datetime';
 
 interface PersonalReportsTabProps {
   reports: Report[];
@@ -117,7 +118,7 @@ export const PersonalReportsTab: React.FC<PersonalReportsTabProps> = ({
                   </span>
                 </td>
                 <td className="hidden md:table-cell px-6 py-4 text-[10px] text-zinc-500 font-bold uppercase">
-                  {new Date(report.timestamp).toLocaleDateString('pt-BR')} {new Date(report.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                  {formatDateTime(report.timestamp, 'pt')}
                 </td>
                 <td className="px-6 py-4 text-right">
                   <button className="text-zinc-600 hover:text-primary transition-colors">

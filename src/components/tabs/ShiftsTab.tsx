@@ -3,13 +3,14 @@ import { motion } from 'motion/react';
 import { Clock3, MoonStar, Sun, Sunrise, Users } from 'lucide-react';
 import { Card } from '../ui/LayoutComponents';
 import { Report } from '../../types';
+import { getHourInLuanda } from '../../lib/datetime';
 
 interface ShiftsTabProps {
   reports: Report[];
 }
 
 const getShiftLabel = (date: Date) => {
-  const hour = date.getHours();
+  const hour = getHourInLuanda(date);
   if (hour >= 6 && hour < 14) return 'Turno da manhã';
   if (hour >= 14 && hour < 22) return 'Turno da tarde';
   return 'Turno da noite';

@@ -7,6 +7,8 @@ import JSZip from "jszip";
 
 const db = new Database("mina_seguranca.db");
 const REPORTS_DIR = path.join(process.cwd(), "daily_reports");
+const LUANDA_TIMEZONE = "Africa/Luanda";
+const LUANDA_SQL_OFFSET = "+1 hour";
 
 type Severity = "G1" | "G2" | "G3" | "G4";
 export type DailyReportLifecycleStatus = "draft" | "issued" | "archived";
@@ -197,8 +199,12 @@ ensureArchiveInfrastructure();
 
 function normalizeDateInput(value?: string) {
   if (!value) {
-    const today = db.prepare("SELECT DATE('now', 'localtime') AS date").get() as { date: string };
+    const today = db.prepare(`SELECT DATE('now', '${LUANDA_SQL_OFFSET}') AS date`).get() as { date: string };
     return today.date;
+  }
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return value;
   }
 
   const parsed = new Date(value);
@@ -206,7 +212,12 @@ function normalizeDateInput(value?: string) {
     throw new Error("Data invalida para gerar relatorio diario.");
   }
 
-  return parsed.toISOString().slice(0, 10);
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: LUANDA_TIMEZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(parsed);
 }
 
 function formatDateLong(date: string) {
@@ -214,14 +225,15 @@ function formatDateLong(date: string) {
     day: "2-digit",
     month: "long",
     year: "numeric",
-    timeZone: "UTC",
-  }).format(new Date(`${date}T00:00:00Z`));
+    timeZone: LUANDA_TIMEZONE,
+  }).format(new Date(`${date}T12:00:00Z`));
 }
 
 function formatDateTime(value: string) {
   return new Intl.DateTimeFormat("pt-BR", {
     dateStyle: "short",
     timeStyle: "short",
+    timeZone: LUANDA_TIMEZONE,
   }).format(new Date(value));
 }
 
@@ -229,6 +241,7 @@ function formatTime(value: string) {
   return new Intl.DateTimeFormat("pt-BR", {
     hour: "2-digit",
     minute: "2-digit",
+    timeZone: LUANDA_TIMEZONE,
   }).format(new Date(value));
 }
 
@@ -322,7 +335,7 @@ function buildSnapshot(reportDate: string, generatedBy: number | null = null): D
         r.timestamp
       FROM reports r
       JOIN users u ON u.id = r.agente_id
-      WHERE DATE(r.timestamp, 'localtime') = ?
+      WHERE DATE(r.timestamp, '${LUANDA_SQL_OFFSET}') = ?
       ORDER BY datetime(r.timestamp) DESC, r.gravidade DESC
     `
     )
@@ -339,7 +352,7 @@ function buildSnapshot(reportDate: string, generatedBy: number | null = null): D
       `
       SELECT agente_id, gravidade, status, setor
       FROM reports
-      WHERE DATE(timestamp, 'localtime') = ?
+      WHERE DATE(timestamp, '${LUANDA_SQL_OFFSET}') = ?
     `
     )
     .all(previousDate) as Array<{

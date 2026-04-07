@@ -29,6 +29,7 @@ import {
 } from "./report_generator";
 
 const db = new Database("mina_seguranca.db");
+const LUANDA_SQL_OFFSET = "+1 hour";
 
 // JWT Secret
 const JWT_SECRET = process.env.JWT_SECRET || "mineguard_jwt_secret_key_12345";
@@ -761,15 +762,15 @@ async function startServer() {
       const to = req.query.to as string | undefined;
       const userWeight = (db.prepare("SELECT peso FROM role_weights WHERE nivel_hierarquico = ?").get(userRole) as any)?.peso || 0;
 
-      let dateFilter = "AND timestamp >= date('now', '-7 days')";
+      let dateFilter = `AND datetime(timestamp, '${LUANDA_SQL_OFFSET}') >= datetime('now', '${LUANDA_SQL_OFFSET}', '-7 days')`;
       let chartRange = "-7 days";
       let customValues: string[] = [];
       
       if (range === 'today') {
-        dateFilter = "AND date(timestamp) = date('now')";
+        dateFilter = `AND date(timestamp, '${LUANDA_SQL_OFFSET}') = date('now', '${LUANDA_SQL_OFFSET}')`;
         chartRange = "0 days"; // Just today
       } else if (range === '30days') {
-        dateFilter = "AND timestamp >= date('now', '-30 days')";
+        dateFilter = `AND datetime(timestamp, '${LUANDA_SQL_OFFSET}') >= datetime('now', '${LUANDA_SQL_OFFSET}', '-30 days')`;
         chartRange = "-30 days";
       } else if (range === 'custom') {
         if (!from || !to) {
@@ -778,7 +779,7 @@ async function startServer() {
         if (from > to) {
           return res.status(400).json({ status: "error", message: "Intervalo inválido" });
         }
-        dateFilter = "AND date(timestamp) BETWEEN date(?) AND date(?)";
+        dateFilter = `AND date(timestamp, '${LUANDA_SQL_OFFSET}') BETWEEN date(?) AND date(?)`;
         customValues = [from, to];
       }
 
@@ -791,17 +792,17 @@ async function startServer() {
         reportsBySeverity = db.prepare(`SELECT gravidade as name, COUNT(*) as value FROM reports WHERE agente_id = ? ${dateFilter} GROUP BY gravidade`).all(userId, ...customValues);
         reportsLast7Days = range === 'custom'
           ? db.prepare(`
-              SELECT date(timestamp) as date, COUNT(*) as count 
+              SELECT date(timestamp, '${LUANDA_SQL_OFFSET}') as date, COUNT(*) as count 
               FROM reports 
-              WHERE agente_id = ? AND date(timestamp) BETWEEN date(?) AND date(?) 
-              GROUP BY date(timestamp)
+              WHERE agente_id = ? AND date(timestamp, '${LUANDA_SQL_OFFSET}') BETWEEN date(?) AND date(?) 
+              GROUP BY date(timestamp, '${LUANDA_SQL_OFFSET}')
               ORDER BY date ASC
             `).all(userId, ...customValues)
           : db.prepare(`
-              SELECT date(timestamp) as date, COUNT(*) as count 
+              SELECT date(timestamp, '${LUANDA_SQL_OFFSET}') as date, COUNT(*) as count 
               FROM reports 
-              WHERE agente_id = ? AND timestamp >= date('now', ?) 
-              GROUP BY date(timestamp)
+              WHERE agente_id = ? AND datetime(timestamp, '${LUANDA_SQL_OFFSET}') >= datetime('now', '${LUANDA_SQL_OFFSET}', ?) 
+              GROUP BY date(timestamp, '${LUANDA_SQL_OFFSET}')
               ORDER BY date ASC
             `).all(userId, chartRange);
       } else {
@@ -840,21 +841,21 @@ async function startServer() {
 
         reportsLast7Days = range === 'custom'
           ? db.prepare(`
-              SELECT date(r.timestamp) as date, COUNT(*) as count 
+              SELECT date(r.timestamp, '${LUANDA_SQL_OFFSET}') as date, COUNT(*) as count 
               FROM reports r
               JOIN users u ON r.agente_id = u.id
               JOIN role_weights rw ON u.nivel_hierarquico = rw.nivel_hierarquico
-              WHERE rw.peso <= ? AND date(r.timestamp) BETWEEN date(?) AND date(?) 
-              GROUP BY date(r.timestamp)
+              WHERE rw.peso <= ? AND date(r.timestamp, '${LUANDA_SQL_OFFSET}') BETWEEN date(?) AND date(?) 
+              GROUP BY date(r.timestamp, '${LUANDA_SQL_OFFSET}')
               ORDER BY date ASC
             `).all(userWeight, ...customValues)
           : db.prepare(`
-              SELECT date(r.timestamp) as date, COUNT(*) as count 
+              SELECT date(r.timestamp, '${LUANDA_SQL_OFFSET}') as date, COUNT(*) as count 
               FROM reports r
               JOIN users u ON r.agente_id = u.id
               JOIN role_weights rw ON u.nivel_hierarquico = rw.nivel_hierarquico
-              WHERE rw.peso <= ? AND r.timestamp >= date('now', ?) 
-              GROUP BY date(r.timestamp)
+              WHERE rw.peso <= ? AND datetime(r.timestamp, '${LUANDA_SQL_OFFSET}') >= datetime('now', '${LUANDA_SQL_OFFSET}', ?) 
+              GROUP BY date(r.timestamp, '${LUANDA_SQL_OFFSET}')
               ORDER BY date ASC
             `).all(userWeight, chartRange);
       }
@@ -1316,11 +1317,11 @@ async function startServer() {
       params.push(status);
     }
     if (dateFrom) {
-      query += ` AND DATE(r.timestamp) >= ?`;
+        query += ` AND DATE(r.timestamp, '${LUANDA_SQL_OFFSET}') >= ?`;
       params.push(dateFrom);
     }
     if (dateTo) {
-      query += ` AND DATE(r.timestamp) <= ?`;
+        query += ` AND DATE(r.timestamp, '${LUANDA_SQL_OFFSET}') <= ?`;
       params.push(dateTo);
     }
     if (agent) {
@@ -1405,11 +1406,11 @@ async function startServer() {
       const params: any[] = [userId];
 
       if (startDate) {
-        query += ` AND DATE(r.timestamp) >= ?`;
+        query += ` AND DATE(r.timestamp, '${LUANDA_SQL_OFFSET}') >= ?`;
         params.push(startDate);
       }
       if (endDate) {
-        query += ` AND DATE(r.timestamp) <= ?`;
+        query += ` AND DATE(r.timestamp, '${LUANDA_SQL_OFFSET}') <= ?`;
         params.push(endDate);
       }
 
@@ -1433,7 +1434,7 @@ async function startServer() {
       
       const reports = db.prepare(`
         SELECT r.* FROM reports r 
-        WHERE r.agente_id = ? AND DATE(r.timestamp, 'localtime') = DATE('now', 'localtime')
+        WHERE r.agente_id = ? AND DATE(r.timestamp, '${LUANDA_SQL_OFFSET}') = DATE('now', '${LUANDA_SQL_OFFSET}')
       `).all(userId) as any[];
 
       const summary = {
@@ -1467,7 +1468,7 @@ async function startServer() {
         FROM reports r
         JOIN users u ON r.agente_id = u.id
         JOIN role_weights rw ON u.nivel_hierarquico = rw.nivel_hierarquico
-        WHERE rw.peso < ? AND DATE(r.timestamp, 'localtime') = DATE('now', 'localtime')
+        WHERE rw.peso < ? AND DATE(r.timestamp, '${LUANDA_SQL_OFFSET}') = DATE('now', '${LUANDA_SQL_OFFSET}')
       `).all(userWeight) as any[];
 
       const summary = {
@@ -1555,7 +1556,7 @@ async function startServer() {
 
       // Keep the current daily archive in sync with newly created reports.
       try {
-        const today = db.prepare("SELECT DATE('now', 'localtime') AS date").get() as { date: string };
+        const today = db.prepare(`SELECT DATE('now', '${LUANDA_SQL_OFFSET}') AS date`).get() as { date: string };
         generateDailyReport({ date: today.date, generatedBy: req.user?.id ?? null });
       } catch (dailyErr) {
         console.error("Erro ao atualizar relatorio diario apos nova ocorrencia:", dailyErr);
