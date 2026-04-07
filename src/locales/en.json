@@ -130,6 +130,7 @@
     "dashboard": {
       "commandCenter": "COMMAND CENTER",
       "realtimeOverview": "Real-time overview",
+      "situationRoom": "Situation Room",
       "today": "TODAY",
       "last7days": "7 DAYS",
       "last30days": "30 DAYS",
@@ -140,9 +141,101 @@
       "g4Level": "G4 Level (Critical)",
       "activeAgents": "Agents in System",
       "operationality": "Operationality",
+      "occurrenceVolume": "Occurrence Volume",
       "operationsMap": "Operations Map",
       "operationsMapSubtitle": "Real-time location of registered occurrences",
-      "latestOccurrences": "Latest Occurrences"
+      "latestOccurrences": "Latest Occurrences",
+      "latestOccurrencesSubtitle": "Most recent records in the system",
+      "exportListPdf": "Export list to PDF",
+      "untitledOccurrence": "Untitled",
+      "moreDetails": "More details",
+      "noRecentRecords": "No recent records",
+      "viewAllRecords": "View all records",
+      "alertsSubtitle": "Critical notifications and warnings",
+      "noAlerts": "No alerts at the moment"
+    },
+    "shell": {
+      "navigation": {
+        "operation": "Operations",
+        "administration": "Administration",
+        "label": "Navigation"
+      },
+      "searchPlaceholder": "Search records...",
+      "online": {
+        "tooltip": "Connection status and users online right now",
+        "online": "Online",
+        "offline": "Offline",
+        "usersOnline_one": "{{count}} user online",
+        "usersOnline_other": "{{count}} users online"
+      },
+      "focus": {
+        "badge": "Operational focus",
+        "lessNoise": "less noise",
+        "moreSpace": "more workspace",
+        "enter": "Focus Mode",
+        "exit": "Exit Focus",
+        "enterTitle": "Enable operational focus mode",
+        "exitTitle": "Exit focus mode"
+      },
+      "notifications": {
+        "title": "Notifications",
+        "markAllRead": "Mark all as read",
+        "empty": "No notifications",
+        "new": "New",
+        "clearAll": "Clear all"
+      },
+      "views": {
+        "commandCenter": {
+          "title": "Command Center",
+          "subtitle": "Operational priorities, alerts, and shift shortcuts."
+        },
+        "criticalOccurrences": {
+          "title": "Critical Occurrences",
+          "subtitle": "G3 and G4 prioritization focused on response."
+        },
+        "timeline": {
+          "title": "Timeline",
+          "subtitle": "Chronological view of recent activity."
+        },
+        "evidenceLibrary": {
+          "title": "Evidence Library",
+          "subtitle": "Visual review of photographs linked to occurrences."
+        },
+        "shifts": {
+          "title": "Shifts",
+          "subtitle": "Operational workload and team activity during the shift."
+        },
+        "reports": {
+          "subtitle": "Operational records, filters, and consolidated history."
+        },
+        "dailyReports": {
+          "subtitle": "Generate, search, and export daily reports."
+        },
+        "personalReports": {
+          "subtitle": "Track your personal records."
+        },
+        "dailyReportPersonal": {
+          "subtitle": "Personal summary of the operational day."
+        },
+        "dailyReportTeam": {
+          "subtitle": "Consolidated overview of the team's day."
+        },
+        "alerts": {
+          "subtitle": "Operational communication and priority notices."
+        },
+        "users": {
+          "subtitle": "Manage users, roles, and access."
+        },
+        "permissions": {
+          "subtitle": "Profiles, hierarchy, and permission matrix."
+        },
+        "settings": {
+          "subtitle": "Integrations, notifications, and system adjustments."
+        },
+        "parametrization": {
+          "subtitle": "Operational behaviors and product identity."
+        }
+      }
     },
     "tabs": {
       "occurrencesLog": "OCCURRENCES LOG",
@@ -184,6 +277,409 @@
       "edit": {
         "success": "Occurrence updated successfully!",
         "saveError": "Error saving changes"
+      }
+    },
+    "usersTab": {
+      "teamStructure": "Team Structure",
+      "title": "User Management",
+      "subtitle": "Manage the team, create individual profiles, and import multiple agents from Excel with automatic duplicate validation.",
+      "metrics": {
+        "totalUsers": "Users",
+        "activeRoles": "Active Roles",
+        "commandLevels": "Command Levels",
+        "portugueseProfiles": "PT Profiles"
+      },
+      "cards": {
+        "operations": "Operational Team",
+        "operationsSubtitle": "Quick search, individual management, and direct access to user records"
+      },
+      "searchPlaceholder": "Search by name, function, registry number, language, or role...",
+      "addAgent": "Add Agent",
+      "emptyTitle": "No Users Found",
+      "emptySubtitle": "Adjust the search or add a new agent to the operational structure.",
+      "edit": "Edit user",
+      "delete": "Delete user",
+      "userCard": {
+        "registry": "Registry",
+        "role": "Role",
+        "language": "Language"
+      },
+      "importCard": {
+        "title": "Bulk Import",
+        "subtitle": "Add multiple agents from Excel with automatic validation",
+        "excelSupported": "Supported Excel",
+        "excelSupportedDescription": "The spreadsheet can be .xlsx or .xls. If a registry number already exists, that user is ignored without breaking the import.",
+        "recommendedColumns": "Recommended columns",
+        "columnsHelp": "The system also accepts equivalent headers such as function, profile, role, and registry number.",
+        "importAgents": "Import Agents",
+        "importAgentsDescription": "Duplicate, role, and invalid row validation happens automatically.",
+        "importButton": "Import Users from Excel",
+        "importing": "Importing spreadsheet...",
+        "validationTitle": "Applied validation",
+        "validationItem1": "Rows without name, function, registry number, or role are ignored.",
+        "validationItem2": "Existing users are ignored automatically.",
+        "validationItem3": "Unrecognized roles are not imported."
+      }
+    },
+    "alertsTab": {
+      "heroBadge": "Operational broadcast",
+      "title": "Alerts",
+      "subtitle": "Fast, temporary, and traceable communication for the whole team.",
+      "metrics": {
+        "critical": "Critical",
+        "warning": "Warnings",
+        "info": "Info",
+        "unread": "Unread"
+      },
+      "types": {
+        "critical": "Critical",
+        "warning": "Warning",
+        "info": "Informational"
+      },
+      "timeLeft": {
+        "noExpiration": "No expiration",
+        "expired": "Expired",
+        "hours_one": "{{count}}h left",
+        "hours_other": "{{count}}h left",
+        "days_one": "{{count}} day left",
+        "days_other": "{{count}} days left"
+      },
+      "newAlert": {
+        "title": "New alert",
+        "subtitle": "By default, the alert expires in 24 hours"
+      },
+      "form": {
+        "title": "Title",
+        "titlePlaceholder": "Ex: Emergency maintenance",
+        "message": "Message",
+        "messagePlaceholder": "Describe context, impact, and expected action...",
+        "type": "Type",
+        "expiration": "Expiration",
+        "audience": "Target audience",
+        "pin": "Pin to top",
+        "pinHelp": "Critical alerts can already be highlighted automatically.",
+        "submit": "Send alert"
+      },
+      "expiration": {
+        "oneHour": "1 hour",
+        "sixHours": "6 hours",
+        "day": "24 hours",
+        "threeDays": "72 hours",
+        "permanent": "Permanent"
+      },
+      "audience": {
+        "all": "Everyone",
+        "agents": "Agents",
+        "officers": "Officers",
+        "officers_up": "Officers and above",
+        "sierra1_up": "Sierra 1 and above",
+        "sierra2_up": "Sierra 2 and above",
+        "superadmin": "Superadmin"
+      },
+      "panel": {
+        "title": "Alerts panel ({{count}})",
+        "subtitle": "Search, mark as read, and edit when needed",
+        "searchPlaceholder": "Search by title, message, author, or expiration...",
+        "emptyTitle": "No alerts found",
+        "emptySubtitle": "Adjust the search or create a new alert.",
+        "pinned": "Pinned",
+        "new": "New",
+        "byAuthor": "By {{author}}",
+        "systemAuthor": "System",
+        "expiresAt": "Expires: {{time}}",
+        "read": "Read"
+      },
+      "actions": {
+        "edit": "Edit",
+        "delete": "Delete"
+      },
+      "feedback": {
+        "markReadSuccess": "Marked as read.",
+        "markReadError": "Could not mark the alert as read."
+      }
+    },
+    "dailyReportsTab": {
+      "hero": {
+        "badge": "Daily Reports",
+        "title": "Generation, search, and export",
+        "subtitle": "Central workspace for daily reports with quick filters, day-to-day comparison, and lifecycle actions.",
+        "city": "Luanda",
+        "totalReports_one": "{{count}} report",
+        "totalReports_other": "{{count}} reports",
+        "selected_one": "{{count}} selected",
+        "selected_other": "{{count}} selected"
+      },
+      "metrics": {
+        "total": "Total",
+        "draft": "Drafts",
+        "issued": "Issued",
+        "archived": "Archived"
+      },
+      "actions": {
+        "refresh": "Refresh",
+        "generateNow": "Generate now",
+        "clear": "Clear",
+        "filter": "Filter",
+        "preview": "Preview"
+      },
+      "filters": {
+        "title": "Search and filters",
+        "subtitle": "Quick ranges or custom dates",
+        "searchPlaceholder": "Search by title, code, or text...",
+        "today": "Today",
+        "sevenDays": "7 days",
+        "thirtyDays": "30 days"
+      },
+      "batch": {
+        "title": "Batch export",
+        "subtitle": "Select reports and export them at once",
+        "exportSelection": "Export selection"
+      },
+      "archive": {
+        "title": "Daily archive",
+        "subtitle": "Click to open details",
+        "loading": "Loading...",
+        "empty": "No reports for this filter",
+        "select": "Select",
+        "occurrences_one": "{{count}} occurrence",
+        "occurrences_other": "{{count}} occurrences"
+      },
+      "detail": {
+        "title": "Report details",
+        "subtitle": "Executive summary and quick actions",
+        "loading": "Loading details...",
+        "emptyTitle": "Select a report to view details",
+        "emptySubtitle": "The executive summary, previous-day comparison, and lifecycle actions will appear here."
+      },
+      "lifecycle": {
+        "draft": "Draft",
+        "issue": "Issue",
+        "archive": "Archive",
+        "approve": "Approve"
+      },
+      "feedback": {
+        "loadReportsError": "Could not load daily reports.",
+        "loadDetailError": "Could not load report details.",
+        "generateSuccess": "Daily report generated successfully.",
+        "generateError": "Failed to generate report.",
+        "exportSuccess": "{{format}} export completed.",
+        "exportError": "Could not export.",
+        "selectAtLeastOne": "Select at least one report.",
+        "batchExportSuccess": "Batch export completed.",
+        "batchExportError": "Error exporting batch.",
+        "lifecycleSuccess": "Report status updated.",
+        "lifecycleError": "Could not update the report."
+      }
+    },
+    "reportModal": {
+      "newBadge": "New occurrence",
+      "newTitle": "Register occurrence",
+      "previewTitle": "Occurrence preview",
+      "selectPlaceholder": "Select...",
+      "yes": "Yes",
+      "no": "No",
+      "na": "N/A",
+      "none": "None",
+      "notAssessed": "Not assessed",
+      "noActionRecorded": "No action recorded",
+      "noConfiguredSector": "No configured sector.",
+      "photoCount_one": "{{count}} photo",
+      "photoCount_other": "{{count}} photos",
+      "fields": {
+        "title": "Occurrence title",
+        "description": "Occurrence description",
+        "sector": "Sector / location",
+        "people": "People involved",
+        "equipment": "Equipment",
+        "risk": "Risk potential",
+        "investigation": "This occurrence requires formal investigation",
+        "photos": "Evidence gallery",
+        "safetyIncident": "Incident type (Safety)",
+        "ppeUsage": "PPE usage"
+      },
+      "placeholders": {
+        "title": "Ex: Intrusion North Sector",
+        "description": "Describe in detail what happened...",
+        "witnesses": "Names separated by commas",
+        "immediateAction": "What was done at the moment?"
+      },
+      "categories": {
+        "valuesProtection": "Values Protection",
+        "plantMaintenance": "Plant Maintenance"
+      },
+      "risk": {
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High",
+        "critical": "Critical"
+      },
+      "safety": {
+        "fall": "Same-level fall",
+        "crushing": "Crushing risk",
+        "chemical": "Chemical spill",
+        "other": "Other",
+        "ppeTotal": "Yes, all adequate",
+        "ppePartial": "Partial / inadequate",
+        "ppeNone": "Was not wearing PPE"
+      },
+      "photos": {
+        "dropzone": "Drag photos here or choose one of the options below",
+        "editDropzone": "Drag photos, import from gallery, or open the camera",
+        "import": "Import photos",
+        "capture": "Take photo",
+        "captionPlaceholder": "Caption/description for this photo...",
+        "captionShortPlaceholder": "Caption/description...",
+        "noneAttached": "No attached photos"
+      },
+      "actions": {
+        "preview": "Preview",
+        "submit": "Submit report",
+        "back": "Back",
+        "confirmAndSend": "Confirm and send"
+      }
+    },
+    "reportDetailModal": {
+      "title": "Occurrence details",
+      "sealed": "Report sealed",
+      "responsibleAgent": "Responsible agent",
+      "fields": {
+        "detailedDescription": "Detailed description"
+      },
+      "auditFooter": "MineGuard Security System • Active audit",
+      "actions": {
+        "close": "Close",
+        "saveChanges": "Save changes",
+        "edit": "Edit",
+        "reopen": "Reopen",
+        "conclude": "Conclude",
+        "approve": "Approve",
+        "delete": "Delete"
+      }
+    },
+    "settingsTab": {
+      "title": "System Settings",
+      "subtitle": "Integrations, visual identity, backups, and global platform parameters.",
+      "noBackupData": "No backup data.",
+      "labels": {
+        "appName": "Application Name",
+        "appSlogan": "Application Slogan",
+        "themeMode": "Theme Mode",
+        "visualTemplate": "Visual Template",
+        "systemLayout": "System Layout",
+        "sender": "Sender",
+        "name": "Name",
+        "smtpHost": "SMTP Host",
+        "port": "Port",
+        "user": "User",
+        "password": "Password",
+        "botToken": "Bot Token",
+        "chatId": "Chat ID",
+        "minimumLevel": "Minimum Level",
+        "githubUrl": "GitHub Repository URL",
+        "branch": "Branch"
+      },
+      "options": {
+        "dark": "Dark",
+        "light": "Light",
+        "defaultLayout": "Default (sidebar)",
+        "compactLayout": "Compact"
+      },
+      "actions": {
+        "applyIdentity": "Apply Identity",
+        "downloadBackupNow": "Download Backup Now",
+        "restoreSelectedBackup": "Restore Selected Backup",
+        "resetSystem": "Reset System",
+        "checkStatus": "Check Status",
+        "updateNow": "Update Now",
+        "saveEmail": "Save Email",
+        "save": "Save",
+        "test": "Test"
+      },
+      "notifications": {
+        "title": "Notifications",
+        "subtitle": "Configure email, Telegram, and scheduled reports",
+        "email": "Email SMTP",
+        "scheduledReports": "Scheduled Reports",
+        "autoGeneration": "Automatic Generation",
+        "autoGenerationSubtitle": "Daily report at 06:00.",
+        "dataRetention": "Data Retention",
+        "dataRetentionSubtitle": "Keep logs for 90 days.",
+        "channelsContent": "Channels and Content",
+        "channelsContentSubtitle": "Managed through the existing system parametrization."
+      },
+      "telegram": {
+        "fillFields": "Fill in the fields first.",
+        "testing": "Testing Telegram...",
+        "success": "Telegram configured successfully.",
+        "failurePrefix": "Failure:"
+      },
+      "personalization": {
+        "title": "Interface Personalization",
+        "subtitle": "Change the global appearance of the system",
+        "lightPalettes": "Palettes for light mode",
+        "darkPalettes": "Palettes for dark mode",
+        "paletteHelp": "Choose a palette with strong contrast and a clear identity.",
+        "options": "options",
+        "preview": "Preview",
+        "identity": "Identity",
+        "panel": "Panel"
+      },
+      "language": {
+        "title": "Language Preferences",
+        "subtitle": "The interface language follows the user profile",
+        "badge": "Language controlled in profile",
+        "description": "The interface language is defined by the user profile to avoid conflicts between global settings and personal preference."
+      },
+      "backup": {
+        "title": "Backup and Restore",
+        "subtitle": "Backups, history, and guided restore",
+        "database": "Database",
+        "unavailable": "Unavailable",
+        "savedBackups": "Saved Backups",
+        "backupsDirectory": "In the backups/ directory",
+        "downloadSuccess": "Backup downloaded successfully!",
+        "downloadError": "Could not download the backup.",
+        "restore": "Restore",
+        "selectedFile": "Selected File",
+        "noFileSelected": "No file selected",
+        "selectFileError": "Select a backup file.",
+        "restoreConfirm": "This will replace the current database. Continue?",
+        "restoreSuccess": "Backup restored successfully!",
+        "restoreError": "Failed to restore backup.",
+        "fullReset": "Full Reset",
+        "fullResetDescription": "Clears occurrences, users, alerts, evidence, and archived reports, keeping only the default system profile.",
+        "resetPrompt": "This action is destructive. Type REPOR to confirm.",
+        "invalidConfirmation": "Invalid confirmation. Nothing was changed.",
+        "resetting": "Resetting the system...",
+        "resetError": "Could not reset the system.",
+        "resetSuccess": "System reset successfully. Returning to login.",
+        "resettingButton": "Resetting system...",
+        "weeklyRecommendation": "We recommend weekly backups"
+      },
+      "github": {
+        "title": "GitHub Update",
+        "subtitle": "Check the repository and apply the latest available version",
+        "configSaved": "GitHub settings saved.",
+        "source": "Source Code",
+        "autoCheck": "Auto-check",
+        "autoCheckSubtitle": "Check for updates daily.",
+        "checking": "Checking for updates...",
+        "statusUpdated": "Git status updated.",
+        "checkError": "Could not check GitHub status.",
+        "defineBranch": "Set the update branch first.",
+        "updateConfirm": "This will try to apply the latest version from GitHub now. Continue?",
+        "updating": "Updating via GitHub...",
+        "updateSuccess": "Updated successfully",
+        "updateError": "Could not update via GitHub.",
+        "updatingButton": "Updating...",
+        "currentState": "Current State",
+        "repository": "Repository",
+        "commit": "Commit",
+        "status": "Status",
+        "notConfigured": "Not configured",
+        "cleanRepo": "Repository is clean and ready for update.",
+        "localFilesChanged": "local files with changes.",
+        "gitNotFound": "Git repository not found."
       }
     }
   }

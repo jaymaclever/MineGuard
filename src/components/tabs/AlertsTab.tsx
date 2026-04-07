@@ -2,6 +2,7 @@
 import { motion } from 'motion/react';
 import { AlertTriangle, BellRing, CheckCircle2, Plus, Search, ShieldAlert, Trash2, Pencil } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import { Card } from '../ui/LayoutComponents';
 import { cn } from '../../lib/utils';
 import { formatDateTime } from '../../lib/datetime';
@@ -48,30 +49,27 @@ const alertTheme = {
     tone: 'border-red-500/20 bg-red-500/10',
     badge: 'bg-red-500 text-white',
     accent: 'text-red-300',
-    label: 'Crítico',
   },
   aviso: {
     tone: 'border-orange-500/20 bg-orange-500/10',
     badge: 'bg-orange-500 text-white',
     accent: 'text-orange-300',
-    label: 'Aviso',
   },
   informativo: {
     tone: 'border-sky-500/20 bg-sky-500/10',
     badge: 'bg-sky-500 text-white',
     accent: 'text-sky-300',
-    label: 'Informativo',
   },
 } as const;
 
-function getTimeLeft(expiresAt?: string | null) {
-  if (!expiresAt) return 'Sem expiração';
+function getTimeLeft(expiresAt: string | null | undefined, t: (key: string, options?: any) => string) {
+  if (!expiresAt) return t('app.alertsTab.timeLeft.noExpiration');
   const diff = new Date(expiresAt).getTime() - Date.now();
-  if (diff <= 0) return 'Expirado';
+  if (diff <= 0) return t('app.alertsTab.timeLeft.expired');
   const hours = Math.max(1, Math.ceil(diff / (1000 * 60 * 60)));
-  if (hours < 24) return `${hours}h restantes`;
+  if (hours < 24) return t('app.alertsTab.timeLeft.hours', { count: hours });
   const days = Math.ceil(hours / 24);
-  return `${days} dia${days > 1 ? 's' : ''} restantes`;
+  return t('app.alertsTab.timeLeft.days', { count: days });
 }
 
 export const AlertsTab: React.FC<AlertsTabProps> = ({
@@ -84,7 +82,13 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
   onDeleteAlert,
   onMarkAlertRead,
 }) => {
+  const { t } = useTranslation();
   const [search, setSearch] = useState('');
+  const alertTypeLabels = {
+    critico: t('app.alertsTab.types.critical'),
+    aviso: t('app.alertsTab.types.warning'),
+    informativo: t('app.alertsTab.types.info'),
+  };
 
   const filteredAlerts = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -120,12 +124,12 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
           method: 'PATCH',
           credentials: 'include',
         });
-        if (!res.ok) throw new Error('Falha ao marcar como lido');
+        if (!res.ok) throw new Error(t('app.alertsTab.feedback.markReadError'));
       }
-      toast.success('Marcado como lido.');
+      toast.success(t('app.alertsTab.feedback.markReadSuccess'));
     } catch (error) {
       console.error(error);
-      toast.error('Não foi possível marcar o alerta como lido.');
+      toast.error(t('app.alertsTab.feedback.markReadError'));
     }
   };
 
@@ -136,28 +140,28 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.22em] text-primary">
               <BellRing size={12} />
-              Difusão operacional
+              {t('app.alertsTab.heroBadge')}
             </div>
-            <h2 className="mt-4 text-3xl font-black tracking-tight text-[var(--text-main)]">Alertas</h2>
+            <h2 className="mt-4 text-3xl font-black tracking-tight text-[var(--text-main)]">{t('app.alertsTab.title')}</h2>
             <p className="mt-2 max-w-2xl text-sm text-[var(--text-muted)]">
-              Comunicação rápida, temporária e rastreável para toda a equipa.
+              {t('app.alertsTab.subtitle')}
             </p>
           </div>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-2)] px-4 py-3">
-              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">Críticos</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">{t('app.alertsTab.metrics.critical')}</p>
               <p className="mt-1 text-2xl font-black text-[var(--text-main)]">{counters.critical}</p>
             </div>
             <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-2)] px-4 py-3">
-              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">Avisos</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">{t('app.alertsTab.metrics.warning')}</p>
               <p className="mt-1 text-2xl font-black text-[var(--text-main)]">{counters.warning}</p>
             </div>
             <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-2)] px-4 py-3">
-              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">Info</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">{t('app.alertsTab.metrics.info')}</p>
               <p className="mt-1 text-2xl font-black text-[var(--text-main)]">{counters.info}</p>
             </div>
             <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-2)] px-4 py-3">
-              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">Não lidos</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">{t('app.alertsTab.metrics.unread')}</p>
               <p className="mt-1 text-2xl font-black text-[var(--text-main)]">{counters.unread}</p>
             </div>
           </div>
@@ -166,14 +170,14 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,0.92fr)_minmax(360px,0.78fr)]">
         {currentUser?.permissions?.create_alerts && (
-          <Card title="Novo alerta" subtitle="Por padrão, o alerta expira em 24 horas" className="rounded-[1.75rem]">
+          <Card title={t('app.alertsTab.newAlert.title')} subtitle={t('app.alertsTab.newAlert.subtitle')} className="rounded-[1.75rem]">
             <form onSubmit={onCreateAlert} className="mt-4 space-y-4">
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Título</label>
+                <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">{t('app.alertsTab.form.title')}</label>
                 <input
                   type="text"
                   required
-                  placeholder="Ex: Manutenção de emergência"
+                  placeholder={t('app.alertsTab.form.titlePlaceholder')}
                   value={newAlert.titulo}
                   onChange={(event) => setNewAlert((current) => ({ ...current, titulo: event.target.value }))}
                   className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-input)] px-4 py-3 text-sm text-[var(--text-main)] outline-none focus:border-primary"
@@ -181,10 +185,10 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Mensagem</label>
+                <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">{t('app.alertsTab.form.message')}</label>
                 <textarea
                   required
-                  placeholder="Descreva o contexto, impacto e ação esperada..."
+                  placeholder={t('app.alertsTab.form.messagePlaceholder')}
                   value={newAlert.mensagem}
                   onChange={(event) => setNewAlert((current) => ({ ...current, mensagem: event.target.value }))}
                   className="min-h-[120px] w-full resize-none rounded-xl border border-[var(--border)] bg-[var(--bg-input)] px-4 py-3 text-sm text-[var(--text-main)] outline-none focus:border-primary"
@@ -193,7 +197,7 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
 
               <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Tipo</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">{t('app.alertsTab.form.type')}</label>
                   <select
                     value={newAlert.tipo}
                     onChange={(event) => setNewAlert((current) => ({
@@ -204,30 +208,30 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
                     }))}
                     className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-input)] px-4 py-3 text-sm text-[var(--text-main)] outline-none focus:border-primary"
                   >
-                    <option value="aviso">Aviso</option>
-                    <option value="critico">Crítico</option>
-                    <option value="informativo">Informativo</option>
+                    <option value="aviso">{t('app.alertsTab.types.warning')}</option>
+                    <option value="critico">{t('app.alertsTab.types.critical')}</option>
+                    <option value="informativo">{t('app.alertsTab.types.info')}</option>
                   </select>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Validade</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">{t('app.alertsTab.form.expiration')}</label>
                   <select
                     value={newAlert.expiresInHours}
                     onChange={(event) => setNewAlert((current) => ({ ...current, expiresInHours: event.target.value, isTemporary: event.target.value !== '0' }))}
                     className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-input)] px-4 py-3 text-sm text-[var(--text-main)] outline-none focus:border-primary"
                   >
-                    <option value="1">1 hora</option>
-                    <option value="6">6 horas</option>
-                    <option value="24">24 horas</option>
-                    <option value="72">72 horas</option>
-                    <option value="0">Permanente</option>
+                    <option value="1">{t('app.alertsTab.expiration.oneHour')}</option>
+                    <option value="6">{t('app.alertsTab.expiration.sixHours')}</option>
+                    <option value="24">{t('app.alertsTab.expiration.day')}</option>
+                    <option value="72">{t('app.alertsTab.expiration.threeDays')}</option>
+                    <option value="0">{t('app.alertsTab.expiration.permanent')}</option>
                   </select>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Público-alvo</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">{t('app.alertsTab.form.audience')}</label>
                   <select
                     value={newAlert.targetAudience}
                     onChange={(event) => setNewAlert((current) => ({ ...current, targetAudience: event.target.value }))}
@@ -235,15 +239,15 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
                   >
                     {ALERT_AUDIENCE_OPTIONS.map((option) => (
                       <option key={option.value} value={option.value}>
-                        {option.label}
+                        {t(`app.alertsTab.audience.${option.value}`, { defaultValue: option.label })}
                       </option>
                     ))}
                   </select>
                 </div>
                 <label className="flex items-center justify-between gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-4 py-3">
                   <div>
-                    <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">Fixar no topo</p>
-                    <p className="mt-1 text-xs text-[var(--text-muted)]">Os críticos já podem ser destacados automaticamente.</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-muted)]">{t('app.alertsTab.form.pin')}</p>
+                    <p className="mt-1 text-xs text-[var(--text-muted)]">{t('app.alertsTab.form.pinHelp')}</p>
                   </div>
                   <input
                     type="checkbox"
@@ -256,13 +260,13 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
 
               <button type="submit" className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-[10px] font-black uppercase tracking-widest text-black shadow-lg shadow-primary/20 transition-all hover:brightness-110">
                 <Plus size={14} strokeWidth={3} />
-                Enviar alerta
+                {t('app.alertsTab.form.submit')}
               </button>
             </form>
           </Card>
         )}
 
-        <Card title={`Painel de alertas (${filteredAlerts.length})`} subtitle="Pesquise, marque como lido e edite quando necessário" className="rounded-[1.75rem]">
+        <Card title={t('app.alertsTab.panel.title', { count: filteredAlerts.length })} subtitle={t('app.alertsTab.panel.subtitle')} className="rounded-[1.75rem]">
           <div className="mt-4 space-y-4">
             <div className="relative">
               <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-faint)]" />
@@ -270,7 +274,7 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
                 type="text"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Pesquisar por título, mensagem, autor ou validade..."
+                placeholder={t('app.alertsTab.panel.searchPlaceholder')}
                 className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-input)] py-3 pl-10 pr-4 text-sm text-[var(--text-main)] outline-none focus:border-primary"
               />
             </div>
@@ -279,8 +283,8 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
               <div className="flex min-h-[280px] flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-[var(--border)] bg-[var(--surface-2)] p-8 text-center">
                 <ShieldAlert className="text-[var(--text-faint)]" size={34} />
                 <div>
-                  <p className="text-xs font-black uppercase tracking-[0.24em] text-[var(--text-main)]">Nenhum alerta encontrado</p>
-                  <p className="mt-2 text-sm text-[var(--text-muted)]">Ajuste a pesquisa ou crie um novo alerta.</p>
+                  <p className="text-xs font-black uppercase tracking-[0.24em] text-[var(--text-main)]">{t('app.alertsTab.panel.emptyTitle')}</p>
+                  <p className="mt-2 text-sm text-[var(--text-muted)]">{t('app.alertsTab.panel.emptySubtitle')}</p>
                 </div>
               </div>
             ) : (
@@ -294,23 +298,23 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
                         <div>
                           <div className="flex flex-wrap items-center gap-2">
                             <h4 className="text-sm font-black text-[var(--text-main)]">{alert.titulo}</h4>
-                            {alert.pinned ? (
-                              <span className="rounded-full border border-primary/20 bg-primary/10 px-2 py-1 text-[8px] font-black uppercase tracking-[0.2em] text-primary">
-                                Fixado
+                          {alert.pinned ? (
+                            <span className="rounded-full border border-primary/20 bg-primary/10 px-2 py-1 text-[8px] font-black uppercase tracking-[0.2em] text-primary">
+                                {t('app.alertsTab.panel.pinned')}
                               </span>
                             ) : null}
                             {!alert.read && (
                               <span className="rounded-full border border-primary/20 bg-primary/10 px-2 py-1 text-[8px] font-black uppercase tracking-[0.2em] text-primary">
-                                Novo
+                                {t('app.alertsTab.panel.new')}
                               </span>
                             )}
                           </div>
                           <p className="mt-1 text-xs text-[var(--text-muted)]">
-                            Por {alert.creator_name || 'Sistema'} · {formatDateTime(alert.timestamp)}
+                            {t('app.alertsTab.panel.byAuthor', { author: alert.creator_name || t('app.alertsTab.panel.systemAuthor') })} · {formatDateTime(alert.timestamp)}
                           </p>
                         </div>
                         <span className={cn('rounded-full px-2.5 py-1 text-[8px] font-black uppercase tracking-[0.2em]', theme.badge)}>
-                          {theme.label}
+                          {alertTypeLabels[(alert.tipo as keyof typeof alertTypeLabels) || 'informativo'] || alertTypeLabels.informativo}
                         </span>
                       </div>
 
@@ -318,17 +322,17 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
 
                       <div className="mt-4 flex flex-wrap items-center gap-2 text-[10px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">
                         <span className="rounded-full border border-[var(--border)] bg-[var(--surface-1)] px-2.5 py-1">
-                          {alert.expires_at ? `Expira: ${getTimeLeft(alert.expires_at)}` : 'Sem expiração'}
+                          {alert.expires_at ? t('app.alertsTab.panel.expiresAt', { time: getTimeLeft(alert.expires_at, t) }) : t('app.alertsTab.timeLeft.noExpiration')}
                         </span>
                         <span className="rounded-full border border-[var(--border)] bg-[var(--surface-1)] px-2.5 py-1">
-                          {getAlertAudienceLabel(alert.target_audience)}
+                          {t(`app.alertsTab.audience.${alert.target_audience || 'all'}`, { defaultValue: getAlertAudienceLabel(alert.target_audience) })}
                         </span>
                         <button
                           type="button"
                           onClick={() => markAsRead(alert.id)}
                           className="inline-flex items-center gap-1 rounded-full border border-[var(--border)] bg-[var(--surface-1)] px-2.5 py-1 text-[var(--text-main)] transition-colors hover:border-primary/30 hover:text-primary"
                         >
-                          <CheckCircle2 size={12} /> Lido
+                          <CheckCircle2 size={12} /> {t('app.alertsTab.panel.read')}
                         </button>
                       </div>
 
@@ -338,13 +342,13 @@ export const AlertsTab: React.FC<AlertsTabProps> = ({
                             onClick={() => onStartEditAlert(alert)}
                             className="inline-flex items-center justify-center gap-2 rounded-xl border border-sky-500/30 bg-sky-500/15 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-sky-300 transition-all hover:bg-sky-500/25"
                           >
-                            <Pencil size={12} /> Editar
+                            <Pencil size={12} /> {t('app.alertsTab.actions.edit')}
                           </button>
                           <button
                             onClick={() => onDeleteAlert(alert.id)}
                             className="inline-flex items-center justify-center gap-2 rounded-xl border border-red-500/30 bg-red-500/15 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-red-300 transition-all hover:bg-red-500/25"
                           >
-                            <Trash2 size={12} /> Eliminar
+                            <Trash2 size={12} /> {t('app.alertsTab.actions.delete')}
                           </button>
                         </div>
                       )}

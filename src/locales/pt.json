@@ -130,6 +130,7 @@
     "dashboard": {
       "commandCenter": "CENTRAL DE COMANDO",
       "realtimeOverview": "Visão geral em tempo real",
+      "situationRoom": "Sala de situação",
       "today": "HOJE",
       "last7days": "7 DIAS",
       "last30days": "30 DIAS",
@@ -140,9 +141,101 @@
       "g4Level": "Nível G4 (Crítico)",
       "activeAgents": "Agentes em Sistema",
       "operationality": "Operacionalidade",
+      "occurrenceVolume": "Volume de Ocorrências",
       "operationsMap": "Mapa de Operações",
       "operationsMapSubtitle": "Localização em tempo real das ocorrências registadas",
-      "latestOccurrences": "Últimas Ocorrências"
+      "latestOccurrences": "Últimas Ocorrências",
+      "latestOccurrencesSubtitle": "Registos mais recentes no sistema",
+      "exportListPdf": "Exportar lista para PDF",
+      "untitledOccurrence": "Sem título",
+      "moreDetails": "Mais detalhes",
+      "noRecentRecords": "Nenhum registo recente",
+      "viewAllRecords": "Ver todos os registos",
+      "alertsSubtitle": "Notificações críticas e avisos",
+      "noAlerts": "Nenhum alerta no momento"
+    },
+    "shell": {
+      "navigation": {
+        "operation": "Operação",
+        "administration": "Administração",
+        "label": "Navegação"
+      },
+      "searchPlaceholder": "Pesquisar registos...",
+      "online": {
+        "tooltip": "Estado de ligação e utilizadores online neste momento",
+        "online": "Online",
+        "offline": "Offline",
+        "usersOnline_one": "{{count}} utilizador online",
+        "usersOnline_other": "{{count}} utilizadores online"
+      },
+      "focus": {
+        "badge": "Foco operacional",
+        "lessNoise": "menos ruído",
+        "moreSpace": "mais área útil",
+        "enter": "Modo Foco",
+        "exit": "Sair do Foco",
+        "enterTitle": "Ativar modo foco operacional",
+        "exitTitle": "Sair do modo foco"
+      },
+      "notifications": {
+        "title": "Notificações",
+        "markAllRead": "Marcar todas como lidas",
+        "empty": "Nenhuma notificação",
+        "new": "Novo",
+        "clearAll": "Limpar tudo"
+      },
+      "views": {
+        "commandCenter": {
+          "title": "Centro de Comando",
+          "subtitle": "Prioridades operacionais, alertas e atalhos do turno."
+        },
+        "criticalOccurrences": {
+          "title": "Ocorrências Críticas",
+          "subtitle": "Priorização de G3 e G4 com foco na resposta."
+        },
+        "timeline": {
+          "title": "Linha do Tempo",
+          "subtitle": "Leitura cronológica da atividade recente."
+        },
+        "evidenceLibrary": {
+          "title": "Biblioteca de Evidências",
+          "subtitle": "Consulta visual das fotografias associadas às ocorrências."
+        },
+        "shifts": {
+          "title": "Turnos",
+          "subtitle": "Carga operacional do turno e atividade da equipa."
+        },
+        "reports": {
+          "subtitle": "Registos operacionais, filtros e histórico consolidado."
+        },
+        "dailyReports": {
+          "subtitle": "Geração, pesquisa e exportação dos relatórios diários."
+        },
+        "personalReports": {
+          "subtitle": "Acompanhamento pessoal dos teus registos."
+        },
+        "dailyReportPersonal": {
+          "subtitle": "Resumo pessoal do dia de operação."
+        },
+        "dailyReportTeam": {
+          "subtitle": "Visão consolidada do dia da equipa."
+        },
+        "alerts": {
+          "subtitle": "Comunicação operacional e avisos prioritários."
+        },
+        "users": {
+          "subtitle": "Gestão de utilizadores, funções e acesso."
+        },
+        "permissions": {
+          "subtitle": "Perfis, hierarquia e matriz de permissões."
+        },
+        "settings": {
+          "subtitle": "Integrações, notificações e ajustes do sistema."
+        },
+        "parametrization": {
+          "subtitle": "Comportamentos operacionais e identidade do produto."
+        }
+      }
     },
     "tabs": {
       "occurrencesLog": "LOG DE OCORRÊNCIAS",
@@ -184,6 +277,409 @@
       "edit": {
         "success": "Ocorrência atualizada com sucesso!",
         "saveError": "Erro ao guardar alterações"
+      }
+    },
+    "usersTab": {
+      "teamStructure": "Estrutura da Equipa",
+      "title": "Gestão de Utilizadores",
+      "subtitle": "Gira a equipa, cria perfis individuais e importa múltiplos agentes por Excel com validação automática de duplicados.",
+      "metrics": {
+        "totalUsers": "Utilizadores",
+        "activeRoles": "Perfis Ativos",
+        "commandLevels": "Níveis de Chefia",
+        "portugueseProfiles": "Perfis PT"
+      },
+      "cards": {
+        "operations": "Equipa Operacional",
+        "operationsSubtitle": "Pesquisa rápida, gestão individual e acesso direto ao cadastro"
+      },
+      "searchPlaceholder": "Pesquisar por nome, função, número mecanográfico, idioma ou perfil...",
+      "addAgent": "Adicionar Agente",
+      "emptyTitle": "Nenhum Utilizador Encontrado",
+      "emptySubtitle": "Ajuste a pesquisa ou adicione um novo agente à estrutura operacional.",
+      "edit": "Editar utilizador",
+      "delete": "Eliminar utilizador",
+      "userCard": {
+        "registry": "Mecanográfico",
+        "role": "Perfil",
+        "language": "Idioma"
+      },
+      "importCard": {
+        "title": "Importação em Lote",
+        "subtitle": "Adicionar múltiplos agentes a partir de Excel com validação automática",
+        "excelSupported": "Excel suportado",
+        "excelSupportedDescription": "A planilha pode estar em .xlsx ou .xls. Se um número mecanográfico já existir, esse utilizador será ignorado sem quebrar a importação.",
+        "recommendedColumns": "Colunas recomendadas",
+        "columnsHelp": "O sistema aceita também cabeçalhos equivalentes como função, perfil, role e número mecanográfico.",
+        "importAgents": "Importar Agentes",
+        "importAgentsDescription": "A validação de duplicados, perfis e linhas inválidas é feita automaticamente.",
+        "importButton": "Importar Utilizadores por Excel",
+        "importing": "A importar planilha...",
+        "validationTitle": "Validação aplicada",
+        "validationItem1": "Linhas sem nome, função, número mecanográfico ou perfil são ignoradas.",
+        "validationItem2": "Utilizadores já existentes são ignorados automaticamente.",
+        "validationItem3": "Perfis não reconhecidos pelo sistema não são importados."
+      }
+    },
+    "alertsTab": {
+      "heroBadge": "Difusão operacional",
+      "title": "Alertas",
+      "subtitle": "Comunicação rápida, temporária e rastreável para toda a equipa.",
+      "metrics": {
+        "critical": "Críticos",
+        "warning": "Avisos",
+        "info": "Info",
+        "unread": "Não lidos"
+      },
+      "types": {
+        "critical": "Crítico",
+        "warning": "Aviso",
+        "info": "Informativo"
+      },
+      "timeLeft": {
+        "noExpiration": "Sem expiração",
+        "expired": "Expirado",
+        "hours_one": "{{count}}h restante",
+        "hours_other": "{{count}}h restantes",
+        "days_one": "{{count}} dia restante",
+        "days_other": "{{count}} dias restantes"
+      },
+      "newAlert": {
+        "title": "Novo alerta",
+        "subtitle": "Por padrão, o alerta expira em 24 horas"
+      },
+      "form": {
+        "title": "Título",
+        "titlePlaceholder": "Ex: Manutenção de emergência",
+        "message": "Mensagem",
+        "messagePlaceholder": "Descreva o contexto, impacto e ação esperada...",
+        "type": "Tipo",
+        "expiration": "Validade",
+        "audience": "Público-alvo",
+        "pin": "Fixar no topo",
+        "pinHelp": "Os críticos já podem ser destacados automaticamente.",
+        "submit": "Enviar alerta"
+      },
+      "expiration": {
+        "oneHour": "1 hora",
+        "sixHours": "6 horas",
+        "day": "24 horas",
+        "threeDays": "72 horas",
+        "permanent": "Permanente"
+      },
+      "audience": {
+        "all": "Todos",
+        "agents": "Agentes",
+        "officers": "Oficiais",
+        "officers_up": "Oficiais e acima",
+        "sierra1_up": "Sierra 1 e acima",
+        "sierra2_up": "Sierra 2 e acima",
+        "superadmin": "Superadmin"
+      },
+      "panel": {
+        "title": "Painel de alertas ({{count}})",
+        "subtitle": "Pesquise, marque como lido e edite quando necessário",
+        "searchPlaceholder": "Pesquisar por título, mensagem, autor ou validade...",
+        "emptyTitle": "Nenhum alerta encontrado",
+        "emptySubtitle": "Ajuste a pesquisa ou crie um novo alerta.",
+        "pinned": "Fixado",
+        "new": "Novo",
+        "byAuthor": "Por {{author}}",
+        "systemAuthor": "Sistema",
+        "expiresAt": "Expira: {{time}}",
+        "read": "Lido"
+      },
+      "actions": {
+        "edit": "Editar",
+        "delete": "Eliminar"
+      },
+      "feedback": {
+        "markReadSuccess": "Marcado como lido.",
+        "markReadError": "Não foi possível marcar o alerta como lido."
+      }
+    },
+    "dailyReportsTab": {
+      "hero": {
+        "badge": "Relatórios Diários",
+        "title": "Geração, pesquisa e exportação",
+        "subtitle": "Painel central para relatórios diários, com filtros rápidos, comparação entre dias e ações de ciclo de vida.",
+        "city": "Luanda",
+        "totalReports_one": "{{count}} relatório",
+        "totalReports_other": "{{count}} relatórios",
+        "selected_one": "{{count}} selecionado",
+        "selected_other": "{{count}} selecionados"
+      },
+      "metrics": {
+        "total": "Total",
+        "draft": "Rascunhos",
+        "issued": "Emitidos",
+        "archived": "Arquivados"
+      },
+      "actions": {
+        "refresh": "Atualizar",
+        "generateNow": "Gerar agora",
+        "clear": "Limpar",
+        "filter": "Filtrar",
+        "preview": "Pré-visualizar"
+      },
+      "filters": {
+        "title": "Pesquisa e filtros",
+        "subtitle": "Intervalos rápidos ou datas personalizadas",
+        "searchPlaceholder": "Pesquisar por título, código ou texto...",
+        "today": "Hoje",
+        "sevenDays": "7 dias",
+        "thirtyDays": "30 dias"
+      },
+      "batch": {
+        "title": "Exportação em lote",
+        "subtitle": "Selecione relatórios e exporte de uma vez",
+        "exportSelection": "Exportar seleção"
+      },
+      "archive": {
+        "title": "Arquivo diário",
+        "subtitle": "Clique para abrir o detalhe",
+        "loading": "A carregar...",
+        "empty": "Sem relatórios neste filtro",
+        "select": "Selecionar",
+        "occurrences_one": "{{count}} ocorrência",
+        "occurrences_other": "{{count}} ocorrências"
+      },
+      "detail": {
+        "title": "Detalhe do relatório",
+        "subtitle": "Resumo executivo e ações rápidas",
+        "loading": "A carregar detalhe...",
+        "emptyTitle": "Selecione um relatório para ver o detalhe",
+        "emptySubtitle": "Aqui vão aparecer o resumo executivo, a comparação com o dia anterior e as ações de ciclo de vida."
+      },
+      "lifecycle": {
+        "draft": "Rascunho",
+        "issue": "Emitir",
+        "archive": "Arquivar",
+        "approve": "Aprovar"
+      },
+      "feedback": {
+        "loadReportsError": "Não foi possível carregar os relatórios diários.",
+        "loadDetailError": "Não foi possível carregar o detalhe do relatório.",
+        "generateSuccess": "Relatório diário gerado com sucesso.",
+        "generateError": "Falha ao gerar relatório.",
+        "exportSuccess": "Exportação {{format}} concluída.",
+        "exportError": "Não foi possível exportar.",
+        "selectAtLeastOne": "Selecione pelo menos um relatório.",
+        "batchExportSuccess": "Exportação em lote concluída.",
+        "batchExportError": "Erro ao exportar em lote.",
+        "lifecycleSuccess": "Estado do relatório atualizado.",
+        "lifecycleError": "Não foi possível atualizar o relatório."
+      }
+    },
+    "reportModal": {
+      "newBadge": "Nova ocorrência",
+      "newTitle": "Registar ocorrência",
+      "previewTitle": "Visualização da ocorrência",
+      "selectPlaceholder": "Selecione...",
+      "yes": "Sim",
+      "no": "Não",
+      "na": "N/A",
+      "none": "Nenhuma",
+      "notAssessed": "Não avaliado",
+      "noActionRecorded": "Nenhuma ação registada",
+      "noConfiguredSector": "Nenhum setor parametrizado.",
+      "photoCount_one": "{{count}} fotografia",
+      "photoCount_other": "{{count}} fotografias",
+      "fields": {
+        "title": "Título da ocorrência",
+        "description": "Descrição da ocorrência",
+        "sector": "Setor / local",
+        "people": "Pessoas envolvidas",
+        "equipment": "Equipamento",
+        "risk": "Potencial de risco",
+        "investigation": "Esta ocorrência requer investigação formal",
+        "photos": "Galeria de evidências",
+        "safetyIncident": "Tipo de incidente (Safety)",
+        "ppeUsage": "Uso de EPI"
+      },
+      "placeholders": {
+        "title": "Ex: Intrusão Setor Norte",
+        "description": "Descreva detalhadamente o que aconteceu...",
+        "witnesses": "Nomes separados por vírgula",
+        "immediateAction": "O que foi feito no momento?"
+      },
+      "categories": {
+        "valuesProtection": "Proteção de Valores",
+        "plantMaintenance": "Manutenção de Planta"
+      },
+      "risk": {
+        "low": "Baixo",
+        "medium": "Médio",
+        "high": "Alto",
+        "critical": "Crítico"
+      },
+      "safety": {
+        "fall": "Queda de mesmo nível",
+        "crushing": "Risco de esmagamento",
+        "chemical": "Derramamento químico",
+        "other": "Outro",
+        "ppeTotal": "Sim, todos adequados",
+        "ppePartial": "Parcial / inadequado",
+        "ppeNone": "Não estava a usar"
+      },
+      "photos": {
+        "dropzone": "Arraste fotografias aqui ou escolha uma das opções abaixo",
+        "editDropzone": "Arraste fotografias, importe da galeria ou abra a câmara",
+        "import": "Importar fotografias",
+        "capture": "Tirar fotografia",
+        "captionPlaceholder": "Legenda/descrição desta fotografia...",
+        "captionShortPlaceholder": "Legenda/descrição...",
+        "noneAttached": "Nenhuma fotografia anexada"
+      },
+      "actions": {
+        "preview": "Visualizar",
+        "submit": "Transmitir relatório",
+        "back": "Voltar",
+        "confirmAndSend": "Confirmar e enviar"
+      }
+    },
+    "reportDetailModal": {
+      "title": "Detalhes da ocorrência",
+      "sealed": "Relatório selado",
+      "responsibleAgent": "Agente responsável",
+      "fields": {
+        "detailedDescription": "Descrição detalhada"
+      },
+      "auditFooter": "Sistema de Segurança MineGuard • Auditoria ativa",
+      "actions": {
+        "close": "Fechar",
+        "saveChanges": "Guardar alterações",
+        "edit": "Editar",
+        "reopen": "Reabrir",
+        "conclude": "Concluir",
+        "approve": "Aprovar",
+        "delete": "Eliminar"
+      }
+    },
+    "settingsTab": {
+      "title": "Configurações do Sistema",
+      "subtitle": "Integrações, identidade visual, cópias de segurança e parâmetros globais da plataforma.",
+      "noBackupData": "Sem dados de backup.",
+      "labels": {
+        "appName": "Nome da Aplicação",
+        "appSlogan": "Slogan da Aplicação",
+        "themeMode": "Modo do Tema",
+        "visualTemplate": "Template Visual",
+        "systemLayout": "Layout do Sistema",
+        "sender": "Remetente",
+        "name": "Nome",
+        "smtpHost": "Host SMTP",
+        "port": "Porta",
+        "user": "Utilizador",
+        "password": "Senha",
+        "botToken": "Bot Token",
+        "chatId": "Chat ID",
+        "minimumLevel": "Nível Mínimo",
+        "githubUrl": "URL do Repositório GitHub",
+        "branch": "Branch"
+      },
+      "options": {
+        "dark": "Escuro",
+        "light": "Claro",
+        "defaultLayout": "Padrão (barra lateral)",
+        "compactLayout": "Compacto"
+      },
+      "actions": {
+        "applyIdentity": "Aplicar Identidade",
+        "downloadBackupNow": "Descarregar Backup Agora",
+        "restoreSelectedBackup": "Restaurar Backup Selecionado",
+        "resetSystem": "Repor Sistema",
+        "checkStatus": "Verificar Estado",
+        "updateNow": "Atualizar Agora",
+        "saveEmail": "Guardar Email",
+        "save": "Guardar",
+        "test": "Testar"
+      },
+      "notifications": {
+        "title": "Notificações",
+        "subtitle": "Configure email, Telegram e relatórios agendados",
+        "email": "Email SMTP",
+        "scheduledReports": "Relatórios Agendados",
+        "autoGeneration": "Geração Automática",
+        "autoGenerationSubtitle": "Relatório diário às 06:00.",
+        "dataRetention": "Retenção de Dados",
+        "dataRetentionSubtitle": "Manter logs por 90 dias.",
+        "channelsContent": "Canais e Conteúdo",
+        "channelsContentSubtitle": "Gerido pela parametrização existente no sistema."
+      },
+      "telegram": {
+        "fillFields": "Preencha os campos primeiro.",
+        "testing": "A testar Telegram...",
+        "success": "Telegram configurado com sucesso.",
+        "failurePrefix": "Falha:"
+      },
+      "personalization": {
+        "title": "Personalização da Interface",
+        "subtitle": "Altere a aparência global do sistema",
+        "lightPalettes": "Paletas para modo claro",
+        "darkPalettes": "Paletas para modo escuro",
+        "paletteHelp": "Escolha uma paleta com contraste forte e identidade clara.",
+        "options": "opções",
+        "preview": "Preview",
+        "identity": "Identidade",
+        "panel": "Painel"
+      },
+      "language": {
+        "title": "Preferências de Idioma",
+        "subtitle": "O idioma da interface segue o perfil do utilizador",
+        "badge": "Idioma controlado no perfil",
+        "description": "O idioma da interface é definido pelo perfil do utilizador para evitar conflitos entre definições globais e preferência individual."
+      },
+      "backup": {
+        "title": "Backup e Restauro",
+        "subtitle": "Cópias de segurança, histórico e restauro assistido",
+        "database": "Base de Dados",
+        "unavailable": "Indisponível",
+        "savedBackups": "Backups Guardados",
+        "backupsDirectory": "No diretório backups/",
+        "downloadSuccess": "Cópia de segurança descarregada com sucesso!",
+        "downloadError": "Não foi possível descarregar a cópia de segurança.",
+        "restore": "Restauro",
+        "selectedFile": "Ficheiro Selecionado",
+        "noFileSelected": "Nenhum ficheiro selecionado",
+        "selectFileError": "Selecione um ficheiro de backup.",
+        "restoreConfirm": "Isto vai substituir a base de dados atual. Continuar?",
+        "restoreSuccess": "Backup restaurado com sucesso!",
+        "restoreError": "Falha ao restaurar backup.",
+        "fullReset": "Reposição Total",
+        "fullResetDescription": "Limpa ocorrências, utilizadores, alertas, evidências e relatórios arquivados, mantendo apenas o perfil padrão do sistema.",
+        "resetPrompt": "Esta ação é destrutiva. Escreva REPOR para confirmar.",
+        "invalidConfirmation": "Confirmação inválida. Nada foi alterado.",
+        "resetting": "A repor o sistema...",
+        "resetError": "Não foi possível repor o sistema.",
+        "resetSuccess": "Sistema reposto com sucesso. Vai voltar ao login.",
+        "resettingButton": "A repor sistema...",
+        "weeklyRecommendation": "Recomendamos cópias semanais"
+      },
+      "github": {
+        "title": "Atualização via GitHub",
+        "subtitle": "Verifica o repositório e aplica a última versão disponível",
+        "configSaved": "Configuração GitHub guardada.",
+        "source": "Origem do Código",
+        "autoCheck": "Auto-check",
+        "autoCheckSubtitle": "Verificar atualizações diariamente.",
+        "checking": "A verificar atualizações...",
+        "statusUpdated": "Estado do Git atualizado.",
+        "checkError": "Não foi possível verificar o estado do GitHub.",
+        "defineBranch": "Defina primeiro a branch de atualização.",
+        "updateConfirm": "Isto vai tentar aplicar agora a última versão do GitHub. Continuar?",
+        "updating": "A atualizar via GitHub...",
+        "updateSuccess": "Atualizado com sucesso",
+        "updateError": "Não foi possível atualizar via GitHub.",
+        "updatingButton": "A atualizar...",
+        "currentState": "Estado Atual",
+        "repository": "Repositório",
+        "commit": "Commit",
+        "status": "Estado",
+        "notConfigured": "Não configurado",
+        "cleanRepo": "Repositório limpo e pronto para atualização.",
+        "localFilesChanged": "ficheiros locais com alterações.",
+        "gitNotFound": "Repositório Git não encontrado."
       }
     }
   }

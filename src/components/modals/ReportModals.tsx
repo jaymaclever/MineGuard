@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { motion } from 'motion/react';
 import { Camera, Images, XCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '../../lib/utils';
 import {
   DynamicFieldDefinition,
@@ -97,6 +98,7 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({
   setNewReport,
   addNewReportPhotos,
 }) => {
+  const { t } = useTranslation();
   const [photoViewerIndex, setPhotoViewerIndex] = useState<number | null>(null);
 
   const configuredSectors = getConfiguredSectors(systemSettings);
@@ -156,10 +158,10 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({
         <div className="rounded-2xl border-2 border-dashed border-zinc-800 bg-zinc-900 py-5 transition-all hover:border-primary/50 hover:bg-zinc-900/60">
           <div className="flex flex-col items-center gap-3 px-4 text-center">
             <Camera className="text-zinc-500 transition-colors group-hover:text-primary" size={24} />
-            <span className="text-xs font-bold text-zinc-500 group-hover:text-zinc-300">Arraste fotografias aqui ou escolha uma das opções abaixo</span>
+            <span className="text-xs font-bold text-zinc-500 group-hover:text-zinc-300">{t('app.reportModal.photos.dropzone')}</span>
             <div className="flex w-full flex-col gap-2 sm:flex-row">
-              <label htmlFor="report-photos" className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl border border-zinc-700 bg-zinc-950/80 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-zinc-300 transition-all hover:border-primary/50 hover:text-white"><Images size={16} />Importar fotografias</label>
-              <label htmlFor="report-camera" className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl border border-primary/30 bg-primary/10 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-primary transition-all hover:bg-primary/15"><Camera size={16} />Tirar fotografia</label>
+              <label htmlFor="report-photos" className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl border border-zinc-700 bg-zinc-950/80 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-zinc-300 transition-all hover:border-primary/50 hover:text-white"><Images size={16} />{t('app.reportModal.photos.import')}</label>
+              <label htmlFor="report-camera" className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl border border-primary/30 bg-primary/10 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-primary transition-all hover:bg-primary/15"><Camera size={16} />{t('app.reportModal.photos.capture')}</label>
             </div>
           </div>
         </div>
@@ -174,7 +176,7 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({
                   <div className="relative aspect-square overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900">
                     <img src={photo.src} alt={photo.alt} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]" />
                     <div className="absolute inset-0 flex items-end bg-gradient-to-t from-black/70 via-transparent to-transparent p-3 opacity-0 transition-opacity group-hover:opacity-100">
-                      <span className="rounded-full border border-white/10 bg-black/50 px-3 py-1 text-[9px] font-black uppercase tracking-widest text-white">Visualizar</span>
+                      <span className="rounded-full border border-white/10 bg-black/50 px-3 py-1 text-[9px] font-black uppercase tracking-widest text-white">{t('app.reportModal.actions.preview')}</span>
                     </div>
                   </div>
                   <p className="text-[10px] text-zinc-400">{photo.caption}</p>
@@ -190,7 +192,7 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({
                   <span className="text-xs font-bold text-zinc-300">{photo.file.name}</span>
                   <button type="button" onClick={() => setNewReport((current: NewReportState) => ({ ...current, fotos: current.fotos.filter((_, photoIndex) => photoIndex !== index) }))} className="text-[10px] font-bold uppercase tracking-widest text-red-500 hover:text-red-400">Remover</button>
                 </div>
-                <input type="text" placeholder="Legenda/descrição desta fotografia..." value={photo.caption} onChange={(event) => setNewReport((current: NewReportState) => { const updatedPhotos = [...current.fotos]; updatedPhotos[index] = { ...updatedPhotos[index], caption: event.target.value }; return { ...current, fotos: updatedPhotos }; })} className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-xs text-zinc-200 focus:border-primary focus:outline-none" />
+                <input type="text" placeholder={t('app.reportModal.photos.captionPlaceholder')} value={photo.caption} onChange={(event) => setNewReport((current: NewReportState) => { const updatedPhotos = [...current.fotos]; updatedPhotos[index] = { ...updatedPhotos[index], caption: event.target.value }; return { ...current, fotos: updatedPhotos }; })} className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-xs text-zinc-200 focus:border-primary focus:outline-none" />
               </div>
             ))}
           </div>
@@ -205,33 +207,33 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({
     }
     switch (item.id) {
       case 'base:title':
-        return <div key={item.id} className="space-y-2 md:col-span-2"><label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Título da ocorrência</label><input type="text" required value={newReport.titulo} onChange={(e) => setNewReport((c: NewReportState) => ({ ...c, titulo: e.target.value }))} placeholder="Ex: Intrusão Setor Norte" className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm focus:border-primary focus:outline-none" /></div>;
+        return <div key={item.id} className="space-y-2 md:col-span-2"><label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{t('app.reportModal.fields.title')}</label><input type="text" required value={newReport.titulo} onChange={(e) => setNewReport((c: NewReportState) => ({ ...c, titulo: e.target.value }))} placeholder={t('app.reportModal.placeholders.title')} className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm focus:border-primary focus:outline-none" /></div>;
       case 'base:category':
-        return <div key={item.id} className="space-y-2"><label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Categoria</label><select value={newReport.categoria} onChange={(e) => setNewReport((c: NewReportState) => ({ ...c, categoria: e.target.value }))} className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm focus:border-primary focus:outline-none"><option value="Valores">Proteção de Valores</option><option value="Perímetro">Perímetro</option><option value="Safety">Safety (HSE)</option><option value="Operativo">Operativo</option><option value="Logística">Logística</option><option value="Manutenção">Manutenção de Planta</option><option value="Informativo">Informativo</option></select></div>;
+        return <div key={item.id} className="space-y-2"><label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{t('forms.category')}</label><select value={newReport.categoria} onChange={(e) => setNewReport((c: NewReportState) => ({ ...c, categoria: e.target.value }))} className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm focus:border-primary focus:outline-none"><option value="Valores">{t('app.reportModal.categories.valuesProtection')}</option><option value="Perímetro">{t('categories.perimetro')}</option><option value="Safety">Safety (HSE)</option><option value="Operativo">{t('categories.operativo')}</option><option value="Logística">{t('categories.logistica')}</option><option value="Manutenção">{t('app.reportModal.categories.plantMaintenance')}</option><option value="Informativo">{t('categories.informativo')}</option></select></div>;
       case 'base:severity':
-        return <div key={item.id} className="space-y-2"><label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Gravidade</label><select value={newReport.gravidade} onChange={(e) => setNewReport((c: NewReportState) => ({ ...c, gravidade: e.target.value }))} className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm focus:border-primary focus:outline-none"><option value="G1">G1 (Baixa)</option><option value="G2">G2 (Média)</option><option value="G3">G3 (Alta)</option><option value="G4">G4 (Crítica)</option></select></div>;
+        return <div key={item.id} className="space-y-2"><label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{t('forms.severity')}</label><select value={newReport.gravidade} onChange={(e) => setNewReport((c: NewReportState) => ({ ...c, gravidade: e.target.value }))} className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm focus:border-primary focus:outline-none"><option value="G1">{t('severity.G1')}</option><option value="G2">{t('severity.G2')}</option><option value="G3">{t('severity.G3')}</option><option value="G4">{t('severity.G4')}</option></select></div>;
       case 'base:description':
-        return <div key={item.id} className="space-y-2 md:col-span-2"><label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Descrição da ocorrência</label><textarea required value={newReport.descricao} onChange={(e) => setNewReport((c: NewReportState) => ({ ...c, descricao: e.target.value }))} placeholder="Descreva detalhadamente o que aconteceu..." className="min-h-[120px] w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm focus:border-primary focus:outline-none" /></div>;
+        return <div key={item.id} className="space-y-2 md:col-span-2"><label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{t('app.reportModal.fields.description')}</label><textarea required value={newReport.descricao} onChange={(e) => setNewReport((c: NewReportState) => ({ ...c, descricao: e.target.value }))} placeholder={t('app.reportModal.placeholders.description')} className="min-h-[120px] w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm focus:border-primary focus:outline-none" /></div>;
       case 'base:safety_incident':
         return <div key={item.id} className="space-y-2"><label className="text-[10px] font-black uppercase tracking-widest text-orange-400">Tipo de incidente (Safety)</label><select value={newReport.metadata?.incidentType || ''} onChange={(e) => setNewReport((c: NewReportState) => ({ ...c, metadata: { ...(c.metadata || {}), incidentType: e.target.value } }))} className="w-full rounded-xl border border-orange-500/40 bg-zinc-950 px-4 py-3 text-sm focus:border-orange-500 focus:outline-none"><option value="">Selecione...</option><option value="Queda">Queda de mesmo nível</option><option value="Esmagamento">Risco de esmagamento</option><option value="Quimico">Derramamento químico</option><option value="Outro">Outro</option></select></div>;
       case 'base:safety_ppe':
         return <div key={item.id} className="space-y-2"><label className="text-[10px] font-black uppercase tracking-widest text-orange-400">Uso de EPI</label><select value={newReport.metadata?.ppeUsage || ''} onChange={(e) => setNewReport((c: NewReportState) => ({ ...c, metadata: { ...(c.metadata || {}), ppeUsage: e.target.value } }))} className="w-full rounded-xl border border-orange-500/40 bg-zinc-950 px-4 py-3 text-sm focus:border-orange-500 focus:outline-none"><option value="">Selecione...</option><option value="Total">Sim, todos adequados</option><option value="Parcial">Parcial / inadequado</option><option value="Nenhum">Não estava a usar</option></select></div>;
       case 'base:sector':
-        return <div key={item.id} className="space-y-2 md:col-span-2"><label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Setor / local</label><div className="flex flex-wrap gap-2 rounded-xl border border-zinc-800 bg-zinc-950/30 p-3">{configuredSectors.map((sector) => { const selected = newReport.setor ? newReport.setor.split(', ').includes(sector) : false; return <button key={sector} type="button" onClick={() => { const selectedItems = newReport.setor ? newReport.setor.split(', ').filter(Boolean) : []; const next = selected ? selectedItems.filter((item) => item !== sector) : [...selectedItems, sector]; setNewReport((c: NewReportState) => ({ ...c, setor: next.join(', ') })); }} className={cn('rounded-lg border px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest transition-all', selected ? 'border-primary/50 bg-primary/15 text-primary' : 'border-zinc-800 bg-zinc-900 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200')}>{sector}</button>; })}{configuredSectors.length === 0 && <p className="text-xs italic text-zinc-600">Nenhum setor parametrizado.</p>}</div></div>;
+        return <div key={item.id} className="space-y-2 md:col-span-2"><label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{t('app.reportModal.fields.sector')}</label><div className="flex flex-wrap gap-2 rounded-xl border border-zinc-800 bg-zinc-950/30 p-3">{configuredSectors.map((sector) => { const selected = newReport.setor ? newReport.setor.split(', ').includes(sector) : false; return <button key={sector} type="button" onClick={() => { const selectedItems = newReport.setor ? newReport.setor.split(', ').filter(Boolean) : []; const next = selected ? selectedItems.filter((item) => item !== sector) : [...selectedItems, sector]; setNewReport((c: NewReportState) => ({ ...c, setor: next.join(', ') })); }} className={cn('rounded-lg border px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest transition-all', selected ? 'border-primary/50 bg-primary/15 text-primary' : 'border-zinc-800 bg-zinc-900 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200')}>{sector}</button>; })}{configuredSectors.length === 0 && <p className="text-xs italic text-zinc-600">{t('app.reportModal.noConfiguredSector')}</p>}</div></div>;
       case 'base:people':
-        return <div key={item.id} className="space-y-2"><label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Pessoas envolvidas</label><input type="number" min="0" value={newReport.pessoas_envolvidas} onChange={(e) => setNewReport((c: NewReportState) => ({ ...c, pessoas_envolvidas: e.target.value }))} className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm focus:border-primary focus:outline-none" /></div>;
+        return <div key={item.id} className="space-y-2"><label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{t('app.reportModal.fields.people')}</label><input type="number" min="0" value={newReport.pessoas_envolvidas} onChange={(e) => setNewReport((c: NewReportState) => ({ ...c, pessoas_envolvidas: e.target.value }))} className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm focus:border-primary focus:outline-none" /></div>;
       case 'base:equipment':
-        return <div key={item.id} className="space-y-2"><label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Equipamento</label><input type="text" value={newReport.equipamento} onChange={(e) => setNewReport((c: NewReportState) => ({ ...c, equipamento: e.target.value }))} className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm focus:border-primary focus:outline-none" /></div>;
+        return <div key={item.id} className="space-y-2"><label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{t('app.reportModal.fields.equipment')}</label><input type="text" value={newReport.equipamento} onChange={(e) => setNewReport((c: NewReportState) => ({ ...c, equipamento: e.target.value }))} className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm focus:border-primary focus:outline-none" /></div>;
       case 'base:risk':
-        return <div key={item.id} className="space-y-2"><label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Potencial de risco</label><select value={newReport.potencial_risco} onChange={(e) => setNewReport((c: NewReportState) => ({ ...c, potencial_risco: e.target.value }))} className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm focus:border-primary focus:outline-none"><option value="">Selecione...</option><option value="Baixo">Baixo</option><option value="Médio">Médio</option><option value="Alto">Alto</option><option value="Crítico">Crítico</option></select></div>;
+        return <div key={item.id} className="space-y-2"><label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{t('app.reportModal.fields.risk')}</label><select value={newReport.potencial_risco} onChange={(e) => setNewReport((c: NewReportState) => ({ ...c, potencial_risco: e.target.value }))} className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm focus:border-primary focus:outline-none"><option value="">{t('app.reportModal.selectPlaceholder')}</option><option value="Baixo">{t('app.reportModal.risk.low')}</option><option value="Médio">{t('app.reportModal.risk.medium')}</option><option value="Alto">{t('app.reportModal.risk.high')}</option><option value="Crítico">{t('app.reportModal.risk.critical')}</option></select></div>;
       case 'base:witnesses':
-        return <div key={item.id} className="space-y-2 md:col-span-2"><label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Testemunhas</label><input type="text" value={newReport.testemunhas} onChange={(e) => setNewReport((c: NewReportState) => ({ ...c, testemunhas: e.target.value }))} placeholder="Nomes separados por vírgula" className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm focus:border-primary focus:outline-none" /></div>;
+        return <div key={item.id} className="space-y-2 md:col-span-2"><label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{t('forms.witnesses')}</label><input type="text" value={newReport.testemunhas} onChange={(e) => setNewReport((c: NewReportState) => ({ ...c, testemunhas: e.target.value }))} placeholder={t('app.reportModal.placeholders.witnesses')} className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm focus:border-primary focus:outline-none" /></div>;
       case 'base:immediate_action':
-        return <div key={item.id} className="space-y-2 md:col-span-2"><label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Ação imediata tomada</label><textarea value={newReport.acao_imediata} onChange={(e) => setNewReport((c: NewReportState) => ({ ...c, acao_imediata: e.target.value }))} placeholder="O que foi feito no momento?" className="min-h-[96px] w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm focus:border-primary focus:outline-none" /></div>;
+        return <div key={item.id} className="space-y-2 md:col-span-2"><label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{t('forms.immediateAction')}</label><textarea value={newReport.acao_imediata} onChange={(e) => setNewReport((c: NewReportState) => ({ ...c, acao_imediata: e.target.value }))} placeholder={t('app.reportModal.placeholders.immediateAction')} className="min-h-[96px] w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm focus:border-primary focus:outline-none" /></div>;
       case 'base:investigation':
-        return <div key={item.id} className="md:col-span-2"><label className="flex items-center gap-3 rounded-xl border border-zinc-800 bg-zinc-900/50 p-4"><input type="checkbox" checked={newReport.requer_investigacao} onChange={(e) => setNewReport((c: NewReportState) => ({ ...c, requer_investigacao: e.target.checked }))} className="h-5 w-5 rounded border-zinc-700 bg-zinc-900 text-primary focus:ring-primary/20" /><span className="text-sm font-bold text-zinc-300">Esta ocorrência requer investigação formal</span></label></div>;
+        return <div key={item.id} className="md:col-span-2"><label className="flex items-center gap-3 rounded-xl border border-zinc-800 bg-zinc-900/50 p-4"><input type="checkbox" checked={newReport.requer_investigacao} onChange={(e) => setNewReport((c: NewReportState) => ({ ...c, requer_investigacao: e.target.checked }))} className="h-5 w-5 rounded border-zinc-700 bg-zinc-900 text-primary focus:ring-primary/20" /><span className="text-sm font-bold text-zinc-300">{t('app.reportModal.fields.investigation')}</span></label></div>;
       case 'base:photos':
-        return <div key={item.id} className="space-y-2 md:col-span-2"><label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Galeria de evidências</label>{renderPhotosInput()}</div>;
+        return <div key={item.id} className="space-y-2 md:col-span-2"><label className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{t('app.reportModal.fields.photos')}</label>{renderPhotosInput()}</div>;
       default:
         return null;
     }
@@ -252,8 +254,8 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({
       case 'base:risk': return newReport.potencial_risco;
       case 'base:witnesses': return newReport.testemunhas;
       case 'base:immediate_action': return newReport.acao_imediata;
-      case 'base:investigation': return newReport.requer_investigacao ? 'Sim' : '';
-      case 'base:photos': return newReport.fotos.length > 0 ? `${newReport.fotos.length} fotografia(s)` : '';
+      case 'base:investigation': return newReport.requer_investigacao ? t('app.reportModal.yes') : '';
+      case 'base:photos': return newReport.fotos.length > 0 ? t('app.reportModal.photoCount', { count: newReport.fotos.length }) : '';
       default: return '';
     }
   };
@@ -266,8 +268,8 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({
             <form onSubmit={onSubmit} className="flex h-full flex-col">
               <div className="flex items-center justify-between border-b border-zinc-800/70 bg-zinc-950/60 px-5 py-5 md:px-7">
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.22em] text-primary">Nova ocorrência</p>
-                  <h3 className="mt-2 text-xl font-black uppercase tracking-tight text-white">Registar ocorrência</h3>
+                  <p className="text-[10px] font-black uppercase tracking-[0.22em] text-primary">{t('app.reportModal.newBadge')}</p>
+                  <h3 className="mt-2 text-xl font-black uppercase tracking-tight text-white">{t('app.reportModal.newTitle')}</h3>
                 </div>
                 <button type="button" onClick={onClose} className="text-zinc-500 transition-colors hover:text-white"><XCircle size={24} /></button>
               </div>
@@ -283,9 +285,9 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({
                 </div>
               </div>
               <div className="no-print flex flex-col-reverse justify-end gap-3 border-t border-zinc-800 bg-zinc-900/40 p-4 sm:flex-row md:p-6">
-                <button type="button" onClick={onClose} className="w-full rounded-lg border border-zinc-800 bg-zinc-900/50 px-6 py-2.5 text-[10px] font-black uppercase tracking-widest text-zinc-500 transition-all hover:text-white sm:w-auto">Cancelar</button>
-                <button type="button" onClick={onPreview} className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-8 py-2.5 text-[10px] font-black uppercase tracking-widest text-white transition-all hover:bg-zinc-700 sm:w-auto">Visualizar</button>
-                <button type="submit" className="w-full rounded-lg bg-primary px-8 py-3 text-[10px] font-black uppercase tracking-widest text-black shadow-lg shadow-primary/20 transition-all hover:bg-primary/90 sm:w-auto">Transmitir relatório</button>
+                <button type="button" onClick={onClose} className="w-full rounded-lg border border-zinc-800 bg-zinc-900/50 px-6 py-2.5 text-[10px] font-black uppercase tracking-widest text-zinc-500 transition-all hover:text-white sm:w-auto">{t('forms.cancel')}</button>
+                <button type="button" onClick={onPreview} className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-8 py-2.5 text-[10px] font-black uppercase tracking-widest text-white transition-all hover:bg-zinc-700 sm:w-auto">{t('app.reportModal.actions.preview')}</button>
+                <button type="submit" className="w-full rounded-lg bg-primary px-8 py-3 text-[10px] font-black uppercase tracking-widest text-black shadow-lg shadow-primary/20 transition-all hover:bg-primary/90 sm:w-auto">{t('app.reportModal.actions.submit')}</button>
               </div>
             </form>
           </motion.div>
@@ -295,13 +297,13 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({
       {showPreview && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/90 p-4 backdrop-blur-md">
           <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="w-full max-w-3xl overflow-hidden rounded-2xl border border-zinc-800 bg-[#0a0a0a] shadow-2xl">
-            <div className="flex items-center justify-between border-b border-zinc-800 bg-zinc-900/20 p-6"><h3 className="text-xl font-black uppercase tracking-tighter">Visualização da ocorrência</h3><button type="button" onClick={onClosePreview} className="text-zinc-500 transition-colors hover:text-white"><XCircle size={24} /></button></div>
+            <div className="flex items-center justify-between border-b border-zinc-800 bg-zinc-900/20 p-6"><h3 className="text-xl font-black uppercase tracking-tighter">{t('app.reportModal.previewTitle')}</h3><button type="button" onClick={onClosePreview} className="text-zinc-500 transition-colors hover:text-white"><XCircle size={24} /></button></div>
             <div className="max-h-[75vh] space-y-4 overflow-y-auto p-4 sm:p-6">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {visibleItems.filter((item) => previewValue(item)).map((item) => <div key={`preview-${item.id}`} className={cn('space-y-2', (item.type === 'textarea' || item.type === 'multiselect' || item.type === 'checkbox' || item.id === 'base:photos') && 'sm:col-span-2')}><p className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{item.label}</p><div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-3 text-sm text-zinc-300">{previewValue(item)}</div></div>)}
               </div>
             </div>
-            <div className="flex justify-end gap-3 border-t border-zinc-800 bg-zinc-900/20 p-6"><button type="button" onClick={onClosePreview} className="px-6 py-2.5 text-[10px] font-black uppercase tracking-widest text-zinc-500 transition-colors hover:text-white">Voltar</button><button type="button" onClick={onConfirmPreview} className="rounded-lg bg-primary px-8 py-2.5 text-[10px] font-black uppercase tracking-widest text-black shadow-lg shadow-primary/20 transition-all hover:bg-primary/90">Confirmar e enviar</button></div>
+            <div className="flex justify-end gap-3 border-t border-zinc-800 bg-zinc-900/20 p-6"><button type="button" onClick={onClosePreview} className="px-6 py-2.5 text-[10px] font-black uppercase tracking-widest text-zinc-500 transition-colors hover:text-white">{t('app.reportModal.actions.back')}</button><button type="button" onClick={onConfirmPreview} className="rounded-lg bg-primary px-8 py-2.5 text-[10px] font-black uppercase tracking-widest text-black shadow-lg shadow-primary/20 transition-all hover:bg-primary/90">{t('app.reportModal.actions.confirmAndSend')}</button></div>
           </motion.div>
         </div>
       )}

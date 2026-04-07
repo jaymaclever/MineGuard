@@ -1716,12 +1716,23 @@ export default function App() {
         credentials: 'include'
       });
       
+      const data = await res.json();
+
       if (res.ok) {
+        if (editingUser && currentUser?.id === editingUser.id) {
+          const updatedSelf = data.user || { ...currentUser, ...newUser };
+          const normalizedPreferredLanguage = normalizeLanguage(updatedSelf.preferred_language || 'pt');
+          setCurrentUser((current) => (current ? { ...current, ...updatedSelf, preferred_language: normalizedPreferredLanguage } : current));
+          i18n.changeLanguage(normalizedPreferredLanguage);
+          localStorage.setItem('language', normalizedPreferredLanguage);
+        }
         toast.success(editingUser ? "Utilizador atualizado!" : "Utilizador criado!");
         setIsNewUserModalOpen(false);
         setEditingUser(null);
         setNewUser({ nome: '', funcao: '', numero_mecanografico: '', nivel_hierarquico: 'Agente', password: '', preferred_language: 'pt' });
         fetchData();
+      } else {
+        toast.error(data.message || "Erro ao guardar utilizador");
       }
     } catch (err) {
       toast.error("Erro ao guardar utilizador");
@@ -1875,21 +1886,21 @@ export default function App() {
   const COLORS = ['#f97316', '#3b82f6', '#10b981', '#ef4444', '#a855f7', '#eab308'];
   const activeViewMeta: Record<string, { title: string; subtitle: string }> = {
     dashboard: { title: t('app.sidebar.dashboard'), subtitle: t('app.dashboard.realtimeOverview') },
-    command_center: { title: 'Centro de Comando', subtitle: 'Prioridades operacionais, alertas e atalhos do turno.' },
-    critical_occurrences: { title: 'Ocorrências Críticas', subtitle: 'Priorização de G3 e G4 com foco na resposta.' },
-    timeline: { title: 'Linha do Tempo', subtitle: 'Leitura cronológica da atividade recente.' },
-    evidence_library: { title: 'Biblioteca de Evidências', subtitle: 'Consulta visual das fotografias associadas às ocorrências.' },
-    shifts: { title: 'Turnos', subtitle: 'Carga operacional do turno e atividade da equipa.' },
-    reports: { title: t('app.sidebar.occurrences'), subtitle: 'Registos operacionais, filtros e histórico consolidado.' },
-    daily_reports: { title: t('app.sidebar.dailyReports'), subtitle: 'Geração, pesquisa e exportação dos relatórios diários.' },
-    personal_reports: { title: t('app.sidebar.myReports'), subtitle: 'Acompanhamento pessoal dos teus registos.' },
-    daily_report_personal: { title: t('app.sidebar.myDay'), subtitle: 'Resumo pessoal do dia de operação.' },
-    daily_report_team: { title: t('app.sidebar.teamDay'), subtitle: 'Visão consolidada do dia da equipa.' },
-    alerts: { title: t('app.sidebar.alerts'), subtitle: 'Comunicação operacional e avisos prioritários.' },
-    users: { title: t('app.sidebar.staffManagement'), subtitle: 'Gestão de utilizadores, funções e acesso.' },
-    permissions: { title: t('app.sidebar.permissionsRoles'), subtitle: 'Perfis, hierarquia e matriz de permissões.' },
-    settings: { title: t('app.sidebar.settings'), subtitle: 'Integrações, notificações e ajustes do sistema.' },
-    parametrization: { title: t('app.sidebar.parametrization'), subtitle: 'Comportamentos operacionais e identidade do produto.' },
+    command_center: { title: t('app.shell.views.commandCenter.title'), subtitle: t('app.shell.views.commandCenter.subtitle') },
+    critical_occurrences: { title: t('app.shell.views.criticalOccurrences.title'), subtitle: t('app.shell.views.criticalOccurrences.subtitle') },
+    timeline: { title: t('app.shell.views.timeline.title'), subtitle: t('app.shell.views.timeline.subtitle') },
+    evidence_library: { title: t('app.shell.views.evidenceLibrary.title'), subtitle: t('app.shell.views.evidenceLibrary.subtitle') },
+    shifts: { title: t('app.shell.views.shifts.title'), subtitle: t('app.shell.views.shifts.subtitle') },
+    reports: { title: t('app.sidebar.occurrences'), subtitle: t('app.shell.views.reports.subtitle') },
+    daily_reports: { title: t('app.sidebar.dailyReports'), subtitle: t('app.shell.views.dailyReports.subtitle') },
+    personal_reports: { title: t('app.sidebar.myReports'), subtitle: t('app.shell.views.personalReports.subtitle') },
+    daily_report_personal: { title: t('app.sidebar.myDay'), subtitle: t('app.shell.views.dailyReportPersonal.subtitle') },
+    daily_report_team: { title: t('app.sidebar.teamDay'), subtitle: t('app.shell.views.dailyReportTeam.subtitle') },
+    alerts: { title: t('app.sidebar.alerts'), subtitle: t('app.shell.views.alerts.subtitle') },
+    users: { title: t('app.sidebar.staffManagement'), subtitle: t('app.shell.views.users.subtitle') },
+    permissions: { title: t('app.sidebar.permissionsRoles'), subtitle: t('app.shell.views.permissions.subtitle') },
+    settings: { title: t('app.sidebar.settings'), subtitle: t('app.shell.views.settings.subtitle') },
+    parametrization: { title: t('app.sidebar.parametrization'), subtitle: t('app.shell.views.parametrization.subtitle') },
   };
 
   const handleImportUsers = async (file: File) => {
@@ -2048,20 +2059,20 @@ export default function App() {
         </div>
         
         <nav className="custom-scrollbar flex-1 overflow-y-auto px-2.5 py-4 space-y-1">
-          {!isCompactNavigation && <p className="nav-section-label">Operação</p>}
+          {!isCompactNavigation && <p className="nav-section-label">{t('app.shell.navigation.operation')}</p>}
           {currentUser.permissions?.view_dashboard === true && <SidebarItem icon={Activity} label={t('app.sidebar.dashboard')} active={activeTab === 'dashboard'} compact={isCompactNavigation} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('dashboard')} />}
-          {currentUser.permissions?.view_dashboard === true && <SidebarItem icon={Shield} label={'Centro de Comando'} active={activeTab === 'command_center'} compact={isCompactNavigation} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('command_center')} />}
-          {currentUser.permissions?.view_reports === true && <SidebarItem icon={AlertTriangle} label={'Ocorrências Críticas'} active={activeTab === 'critical_occurrences'} compact={isCompactNavigation} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('critical_occurrences')} />}
-          {currentUser.permissions?.view_dashboard === true && <SidebarItem icon={Clock} label={'Linha do Tempo'} active={activeTab === 'timeline'} compact={isCompactNavigation} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('timeline')} />}
-          {currentUser.permissions?.view_reports === true && <SidebarItem icon={Camera} label={'Biblioteca de Evidências'} active={activeTab === 'evidence_library'} compact={isCompactNavigation} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('evidence_library')} />}
-          {currentUser.permissions?.view_team_daily && <SidebarItem icon={Users} label={'Turnos'} active={activeTab === 'shifts'} compact={isCompactNavigation} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('shifts')} />}
+          {currentUser.permissions?.view_dashboard === true && <SidebarItem icon={Shield} label={t('app.shell.views.commandCenter.title')} active={activeTab === 'command_center'} compact={isCompactNavigation} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('command_center')} />}
+          {currentUser.permissions?.view_reports === true && <SidebarItem icon={AlertTriangle} label={t('app.shell.views.criticalOccurrences.title')} active={activeTab === 'critical_occurrences'} compact={isCompactNavigation} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('critical_occurrences')} />}
+          {currentUser.permissions?.view_dashboard === true && <SidebarItem icon={Clock} label={t('app.shell.views.timeline.title')} active={activeTab === 'timeline'} compact={isCompactNavigation} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('timeline')} />}
+          {currentUser.permissions?.view_reports === true && <SidebarItem icon={Camera} label={t('app.shell.views.evidenceLibrary.title')} active={activeTab === 'evidence_library'} compact={isCompactNavigation} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('evidence_library')} />}
+          {currentUser.permissions?.view_team_daily && <SidebarItem icon={Users} label={t('app.shell.views.shifts.title')} active={activeTab === 'shifts'} compact={isCompactNavigation} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('shifts')} />}
           {currentUser.permissions?.view_reports === true && <SidebarItem icon={FileText} label={t('app.sidebar.occurrences')} active={activeTab === 'reports'} compact={isCompactNavigation} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('reports')} />}
           {currentUser.permissions?.view_daily_reports === true && <SidebarItem icon={Calendar} label={t('app.sidebar.dailyReports')} active={activeTab === 'daily_reports'} compact={isCompactNavigation} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('daily_reports')} />}
           <SidebarItem icon={FileText} label={t('app.sidebar.myReports')} active={activeTab === 'personal_reports'} compact={isCompactNavigation} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('personal_reports')} />
           <SidebarItem icon={Calendar} label={t('app.sidebar.myDay')} active={activeTab === 'daily_report_personal'} compact={isCompactNavigation} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('daily_report_personal')} />
           {currentUser.permissions?.view_team_daily && <SidebarItem icon={Users} label={t('app.sidebar.teamDay')} active={activeTab === 'daily_report_team'} compact={isCompactNavigation} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('daily_report_team')} />}
           <SidebarItem icon={AlertTriangle} label={t('app.sidebar.alerts')} active={activeTab === 'alerts'} compact={isCompactNavigation} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('alerts')} />
-          {(currentUser.permissions?.manage_users === true || currentUser.permissions?.manage_permissions === true || canManageSystem) && !isCompactNavigation && <p className="nav-section-label mt-6">Administração</p>}
+          {(currentUser.permissions?.manage_users === true || currentUser.permissions?.manage_permissions === true || canManageSystem) && !isCompactNavigation && <p className="nav-section-label mt-6">{t('app.shell.navigation.administration')}</p>}
           {currentUser.permissions?.manage_users === true && <SidebarItem icon={Users} label={t('app.sidebar.staffManagement')} active={activeTab === 'users'} compact={isCompactNavigation} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('users')} />}
           {currentUser.permissions?.manage_permissions === true && <SidebarItem icon={Lock} label={t('app.sidebar.permissionsRoles')} active={activeTab === 'permissions'} compact={isCompactNavigation} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('permissions')} />}
           {canManageSystem && <SidebarItem icon={SettingsIcon} label={t('app.sidebar.settings')} active={activeTab === 'settings'} compact={isCompactNavigation} onHoverHint={setCompactSidebarHint} onClick={() => setActiveTab('settings')} />}
@@ -2102,7 +2113,7 @@ export default function App() {
             style={{ top: compactSidebarHint.top, left: compactSidebarHint.left, transform: 'translateY(-50%)' }}
           >
             <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-1)]/96 px-4 py-3 shadow-[0_18px_48px_rgba(0,0,0,0.22)] backdrop-blur-xl">
-              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-primary">Navegação</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-primary">{t('app.shell.navigation.label')}</p>
               <p className="mt-1 whitespace-nowrap text-xs font-black uppercase tracking-[0.08em] text-[var(--text-main)]">
                 {compactSidebarHint.label}
               </p>
@@ -2126,10 +2137,10 @@ export default function App() {
               {!focusMode && <p className="hidden max-w-2xl truncate text-[11px] text-[var(--text-muted)] xl:block">{currentViewMeta.subtitle}</p>}
               {focusMode && (
                 <div className="mt-1 hidden lg:flex items-center gap-2 text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--text-muted)]">
-                  <span className="rounded-full border border-primary/20 bg-primary/10 px-2 py-1 text-primary">Foco operacional</span>
-                  <span>menos ruído</span>
+                  <span className="rounded-full border border-primary/20 bg-primary/10 px-2 py-1 text-primary">{t('app.shell.focus.badge')}</span>
+                  <span>{t('app.shell.focus.lessNoise')}</span>
                   <span className="text-[var(--border-strong)]">•</span>
-                  <span>mais área útil</span>
+                  <span>{t('app.shell.focus.moreSpace')}</span>
                 </div>
               )}
             </div>
@@ -2138,7 +2149,7 @@ export default function App() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] group-focus-within:text-primary transition-colors" size={16} />
                 <input 
                   type="text" 
-                  placeholder="Pesquisar registos..." 
+                  placeholder={t('app.shell.searchPlaceholder')}
                   className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-main)]/50 py-2 pl-10 pr-4 text-[13px] focus:outline-none focus:border-primary/50 focus:bg-[var(--bg-main)] transition-all"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -2149,18 +2160,18 @@ export default function App() {
           
           <div className="flex items-center gap-2 md:gap-3 shrink-0">
             {/* Network Status Indicator */}
-            <div className="hidden lg:flex items-center overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface-1)] shadow-sm" title="Estado de ligação e utilizadores online neste momento">
+            <div className="hidden lg:flex items-center overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface-1)] shadow-sm" title={t('app.shell.online.tooltip')}>
               <div className="flex items-center gap-2 px-2.5 py-1.5">
                 <div className={cn("w-2 h-2 rounded-full", isOnline ? "bg-green-500 animate-pulse" : "bg-orange-500")} />
                 <span className={cn("text-[9px] font-bold uppercase tracking-[0.14em]", isOnline ? "text-green-500" : "text-orange-500")}>
-                  {isOnline ? "Online" : "Offline"}
+                  {isOnline ? t('app.shell.online.online') : t('app.shell.online.offline')}
                 </span>
               </div>
               <div className="h-6 w-px bg-[var(--border)]" />
               <div className="flex items-center gap-2 px-2.5 py-1.5">
                 <div className="w-2 h-2 rounded-full bg-sky-500 animate-pulse" />
                 <span className="text-[9px] font-bold uppercase tracking-[0.14em] text-sky-500">
-                  {onlineUsersCount} utilizador{onlineUsersCount === 1 ? '' : 'es'} online
+                  {t('app.shell.online.usersOnline', { count: onlineUsersCount })}
                 </span>
               </div>
             </div>
@@ -2169,10 +2180,10 @@ export default function App() {
             <button 
               onClick={() => setFocusMode(!focusMode)}
               className={cn("hidden lg:flex items-center gap-2 rounded-xl border px-2.5 py-1.5 transition-all shadow-sm", focusMode ? "bg-primary/12 border-primary/30 text-primary shadow-[0_0_24px_rgba(var(--primary-rgb),0.16)]" : "bg-[var(--surface-1)] border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text-main)]")}
-              title={focusMode ? "Sair do modo foco" : "Ativar modo foco operacional"}
+              title={focusMode ? t('app.shell.focus.exitTitle') : t('app.shell.focus.enterTitle')}
             >
               <Activity size={12} className={focusMode ? "animate-pulse" : ""} />
-              <span className="text-[9px] font-bold uppercase tracking-[0.14em]">{focusMode ? "Sair do Foco" : "Modo Foco"}</span>
+              <span className="text-[9px] font-bold uppercase tracking-[0.14em]">{focusMode ? t('app.shell.focus.exit') : t('app.shell.focus.enter')}</span>
             </button>
 
             <button 
@@ -2227,19 +2238,19 @@ export default function App() {
                     className="absolute right-0 z-50 mt-2 w-[20rem] overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] shadow-2xl xl:w-[22rem]"
                   >
                       <div className="p-4 border-b border-[var(--border)] flex items-center justify-between">
-                        <h3 className="text-xs font-black uppercase tracking-widest text-[var(--text-main)]">Notificações</h3>
+                        <h3 className="text-xs font-black uppercase tracking-widest text-[var(--text-main)]">{t('app.shell.notifications.title')}</h3>
                         <button 
                           onClick={() => setNotifications(prev => prev.map(n => ({ ...n, read: true })))}
                           className="text-[10px] font-bold text-primary hover:underline"
                         >
-                          Marcar todas como lidas
+                          {t('app.shell.notifications.markAllRead')}
                         </button>
                       </div>
                       <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
                         {notifications.length === 0 ? (
                           <div className="p-8 text-center">
                             <Bell className="mx-auto text-[var(--text-muted)] mb-2 opacity-20" size={32} />
-                            <p className="text-xs text-[var(--text-muted)]">Nenhuma notificação</p>
+                            <p className="text-xs text-[var(--text-muted)]">{t('app.shell.notifications.empty')}</p>
                           </div>
                         ) : (
                           notifications.map(notif => (
@@ -2273,7 +2284,7 @@ export default function App() {
                                   <div className="flex items-center gap-2">
                                     <p className="text-xs font-bold text-[var(--text-main)] truncate">{notif.title}</p>
                                     {!notif.read && (
-                                      <span className="px-1.5 py-0.5 bg-primary text-primary-foreground text-[8px] font-black rounded uppercase tracking-tighter">Novo</span>
+                                      <span className="px-1.5 py-0.5 bg-primary text-primary-foreground text-[8px] font-black rounded uppercase tracking-tighter">{t('app.shell.notifications.new')}</span>
                                     )}
                                   </div>
                                   <p className="text-[10px] text-[var(--text-muted)] mt-1 line-clamp-2 leading-relaxed">{notif.message}</p>
@@ -2294,7 +2305,7 @@ export default function App() {
                           onClick={() => setNotifications([])}
                           className="w-full p-3 text-[10px] font-bold text-zinc-500 hover:text-[var(--text-main)] border-t border-[var(--border)] transition-colors uppercase tracking-widest"
                         >
-                          Limpar tudo
+                          {t('app.shell.notifications.clearAll')}
                         </button>
                       )}
                     </motion.div>
@@ -2336,7 +2347,7 @@ export default function App() {
                     <div className="max-w-3xl">
                       <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.24em] text-primary">
                         <Activity size={12} />
-                        Sala de situação
+                        {t('app.dashboard.situationRoom')}
                       </div>
                       <h2 className="mt-3 text-[1.9rem] font-black tracking-tight text-[var(--text-main)] md:text-[2.4rem]">{t('app.dashboard.commandCenter')}</h2>
                       <p className="mt-2 text-sm text-[var(--text-muted)] md:text-[15px]">{t('app.dashboard.realtimeOverview')}</p>
@@ -2362,7 +2373,7 @@ export default function App() {
 
                 {/* Charts Grid */}
                 <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
-                  <Card title="Volume de Ocorrências" className="lg:col-span-2">
+                  <Card title={t('app.dashboard.occurrenceVolume')} className="lg:col-span-2">
                     <div className="h-[250px] md:h-[300px] w-full mt-4">
                       <ResponsiveContainer width="100%" height="100%">
                         <AreaChart data={stats?.reportsLast7Days || []}>
@@ -2455,12 +2466,12 @@ export default function App() {
                 <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
                   <Card 
                     title={t('app.dashboard.latestOccurrences')} 
-                    subtitle="Registos mais recentes no sistema"
+                    subtitle={t('app.dashboard.latestOccurrencesSubtitle')}
                     action={
                       <button 
                         onClick={() => window.print()}
                         className="rounded-lg p-2 text-[var(--text-muted)] transition-all hover:bg-[var(--surface-3)] hover:text-[var(--text-main)] no-print"
-                        title="Exportar Lista para PDF"
+                        title={t('app.dashboard.exportListPdf')}
                       >
                         <Printer size={16} />
                       </button>
@@ -2483,32 +2494,32 @@ export default function App() {
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between mb-0.5">
-                              <p className="truncate text-xs font-black uppercase text-[var(--text-main)] transition-colors group-hover:text-primary">{report.titulo || 'Sem Título'}</p>
+                              <p className="truncate text-xs font-black uppercase text-[var(--text-main)] transition-colors group-hover:text-primary">{report.titulo || t('app.dashboard.untitledOccurrence')}</p>
                               <span className="text-[9px] font-bold text-[var(--text-faint)]">{formatTime(report.timestamp, normalizeLanguage(i18n.language))}</span>
                             </div>
                             <p className="line-clamp-1 text-[10px] text-[var(--text-muted)]">{report.descricao}</p>
-                            <button className="sm:hidden mt-1 text-[8px] font-black text-primary uppercase tracking-widest">Mais detalhes</button>
+                            <button className="sm:hidden mt-1 text-[8px] font-black text-primary uppercase tracking-widest">{t('app.dashboard.moreDetails')}</button>
                           </div>
                           <ChevronRight size={14} className="text-[var(--text-faint)] transition-colors group-hover:text-[var(--text-main)]" />
                         </div>
                       ))}
                       {reports.length === 0 && (
-                        <p className="py-8 text-center text-[10px] font-bold uppercase tracking-widest text-[var(--text-faint)]">Nenhum registo recente</p>
+                        <p className="py-8 text-center text-[10px] font-bold uppercase tracking-widest text-[var(--text-faint)]">{t('app.dashboard.noRecentRecords')}</p>
                       )}
                       <button 
                         onClick={() => setActiveTab('reports')}
                         className="mt-2 w-full border-t border-[var(--border)] py-2 text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] transition-colors hover:text-primary"
                       >
-                        Ver Todos os Registos
+                        {t('app.dashboard.viewAllRecords')}
                       </button>
                     </div>
                   </Card>
 
-                  <Card title="Alertas" subtitle="Notificações críticas e avisos">
+                  <Card title={t('app.sidebar.alerts')} subtitle={t('app.dashboard.alertsSubtitle')}>
                     {alerts.length === 0 ? (
                       <div className="p-8 text-center">
                         <AlertTriangle className="mx-auto mb-2 text-[var(--text-faint)]" size={32} />
-                        <p className="text-xs text-[var(--text-muted)]">Nenhum alerta no momento</p>
+                        <p className="text-xs text-[var(--text-muted)]">{t('app.dashboard.noAlerts')}</p>
                       </div>
                     ) : (
                       <div className="mt-3 max-h-64 space-y-2.5 overflow-y-auto">

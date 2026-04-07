@@ -1344,7 +1344,10 @@ async function startServer() {
       
       const stmt = db.prepare(query);
       stmt.run(...params);
-      res.json({ status: "success" });
+      const updatedUser = db
+        .prepare("SELECT id, nome, funcao, numero_mecanografico, nivel_hierarquico, preferred_language FROM users WHERE id = ?")
+        .get(id);
+      res.json({ status: "success", user: updatedUser });
     } catch (err: any) {
       res.status(500).json({ status: "error", message: err.message });
     }
